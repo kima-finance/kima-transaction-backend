@@ -7,12 +7,13 @@ import CookieParser from 'cookie-parser'
 import { validate } from './validate'
 import { RiskResult, RiskScore, getRisk, RiskScore2String } from './xplorisk'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
+import { getNextAddress, getOrCreateWallet } from './walletsQueue'
 
 dotenv.config()
 
 const app: Express = express()
 const port = process.env.PORT || 3001
-
+const RETRIES = Number(process.env.TX_RETRIES || '1')
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -145,21 +146,40 @@ app.post('/submit', authenticateJWT, async (req: Request, res: Response) => {
     }
   }
 
-  try {
-    const result = await submitKimaTransaction({
-      originAddress,
-      originChain,
-      targetAddress,
-      targetChain,
-      symbol,
-      amount,
-      fee
-    })
-    console.log(result)
-    res.send(result)
-  } catch (e) {
-    console.log(e)
-    res.status(500).send('failed to submit transaction')
+  let attempt = 0
+  const wallet = await getOrCreateWallet()
+  let fromAddress = getNextAddress()
+  while (attempt < RETRIES) {
+    try {
+      const result = await submitKimaTransaction({
+        originAddress,
+        originChain,
+        targetAddress,
+        targetChain,
+        symbol,
+        amount,
+        fee,
+        fromAddress,
+        wallet
+      })
+      console.log(result)
+      res.send(result)
+    } catch (e) {
+      console.log(e)
+      attempt++
+      if (attempt < RETRIES) {
+        const failedAddress = fromAddress
+        fromAddress = getNextAddress()
+        console.log('retrying tx...', {
+          attempt,
+          RETRIES,
+          failedAddress,
+          nextAddress: fromAddress
+        })
+      } else {
+        res.status(500).send('failed to submit transaction')
+      }
+    }
   }
 })
 
