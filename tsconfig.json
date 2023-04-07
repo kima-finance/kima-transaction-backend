@@ -11,5 +11,11 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
   },
-  "exclude": ["kima-transaction-api"]
+  "include": ["src"],
+  "exclude": [
+    "./jest.config.js",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "kima-transaction-api"
+  ]
 }

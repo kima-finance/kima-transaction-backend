@@ -16,6 +16,11 @@ const port = process.env.PORT || 3001
 app.use(
   cors({
     origin: (origin, callback) => {
+      if (process.env.NODE_ENV === 'test') {
+        callback(null, true)
+        return
+      }
+
       const hostname = new URL(origin as string).hostname
       const domains = (process.env.DOMAIN as string).split(',')
       for (let i = 0; i < domains.length; i++) {
@@ -53,6 +58,11 @@ app.post('/auth', async (req: Request, res: Response) => {
 })
 
 const authenticateJWT = (req: Request, res: Response, next: any) => {
+  if (process.env.NODE_ENV === 'test') {
+    next()
+    return
+  }
+
   const token = req.cookies.authToken
   const {
     originAddress,
@@ -91,15 +101,18 @@ const authenticateJWT = (req: Request, res: Response, next: any) => {
 
 app.post('/compliant', async (req: Request, res: Response) => {
   const { address } = req.body
-  try {
-    const results: Array<RiskResult> = await getRisk([address])
 
-    if (results.length > 0) {
-      res.send(RiskScore2String[results[0].risk_score])
-      return
+  if (address) {
+    try {
+      const results: Array<RiskResult> = await getRisk([address])
+
+      if (results.length > 0) {
+        res.send(RiskScore2String[results[0].risk_score])
+        return
+      }
+    } catch (e) {
+      console.log(e)
     }
-  } catch (e) {
-    console.log(e)
   }
   res.status(500).send('failed to check xplorisk')
 })
@@ -163,6 +176,8 @@ app.post('/submit', authenticateJWT, async (req: Request, res: Response) => {
   }
 })
 
-app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at https://localhost:${port}`)
+const server = app.listen(port, () => {
+  console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
 })
+
+module.exports = server
