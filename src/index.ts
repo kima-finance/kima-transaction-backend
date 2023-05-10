@@ -46,10 +46,10 @@ app.use(
 
 app.post('/auth', async (req: Request, res: Response) => {
   const token = jwt.sign(req.body, process.env.KIMA_BACKEND_SECRET as string, {
-    expiresIn: '5s'
+    expiresIn: '10s'
   })
   res.cookie('authToken', token, {
-    maxAge: 5000,
+    maxAge: 10000,
     httpOnly: true,
     sameSite: 'none',
     secure: true
