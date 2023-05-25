@@ -135,26 +135,30 @@ app.post('/submit', authenticateJWT, async (req: Request, res: Response) => {
   }
 
   if (process.env.XPLORISK_URL) {
-    const results: Array<RiskResult> = await getRisk([
-      originAddress,
-      targetAddress
-    ])
+    try {
+      const results: Array<RiskResult> = await getRisk([
+        originAddress,
+        targetAddress
+      ])
 
-    const totalRisky: number = results.reduce(
-      (a, c) => a + (c.risk_score !== RiskScore.LOW ? 1 : 0),
-      0
-    )
-    if (totalRisky > 0) {
-      let riskyResult = ''
-      for (let i = 0; i < results.length; i++) {
-        if (results[i].risk_score === RiskScore.LOW) continue
-        if (riskyResult.length > 0) riskyResult += ', '
-        riskyResult += `${results[i].address} has ${
-          RiskScore2String[results[i].risk_score]
-        } risk`
+      const totalRisky: number = results.reduce(
+        (a, c) => a + (c.risk_score !== RiskScore.LOW ? 1 : 0),
+        0
+      )
+      if (totalRisky > 0) {
+        let riskyResult = ''
+        for (let i = 0; i < results.length; i++) {
+          if (results[i].risk_score === RiskScore.LOW) continue
+          if (riskyResult.length > 0) riskyResult += ', '
+          riskyResult += `${results[i].address} has ${
+            RiskScore2String[results[i].risk_score]
+          } risk`
+        }
+        res.status(500).send(riskyResult)
+        return
       }
-      res.status(500).send(riskyResult)
-      return
+    } catch (e) {
+      console.log(e)
     }
   }
 
