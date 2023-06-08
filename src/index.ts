@@ -7,7 +7,7 @@ import CookieParser from 'cookie-parser'
 import { validate } from './validate'
 import { RiskResult, RiskScore, getRisk, RiskScore2String } from './xplorisk'
 import {
-  SupportNetworks,
+  SupportedNetworks,
   submitKimaTransaction
 } from '@kimafinance/kima-transaction-api'
 import { CurrencyOptions } from '@kimafinance/kima-transaction-api'
@@ -130,9 +130,9 @@ app.post(
     try {
       const result = await submitKimaTransaction({
         originAddress: '0x1150bd27bA25fa13806C98324F201dfe815A4502',
-        originChain: SupportNetworks.Ethereum,
+        originChain: SupportedNetworks.ETHEREUM,
         targetAddress: '0x97810930b49D820205Be8eFe370201D32d9255B5',
-        targetChain: SupportNetworks.Polygon,
+        targetChain: SupportedNetworks.POLYGON,
         symbol: CurrencyOptions.USDT,
         amount: 5,
         fee: 0
