@@ -121,30 +121,26 @@ app.post('/compliant', async (req: Request, res: Response) => {
   res.status(500).send('failed to check xplorisk')
 })
 
-app.post(
-  '/submit-btc',
-  authenticateJWT,
-  async (req: Request, res: Response) => {
-    console.log(req.body)
+app.post('/submit-btc', async (req: Request, res: Response) => {
+  console.log(req.body)
 
-    try {
-      const result = await submitKimaTransaction({
-        originAddress: '0x1150bd27bA25fa13806C98324F201dfe815A4502',
-        originChain: SupportedNetworks.ETHEREUM,
-        targetAddress: '0x97810930b49D820205Be8eFe370201D32d9255B5',
-        targetChain: SupportedNetworks.POLYGON,
-        symbol: CurrencyOptions.USDT,
-        amount: 5,
-        fee: 0
-      })
-      console.log(result)
-      res.send(result)
-    } catch (e) {
-      console.log(e)
-      res.status(500).send('failed to submit transaction')
-    }
+  try {
+    const result = await submitKimaTransaction({
+      originAddress: '0x1150bd27bA25fa13806C98324F201dfe815A4502',
+      originChain: SupportedNetworks.ETHEREUM,
+      targetAddress: '0x97810930b49D820205Be8eFe370201D32d9255B5',
+      targetChain: SupportedNetworks.POLYGON,
+      symbol: CurrencyOptions.USDT,
+      amount: 5,
+      fee: 0
+    })
+    console.log(result)
+    res.send(result)
+  } catch (e) {
+    console.log(e)
+    res.status(500).send('failed to submit transaction')
   }
-)
+})
 
 app.post('/submit', authenticateJWT, async (req: Request, res: Response) => {
   const {
