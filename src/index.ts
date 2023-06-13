@@ -7,7 +7,7 @@ import CookieParser from 'cookie-parser'
 import { validate } from './validate'
 import { RiskResult, RiskScore, getRisk, RiskScore2String } from './xplorisk'
 import {
-  SupportedNetworks,
+  SupportNetworks,
   submitKimaTransaction
 } from '@kimafinance/kima-transaction-api'
 import { CurrencyOptions } from '@kimafinance/kima-transaction-api'
@@ -20,6 +20,9 @@ const port = process.env.PORT || 3001
 app.use(
   cors({
     origin: (origin, callback) => {
+      callback(null, true)
+      return
+
       if (process.env.NODE_ENV === 'test') {
         callback(null, true)
         return
@@ -127,9 +130,9 @@ app.post('/submit-btc', async (req: Request, res: Response) => {
   try {
     const result = await submitKimaTransaction({
       originAddress: '0x1150bd27bA25fa13806C98324F201dfe815A4502',
-      originChain: SupportedNetworks.ETHEREUM,
+      originChain: SupportNetworks.Ethereum,
       targetAddress: '0x97810930b49D820205Be8eFe370201D32d9255B5',
-      targetChain: SupportedNetworks.POLYGON,
+      targetChain: SupportNetworks.Polygon,
       symbol: CurrencyOptions.USDK,
       amount: 5,
       fee: 0
@@ -142,7 +145,7 @@ app.post('/submit-btc', async (req: Request, res: Response) => {
   }
 })
 
-app.post('/submit', authenticateJWT, async (req: Request, res: Response) => {
+app.post('/submit', async (req: Request, res: Response) => {
   const {
     originAddress,
     originChain,
