@@ -11,6 +11,7 @@ import {
   submitKimaTransaction
 } from '@kimafinance/kima-transaction-api'
 import { CurrencyOptions } from '@kimafinance/kima-transaction-api'
+import { fetchWrapper } from './fetch-wrapper'
 
 dotenv.config()
 
@@ -125,23 +126,76 @@ app.post('/compliant', async (req: Request, res: Response) => {
 })
 
 app.post('/submit-btc', async (req: Request, res: Response) => {
-  console.log(req.body)
-
   try {
     const result = await submitKimaTransaction({
       originAddress: '0x1150bd27bA25fa13806C98324F201dfe815A4502',
-      originChain: SupportNetworks.Ethereum,
+      originChain: SupportNetworks.Polygon,
       targetAddress: '0x97810930b49D820205Be8eFe370201D32d9255B5',
-      targetChain: SupportNetworks.Polygon,
+      targetChain: SupportNetworks.Ethereum,
       symbol: CurrencyOptions.USDK,
       amount: 5,
       fee: 0
     })
-    console.log(result)
     res.send(result)
   } catch (e) {
     console.log(e)
     res.status(500).send('failed to submit transaction')
+  }
+})
+
+type TxResponse = {
+  originAddress: string
+  originChain: string
+  targetChain: string
+  targetAddress: string
+}
+
+app.get('/transaction_data', async (req: Request, res: Response) => {
+  try {
+    const result: any = await fetchWrapper.get(
+      'https://api_testnet.kima.finance/kima-finance/kima/kima/transaction_data'
+    )
+
+    if (!result?.transactionData) {
+      res.status(500).send('internal server error')
+      return
+    }
+
+    const data: TxResponse[] = result.transactionData
+    const filteredData = data.filter(
+      (tx) =>
+        tx.originAddress === '0x1150bd27bA25fa13806C98324F201dfe815A4502' &&
+        tx.targetAddress === '0x97810930b49D820205Be8eFe370201D32d9255B5' &&
+        tx.originChain === 'POL' &&
+        tx.targetChain === 'ETH'
+    )
+    res.send(
+      filteredData.map((tx) => ({
+        ...tx,
+        originAddress: '2NFiup6DHUQdsqCAgEiRDEC6jY5gyYR5MBu',
+        originChain: 'BTC',
+        symbol: 'WBTC',
+        tssPullHash:
+          '42e38f7c0b5a7d7700b720d9191bbe6adc9e157e4527da0eba65fbdae8902508'
+      }))
+    )
+  } catch (e) {
+    console.log(e)
+    res.status(500).send('internal server error')
+  }
+})
+
+app.get('/transaction_data/:id', async (req: Request, res: Response) => {
+  const id = req.params.id
+
+  try {
+    const result: any = await fetchWrapper.get(
+      `https://api_testnet.kima.finance/kima-finance/kima/kima/transaction_data/${id}`
+    )
+    res.send(result?.transactionData)
+  } catch (e) {
+    console.log(e)
+    res.status(500).send('internal server error')
   }
 })
 
