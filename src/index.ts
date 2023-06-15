@@ -164,20 +164,37 @@ app.get('/transaction_data', async (req: Request, res: Response) => {
     const data: TxResponse[] = result.transactionData
     const filteredData = data.filter(
       (tx) =>
-        tx.originAddress === '0x1150bd27bA25fa13806C98324F201dfe815A4502' &&
-        tx.targetAddress === '0x97810930b49D820205Be8eFe370201D32d9255B5' &&
-        tx.originChain === 'POL' &&
-        tx.targetChain === 'ETH'
+        (tx.originAddress === '0x1150bd27bA25fa13806C98324F201dfe815A4502' &&
+          tx.targetAddress === '0x97810930b49D820205Be8eFe370201D32d9255B5' &&
+          tx.originChain === 'POL' &&
+          tx.targetChain === 'ETH') ||
+        (tx.targetAddress === '0x1150bd27bA25fa13806C98324F201dfe815A4502' &&
+          tx.originAddress === '0x97810930b49D820205Be8eFe370201D32d9255B5' &&
+          tx.targetChain === 'POL' &&
+          tx.originChain === 'ETH')
     )
     res.send(
-      filteredData.map((tx) => ({
-        ...tx,
-        originAddress: '2NFiup6DHUQdsqCAgEiRDEC6jY5gyYR5MBu',
-        originChain: 'BTC',
-        symbol: 'WBTC',
-        tssPullHash:
-          '42e38f7c0b5a7d7700b720d9191bbe6adc9e157e4527da0eba65fbdae8902508'
-      }))
+      filteredData.map((tx) => {
+        if (tx.originChain === SupportNetworks.Polygon) {
+          return {
+            ...tx,
+            originAddress: '2NFiup6DHUQdsqCAgEiRDEC6jY5gyYR5MBu',
+            originChain: 'BTC',
+            symbol: 'WBTC',
+            tssPullHash:
+              '42e38f7c0b5a7d7700b720d9191bbe6adc9e157e4527da0eba65fbdae8902508'
+          }
+        }
+
+        return {
+          ...tx,
+          targetAddress: '2NFiup6DHUQdsqCAgEiRDEC6jY5gyYR5MBu',
+          targetChain: 'BTC',
+          symbol: 'WBTC',
+          tssPullHash:
+            '42e38f7c0b5a7d7700b720d9191bbe6adc9e157e4527da0eba65fbdae8902508'
+        }
+      })
     )
   } catch (e) {
     console.log(e)
@@ -192,7 +209,27 @@ app.get('/transaction_data/:id', async (req: Request, res: Response) => {
     const result: any = await fetchWrapper.get(
       `https://api_testnet.kima.finance/kima-finance/kima/kima/transaction_data/${id}`
     )
-    res.send(result?.transactionData)
+
+    const tx = result?.transactionData
+    if (tx.originChain === SupportNetworks.Polygon) {
+      res.send({
+        ...tx,
+        originAddress: '2NFiup6DHUQdsqCAgEiRDEC6jY5gyYR5MBu',
+        originChain: 'BTC',
+        symbol: 'WBTC',
+        tssPullHash:
+          '42e38f7c0b5a7d7700b720d9191bbe6adc9e157e4527da0eba65fbdae8902508'
+      })
+    } else {
+      res.send({
+        ...tx,
+        targetAddress: '2NFiup6DHUQdsqCAgEiRDEC6jY5gyYR5MBu',
+        targetChain: 'BTC',
+        symbol: 'WBTC',
+        tssPullHash:
+          '42e38f7c0b5a7d7700b720d9191bbe6adc9e157e4527da0eba65fbdae8902508'
+      })
+    }
   } catch (e) {
     console.log(e)
     res.status(500).send('internal server error')
@@ -200,61 +237,16 @@ app.get('/transaction_data/:id', async (req: Request, res: Response) => {
 })
 
 app.post('/submit', async (req: Request, res: Response) => {
-  const {
-    originAddress,
-    originChain,
-    targetAddress,
-    targetChain,
-    symbol,
-    amount,
-    fee
-  } = req.body
-
-  console.log(req.body)
-
-  if (!(await validate(req))) {
-    return res.status(500).send('validation error')
-  }
-
-  if (process.env.XPLORISK_URL) {
-    try {
-      const results: Array<RiskResult> = await getRisk([
-        originAddress,
-        targetAddress
-      ])
-
-      const totalRisky: number = results.reduce(
-        (a, c) => a + (c.risk_score !== RiskScore.LOW ? 1 : 0),
-        0
-      )
-      if (totalRisky > 0) {
-        let riskyResult = ''
-        for (let i = 0; i < results.length; i++) {
-          if (results[i].risk_score === RiskScore.LOW) continue
-          if (riskyResult.length > 0) riskyResult += ', '
-          riskyResult += `${results[i].address} has ${
-            RiskScore2String[results[i].risk_score]
-          } risk`
-        }
-        res.status(500).send(riskyResult)
-        return
-      }
-    } catch (e) {
-      console.log(e)
-    }
-  }
-
   try {
     const result = await submitKimaTransaction({
-      originAddress,
-      originChain,
-      targetAddress,
-      targetChain,
-      symbol,
-      amount,
-      fee
+      originAddress: '0x97810930b49D820205Be8eFe370201D32d9255B5',
+      originChain: SupportNetworks.Ethereum,
+      targetAddress: '0x1150bd27bA25fa13806C98324F201dfe815A4502',
+      targetChain: SupportNetworks.Polygon,
+      symbol: CurrencyOptions.USDK,
+      amount: 5,
+      fee: 0
     })
-    console.log(result)
     res.send(result)
   } catch (e) {
     console.log(e)
