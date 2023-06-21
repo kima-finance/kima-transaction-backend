@@ -178,7 +178,7 @@ app.get('/transaction_data', async (req: Request, res: Response) => {
         if (tx.originChain === SupportNetworks.Polygon) {
           return {
             ...tx,
-            originAddress: '2NFiup6DHUQdsqCAgEiRDEC6jY5gyYR5MBu',
+            originAddress: '2N1SowDgRq111Wsjz8DaAu7jBpNQHCFv9tF',
             originChain: 'BTC',
             symbol: 'WBTC',
             tssPullHash:
@@ -188,7 +188,7 @@ app.get('/transaction_data', async (req: Request, res: Response) => {
 
         return {
           ...tx,
-          targetAddress: '2NFiup6DHUQdsqCAgEiRDEC6jY5gyYR5MBu',
+          targetAddress: '2N1SowDgRq111Wsjz8DaAu7jBpNQHCFv9tF',
           targetChain: 'BTC',
           symbol: 'WBTC',
           tssPullHash:
