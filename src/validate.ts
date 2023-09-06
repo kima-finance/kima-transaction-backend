@@ -12,7 +12,7 @@ async function isValidChain(
   symbol: string
 ) {
   let res: any = await fetchWrapper.get(
-    `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima/kima/getChains`
+    `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima/getChains`
   )
 
   if (!res?.Chains?.length) return false
@@ -23,7 +23,7 @@ async function isValidChain(
     return false
 
   res = await fetchWrapper.get(
-    `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima/kima/getCurrencies/${sourceChain}/${targetChain}`
+    `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima/getCurrencies/${sourceChain}/${targetChain}`
   )
 
   if (!res?.Currencies?.length) return false
@@ -55,13 +55,19 @@ export async function validate(req: Request) {
     symbol
   } = req.body
 
-  if (!(await isValidChain(originChain, targetChain, symbol))) return false
+  try {
+    if (!(await isValidChain(originChain, targetChain, symbol))) return false
 
-  if (
-    !isValidAddress(originAddress, originChain) ||
-    !isValidAddress(targetAddress, targetChain)
-  )
-    return false
+    if (
+      !isValidAddress(originAddress, originChain) ||
+      !isValidAddress(targetAddress, targetChain)
+    )
+      return false
 
-  return amount > 0 && fee >= 0
+    return amount > 0 && fee >= 0
+  } catch (e) {
+    console.log(e)
+  }
+
+  return false
 }
