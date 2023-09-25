@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
 import bodyParser from 'body-parser'
 import CookieParser from 'cookie-parser'
+import { v4 as uuidv4 } from 'uuid'
 import { validate } from './validate'
 import { RiskResult, RiskScore, getRisk, RiskScore2String } from './xplorisk'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
@@ -16,13 +17,17 @@ const port = process.env.PORT || 3001
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (process.env.NODE_ENV === 'test') {
+      if (
+        process.env.NODE_ENV === 'test' ||
+        (process.env.NODE_ENV === 'development' && !origin)
+      ) {
         callback(null, true)
         return
       }
 
       const hostname = new URL(origin as string).hostname
       const domains = (process.env.DOMAIN as string).split(',')
+
       for (let i = 0; i < domains.length; i++) {
         if (domains[i].length && hostname.endsWith(domains[i])) {
           callback(null, true)
@@ -115,6 +120,10 @@ app.post('/compliant', async (req: Request, res: Response) => {
     }
   }
   res.status(500).send('failed to check xplorisk')
+})
+
+app.get('/uuid', async (req: Request, res: Response) => {
+  res.send(uuidv4())
 })
 
 app.post('/submit', authenticateJWT, async (req: Request, res: Response) => {
