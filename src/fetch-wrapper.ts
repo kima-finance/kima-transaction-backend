@@ -3,13 +3,13 @@ export const fetchWrapper = {
   post
 }
 
-function get(url: string) {
+function get(url: string, token?: string) {
   const requestOptions: any = {
-    method: 'GET'
-  }
-
-  requestOptions.headers = {
-    'Content-Type': 'application/json'
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `${token}`
+    }
   }
 
   return fetch(url, requestOptions).then(handleResponse)

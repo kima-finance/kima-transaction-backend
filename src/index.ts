@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { validate } from './validate'
 import { RiskResult, RiskScore, getRisk, RiskScore2String } from './xplorisk'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
+import { fetchWrapper } from './fetch-wrapper'
 
 dotenv.config()
 
@@ -119,11 +120,33 @@ app.post('/compliant', async (req: Request, res: Response) => {
       console.log(e)
     }
   }
+
   res.status(500).send('failed to check xplorisk')
 })
 
 app.get('/uuid', async (req: Request, res: Response) => {
   res.send(uuidv4())
+})
+
+app.post('/kyc', async (req: Request, res: Response) => {
+  const { uuid } = req.body
+
+  if (uuid) {
+    try {
+      const kycResult = await fetchWrapper.get(
+        `http://sandbox.depasify.com/api/v1/identifications?filter[external_uuid]=${uuid}`,
+        process.env.DEPASIFY_API_KEY as string
+      )
+
+      console.log(kycResult)
+      res.send(kycResult)
+      return
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  res.status(500).send('failed to get kyc status')
 })
 
 app.post('/submit', authenticateJWT, async (req: Request, res: Response) => {
