@@ -138,7 +138,6 @@ app.post('/kyc', async (req: Request, res: Response) => {
         process.env.DEPASIFY_API_KEY as string
       )
 
-      console.log(kycResult)
       res.send(kycResult)
       return
     } catch (e) {
