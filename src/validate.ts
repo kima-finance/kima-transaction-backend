@@ -12,7 +12,7 @@ async function isValidChain(
   symbol: string
 ) {
   let res: any = await fetchWrapper.get(
-    `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/kima/get_chains`
+    `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_chains`
   )
 
   if (!res?.Chains?.length) return false
@@ -23,7 +23,7 @@ async function isValidChain(
     return false
 
   res = await fetchWrapper.get(
-    `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/kima/get_currencies/${sourceChain}/${targetChain}`
+    `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_currencies/${sourceChain}/${targetChain}`
   )
 
   if (!res?.Currencies?.length) return false
