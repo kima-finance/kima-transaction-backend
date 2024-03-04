@@ -18,12 +18,11 @@ function get(url: string, token?: string) {
 function post(url: string, body: any) {
   const requestOptions: any = {
     method: 'POST',
-    credentials: 'include',
     headers: {
-      'Content-Type': 'application/json'
-      // Authorization: `Bearer ${token}`
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
     },
-    body: body
+    body: JSON.stringify(body)
   }
 
   return fetch(url, requestOptions).then(handleResponse)

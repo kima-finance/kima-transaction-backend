@@ -30,11 +30,21 @@ async function isValidChain(
   return res.Currencies.find((item: string) => item === symbol)
 }
 
-function isValidAddress(address: string, chainId: string) {
+async function isValidAddress(address: string, chainId: string) {
   try {
     if (chainId === 'SOL') {
       const owner = new PublicKey(address)
       return PublicKey.isOnCurve(owner)
+    }
+
+    if (chainId === 'TRX') {
+      const res: any = await fetchWrapper.post('https://api.nileex.io/wallet/validateaddress', {
+        address,
+        visible: "true"
+      })
+
+      console.log("123", res)
+      return res?.result;
     }
 
     return Web3.utils.isAddress(address)
@@ -59,8 +69,8 @@ export async function validate(req: Request) {
     if (!(await isValidChain(originChain, targetChain, symbol))) return false
 
     if (
-      !isValidAddress(originAddress, originChain) ||
-      !isValidAddress(targetAddress, targetChain)
+      !(await isValidAddress(originAddress, originChain)) ||
+      !(await isValidAddress(targetAddress, targetChain))
     )
       return false
 
