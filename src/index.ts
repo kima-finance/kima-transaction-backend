@@ -44,6 +44,11 @@ app.use(
         return
       }
 
+      if (!origin) {
+        callback(null, true)
+        return
+      }
+
       const hostname = new URL(origin as string).hostname
       const domains = (process.env.DOMAIN as string).split(',')
 
