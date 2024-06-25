@@ -9,6 +9,7 @@ import { validate } from './validate'
 import { RiskResult, RiskScore, getRisk, RiskScore2String } from './xplorisk'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
 import { fetchWrapper } from './fetch-wrapper'
+import { Network, validate as validateBTC } from 'bitcoin-address-validation'
 
 dotenv.config()
 
@@ -30,7 +31,6 @@ app.use((req, res, next) => {
   return res
     .status(401)
     .send({ message: `Same Origin Issue for: ${originDomain}` })
-  next()
 })
 
 app.use(
@@ -146,6 +146,53 @@ app.get('/uuid', async (req: Request, res: Response) => {
   res.send(uuidv4())
 })
 
+app.get('/btc/balance', async (req: Request, res: Response) => {
+  const address = req.query.address as string
+
+  if (!address || !validateBTC(address, Network.testnet)) {
+    res.status(500).send('validation error')
+    return
+  }
+
+  try {
+    const btcInfo: any = await fetchWrapper.get(
+      `https://blockstream.info/testnet/api/address/${address}`
+    )
+
+    const balance =
+      btcInfo.chain_stats.funded_txo_sum - btcInfo.chain_stats.spent_txo_sum
+
+    res.send({ balance })
+    return
+  } catch (e) {
+    console.log(e)
+  }
+
+  res.status(500).send('failed to get bitcoin balance')
+})
+
+app.get('/btc/transaction', async (req: Request, res: Response) => {
+  const hash = req.query.hash as string
+
+  if (!hash) {
+    res.status(500).send('validation error')
+    return
+  }
+
+  try {
+    const btcInfo: any = await fetchWrapper.get(
+      `https://blockstream.info/testnet/api/tx/${hash}`
+    )
+
+    res.send(btcInfo)
+    return
+  } catch (e) {
+    console.log(e)
+  }
+
+  res.status(500).send('failed to get bitcoin tx info')
+})
+
 app.post('/kyc', async (req: Request, res: Response) => {
   const { uuid } = req.body
 
@@ -166,6 +213,17 @@ app.post('/kyc', async (req: Request, res: Response) => {
   res.status(500).send('failed to get kyc status')
 })
 
+function hexStringToUint8Array(hexString: string) {
+  if (hexString.length % 2 !== 0) {
+    throw new Error('Invalid hex string')
+  }
+  const arrayBuffer = new Uint8Array(hexString.length / 2)
+  for (let i = 0; i < hexString.length; i += 2) {
+    arrayBuffer[i / 2] = parseInt(hexString.substr(i, 2), 16)
+  }
+  return arrayBuffer
+}
+
 app.post('/submit', authenticateJWT, async (req: Request, res: Response) => {
   const {
     originAddress,
@@ -174,7 +232,12 @@ app.post('/submit', authenticateJWT, async (req: Request, res: Response) => {
     targetChain,
     symbol,
     amount,
-    fee
+    fee,
+    htlcCreationHash,
+    htlcCreationVout,
+    htlcExpirationTimestamp,
+    htlcVersion,
+    senderPubKey
   } = req.body
 
   console.log(req.body)
@@ -219,7 +282,12 @@ app.post('/submit', authenticateJWT, async (req: Request, res: Response) => {
       targetChain,
       symbol,
       amount,
-      fee
+      fee,
+      htlcCreationHash,
+      htlcCreationVout,
+      htlcExpirationTimestamp,
+      htlcVersion,
+      senderPubKey: hexStringToUint8Array(senderPubKey)
     })
     console.log(result)
     res.send(result)

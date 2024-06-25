@@ -3,6 +3,7 @@ import { Request } from 'express'
 import { PublicKey } from '@solana/web3.js'
 import Web3 from 'web3'
 import { fetchWrapper } from './fetch-wrapper'
+import { Network, validate as validateBTC } from 'bitcoin-address-validation'
 
 dotenv.config()
 
@@ -27,7 +28,9 @@ async function isValidChain(
   )
 
   if (!res?.Currencies?.length) return false
-  return res.Currencies.find((item: string) => item === symbol)
+  return res.Currencies.find(
+    (item: string) => item.toLowerCase() === symbol.toLowerCase()
+  )
 }
 
 async function isValidAddress(address: string, chainId: string) {
@@ -38,13 +41,19 @@ async function isValidAddress(address: string, chainId: string) {
     }
 
     if (chainId === 'TRX') {
-      const res: any = await fetchWrapper.post('https://api.nileex.io/wallet/validateaddress', {
-        address,
-        visible: "true"
-      })
+      const res: any = await fetchWrapper.post(
+        'https://api.nileex.io/wallet/validateaddress',
+        {
+          address,
+          visible: 'true'
+        }
+      )
 
-      console.log("123", res)
-      return res?.result;
+      return res?.result
+    }
+
+    if (chainId === 'BTC') {
+      return validateBTC(address, Network.testnet)
     }
 
     return Web3.utils.isAddress(address)
