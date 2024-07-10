@@ -9,7 +9,8 @@ import { validate } from './validate'
 import { RiskResult, RiskScore, getRisk, RiskScore2String } from './xplorisk'
 import {
   submitKimaTransaction,
-  submitHtlcLock
+  submitHtlcLock,
+  HtlcReclaim
 } from '@kimafinance/kima-transaction-api'
 import { fetchWrapper } from './fetch-wrapper'
 import { Network, validate as validateBTC } from 'bitcoin-address-validation'
@@ -277,6 +278,24 @@ app.post('/htlc', authenticateJWT, async (req: Request, res: Response) => {
       htlcAddress,
       txHash,
       senderPubkey
+    })
+    console.log(result)
+    res.send(result)
+  } catch (e) {
+    console.log(e)
+    res.status(500).send('failed to submit transaction')
+  }
+})
+
+app.post('/reclaim', authenticateJWT, async (req: Request, res: Response) => {
+  const { senderAddress, txHash } = req.body
+
+  console.log(req.body)
+
+  try {
+    const result = await HtlcReclaim({
+      senderAddress,
+      txHash
     })
     console.log(result)
     res.send(result)
