@@ -10,7 +10,8 @@ dotenv.config()
 async function isValidChain(
   sourceChain: string,
   targetChain: string,
-  symbol: string
+  originSymbol: string,
+  targetSymbol: string
 ) {
   let res: any = await fetchWrapper.get(
     `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_chains`
@@ -28,8 +29,13 @@ async function isValidChain(
   )
 
   if (!res?.Currencies?.length) return false
-  return res.Currencies.find(
-    (item: string) => item.toLowerCase() === symbol.toLowerCase()
+  return (
+    res.Currencies.find(
+      (item: string) => item.toLowerCase() === originSymbol.toLowerCase()
+    ) &&
+    res.Currencies.find(
+      (item: string) => item.toLowerCase() === targetSymbol.toLowerCase()
+    )
   )
 }
 
@@ -71,11 +77,20 @@ export async function validate(req: Request) {
     targetChain,
     amount,
     fee,
-    symbol
+    originSymbol,
+    targetSymbol
   } = req.body
 
   try {
-    if (!(await isValidChain(originChain, targetChain, symbol))) return false
+    if (
+      !(await isValidChain(
+        originChain,
+        targetChain,
+        originSymbol,
+        targetSymbol
+      ))
+    )
+      return false
 
     if (
       !(await isValidAddress(originAddress, originChain)) ||
