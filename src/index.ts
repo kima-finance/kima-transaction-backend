@@ -4,7 +4,6 @@ import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
 import bodyParser from 'body-parser'
 import CookieParser from 'cookie-parser'
-import { v4 as uuidv4 } from 'uuid'
 import { validate } from './validate'
 import { RiskResult, RiskScore, getRisk, RiskScore2String } from './xplorisk'
 import {
@@ -151,10 +150,6 @@ app.post('/compliant', async (req: Request, res: Response) => {
   res.status(500).send('failed to check xplorisk')
 })
 
-app.get('/uuid', async (req: Request, res: Response) => {
-  res.send(uuidv4())
-})
-
 app.get('/btc/balance', async (req: Request, res: Response) => {
   const address = req.query.address as string
 
@@ -200,26 +195,6 @@ app.get('/btc/transaction', async (req: Request, res: Response) => {
   }
 
   res.status(500).send('failed to get bitcoin tx info')
-})
-
-app.post('/kyc', async (req: Request, res: Response) => {
-  const { uuid } = req.body
-
-  if (uuid) {
-    try {
-      const kycResult = await fetchWrapper.get(
-        `http://sandbox.depasify.com/api/v1/identifications?filter[external_uuid]=${uuid}`,
-        process.env.DEPASIFY_API_KEY as string
-      )
-
-      res.send(kycResult)
-      return
-    } catch (e) {
-      console.log(e)
-    }
-  }
-
-  res.status(500).send('failed to get kyc status')
 })
 
 function hexStringToUint8Array(hexString: string) {

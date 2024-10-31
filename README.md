@@ -35,11 +35,3 @@ This wallet is called Developer Wallet, and it should have enough KIMA token to 
 - `/compliant`:
   `Request parameter`: wallet address to check compliant
   `Response`: `ok` if address is compliant, `fail` if address is non-compliant
-
-- `/uuid`:
-
-  Generate `uuid` for FIAT payment session to use depasify API.
-
-- `/kyc`:
-
-  Return kyc status for specific `uuid` of verification session using depasify API.
