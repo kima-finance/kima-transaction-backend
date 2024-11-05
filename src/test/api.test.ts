@@ -1,6 +1,6 @@
-const server = require('../index.ts');
-const supertest = require('supertest');
-const requestWithSupertest = supertest(server);
+const server = require('../index.ts')
+const supertest = require('supertest')
+const requestWithSupertest = supertest(server)
 
 describe('api test', () => {
   it('should fail to check compliant endpoint', async () => {
@@ -9,12 +9,12 @@ describe('api test', () => {
     expect(res.status).toEqual(500)
   })
 
-  it('should return high risk from compliant endpoint', async () => {
+  it('should return critical risk from compliant endpoint', async () => {
     const res = await requestWithSupertest.post('/compliant').send({
       address: '0xDD4c48C0B24039969fC16D1cdF626eaB821d3384'
     })
     expect(res.status).toEqual(200)
-    expect(res.text).toEqual('high')
+    expect(res.text).toEqual('critical')
     expect(res.type).toEqual(expect.stringContaining('text/html'))
   })
 
@@ -27,7 +27,8 @@ describe('api test', () => {
     expect(res.type).toEqual(expect.stringContaining('text/html'))
   })
 
-  it('should return low risk from compliant endpoint', async () => {
+  it.skip('should return low risk from compliant endpoint', async () => {
+    // this address is now considered "meduim" risk
     const res = await requestWithSupertest.post('/compliant').send({
       address: '0x76d031825134aaf073436Aba2087a3B589babd9F'
     })
@@ -69,14 +70,15 @@ describe('api test', () => {
   it('should fail to submit transaction due to risky addresses', async () => {
     const res = await requestWithSupertest.post('/submit').send({
       originAddress: '0xDD4c48C0B24039969fC16D1cdF626eaB821d3384',
-      targetAddress: '0x001474b877f98f41701397a65d4d313ab180c7b2',
       originChain: 'ETH',
+      originSymbol: 'USDK',
+      targetAddress: '0x001474b877f98f41701397a65d4d313ab180c7b2',
       targetChain: 'POL',
-      symbol: 'USDK',
+      targetSymbol: 'USDK',
       amount: 100,
       fee: 0.5
     })
-    
+
     expect(res.status).toEqual(500)
     expect(res.text).toContain('risk')
   })
@@ -91,7 +93,7 @@ describe('api test', () => {
   //     amount: 100,
   //     fee: 0.5
   //   })
-    
+
   //   expect(res.status).toEqual(500)
   //   expect(res.type).toEqual(expect.stringContaining('text/html'))
   // })

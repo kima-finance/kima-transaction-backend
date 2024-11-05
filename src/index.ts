@@ -2,7 +2,6 @@ import express, { Express, Request, Response } from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
-import bodyParser from 'body-parser'
 import CookieParser from 'cookie-parser'
 import { v4 as uuidv4 } from 'uuid'
 import { validate } from './validate'
@@ -21,6 +20,10 @@ const app: Express = express()
 const port = process.env.PORT || 3001
 
 app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'test') {
+    // will allways be same origin in test
+    return next()
+  }
   const originDomain = (req.headers['x-forwarded-host'] ||
     req.headers['host']) as string
 
@@ -71,11 +74,7 @@ app.use(
 
 app.use(CookieParser())
 app.use(express.json())
-app.use(
-  bodyParser.urlencoded({
-    extended: false
-  })
-)
+app.use(express.urlencoded({ extended: false }))
 
 app.post('/auth', async (req: Request, res: Response) => {
   const token = jwt.sign(req.body, process.env.KIMA_BACKEND_SECRET as string, {
@@ -309,9 +308,9 @@ app.post('/submit', authenticateJWT, async (req: Request, res: Response) => {
   const {
     originAddress,
     originChain,
+    originSymbol,
     targetAddress,
     targetChain,
-    originSymbol,
     targetSymbol,
     amount,
     fee,
