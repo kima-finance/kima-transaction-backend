@@ -1,23 +1,26 @@
 import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 
+/**
+ * Transaction details in the body must match the JWT
+ *
+ * @param {Request} req
+ * @param {Response} res
+ * @param {NextFunction} next
+ */
 export const authenticateJWT = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  if (process.env.NODE_ENV === 'test') {
-    next()
-    return
-  }
-
   const token = req.cookies.authToken
   const {
     originAddress,
     originChain,
+    originSymbol,
     targetAddress,
     targetChain,
-    symbol,
+    targetSymbol,
     amount,
     fee
   } = req.body
@@ -27,18 +30,22 @@ export const authenticateJWT = (
       token,
       process.env.KIMA_BACKEND_SECRET as string,
       (err: any, params: any) => {
+        // compare transaction details in the body to the JWT
         if (
           err ||
           params.originAddress !== originAddress ||
           params.originChain !== originChain ||
           params.targetAddress !== targetAddress ||
           params.targetChain !== targetChain ||
-          params.symbol !== symbol ||
+          params.originSymbol !== originSymbol ||
+          params.targetSymbol !== targetSymbol ||
           params.amount !== amount ||
           params.fee !== fee
-        )
+        ) {
           return res.sendStatus(401)
+        }
 
+        // body matches JWT
         next()
       }
     )

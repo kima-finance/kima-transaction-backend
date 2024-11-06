@@ -1,5 +1,6 @@
 import { Request, Response, Router } from 'express'
 import jwt from 'jsonwebtoken'
+import { authenticateJWT } from '../middleware/auth'
 
 const authRouter = Router()
 
@@ -14,6 +15,10 @@ authRouter.post('/', async (req: Request, res: Response) => {
     sameSite: 'none',
     secure: true
   })
+  res.send('ok')
+})
+
+authRouter.get('/verify', authenticateJWT, (_, res: Response) => {
   res.send('ok')
 })
 
