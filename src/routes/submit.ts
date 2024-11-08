@@ -2,10 +2,10 @@ import { Request, Response, Router } from 'express'
 import { authenticateJWT } from '../middleware/auth'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
 import { validate } from '../validate'
-import { getRisk, RiskResult, RiskScore, RiskScore2String } from '../xplorisk'
 import { createTransValidation } from '../middleware/trans-validation'
 import { validateRequest } from '../middleware/validation'
 import { body } from 'express-validator'
+import { complianceService } from '../check-compliance'
 
 const submitRouter = Router()
 
@@ -20,7 +20,7 @@ submitRouter.post(
     ...createTransValidation(),
     body('htlcCreationHash').optional(),
     body('htlcCreationVout').optional().isInt({ gt: 0 }),
-    body('htlcExpirationTimestamp').optional().isInt({ gt: 0 }),
+    body('htlcExpirationTimestamp').optional().notEmpty(),
     body('htlcVersion').optional().notEmpty(),
     body('senderPubKey').optional().notEmpty(),
     validateRequest,
@@ -49,32 +49,9 @@ submitRouter.post(
       return res.status(400).send('validation error')
     }
 
-    if (process.env.XPLORISK_URL) {
-      try {
-        const results: Array<RiskResult> = await getRisk([
-          originAddress,
-          targetAddress
-        ])
-
-        const totalRisky: number = results.reduce(
-          (a, c) => a + (c.risk_score !== RiskScore.LOW ? 1 : 0),
-          0
-        )
-        if (totalRisky > 0) {
-          let riskyResult = ''
-          for (let i = 0; i < results.length; i++) {
-            if (results[i].risk_score === RiskScore.LOW) continue
-            if (riskyResult.length > 0) riskyResult += ', '
-            riskyResult += `${results[i].address} has ${
-              RiskScore2String[results[i].risk_score]
-            } risk`
-          }
-          res.status(403).send(riskyResult)
-          return
-        }
-      } catch (e) {
-        console.log(e)
-      }
+    const denied = await complianceService.check([originAddress, targetAddress])
+    if (denied) {
+      return res.status(403).send(denied)
     }
 
     try {
