@@ -1,31 +1,39 @@
 import dotenv from 'dotenv'
 import { Request } from 'express'
 import { PublicKey } from '@solana/web3.js'
-import Web3 from 'web3'
+import { isAddress } from 'viem'
 import { fetchWrapper } from './fetch-wrapper'
 import { Network, validate as validateBTC } from 'bitcoin-address-validation'
 
 dotenv.config()
 
+/**
+ * Returns true if the tokens are supported on the given chains
+ * @param {string} originChain sending chain
+ * @param {string} targetChain receiving chain
+ * @param {string} originSymbol sending token symbol
+ * @param {string} targetSymbol receiving token symbol
+ * @returns {Promise<boolean>}
+ */
 async function isValidChain(
-  sourceChain: string,
+  originChain: string,
   targetChain: string,
   originSymbol: string,
   targetSymbol: string
-) {
+): Promise<boolean> {
   let res: any = await fetchWrapper.get(
     `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_chains`
   )
 
   if (!res?.Chains?.length) return false
   if (
-    !res.Chains.find((item: string) => item === sourceChain) ||
+    !res.Chains.find((item: string) => item === originChain) ||
     !res.Chains.find((item: string) => item === targetChain)
   )
     return false
 
   res = await fetchWrapper.get(
-    `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_currencies/${sourceChain}/${targetChain}`
+    `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_currencies/${originChain}/${targetChain}`
   )
 
   if (!res?.Currencies?.length) return false
@@ -39,14 +47,25 @@ async function isValidChain(
   )
 }
 
-async function isValidAddress(address: string, chainId: string) {
+/**
+ * Returns true if the address is valid for the given chain
+ *
+ * @async
+ * @param {string} address address to check
+ * @param {string} chain chain symbol
+ * @returns {Promise<boolean>}
+ */
+async function isValidAddress(
+  address: string,
+  chain: string
+): Promise<boolean> {
   try {
-    if (chainId === 'SOL') {
+    if (chain === 'SOL') {
       const owner = new PublicKey(address)
       return PublicKey.isOnCurve(owner)
     }
 
-    if (chainId === 'TRX') {
+    if (chain === 'TRX') {
       const res: any = await fetchWrapper.post(
         'https://api.nileex.io/wallet/validateaddress',
         {
@@ -55,21 +74,29 @@ async function isValidAddress(address: string, chainId: string) {
         }
       )
 
-      return res?.result
+      return res?.result as boolean
     }
 
-    if (chainId === 'BTC') {
+    if (chain === 'BTC') {
       return validateBTC(address, Network.testnet)
     }
 
-    return Web3.utils.isAddress(address)
+    return isAddress(address)
   } catch (e) {
     console.log(e)
   }
   return false
 }
 
-export async function validate(req: Request) {
+/**
+ * Validation for the POST /submit endpoint
+ *
+ * @export
+ * @async
+ * @param {Request} req
+ * @returns {Promise<boolean>}
+ */
+export async function validate(req: Request): Promise<boolean> {
   const {
     originAddress,
     originChain,
@@ -89,14 +116,16 @@ export async function validate(req: Request) {
         originSymbol,
         targetSymbol
       ))
-    )
+    ) {
       return false
+    }
 
     if (
       !(await isValidAddress(originAddress, originChain)) ||
       !(await isValidAddress(targetAddress, targetChain))
-    )
+    ) {
       return false
+    }
 
     return amount > 0 && fee >= 0
   } catch (e) {

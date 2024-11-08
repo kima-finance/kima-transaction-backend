@@ -1,4 +1,7 @@
 /// <reference lib="dom" />
+/**
+ * Xplorisk API
+ */
 
 import * as dotenv from 'dotenv'
 dotenv.config()
@@ -6,13 +9,15 @@ dotenv.config()
 export enum RiskScore {
   LOW = 'low',
   MED = 'med',
-  HIGH = 'high'
+  HIGH = 'high',
+  CRITICAL = 'critical'
 }
 
 export const RiskScore2String: { [riskScore: string]: string } = {
   [RiskScore.LOW]: 'low',
   [RiskScore.MED]: 'medium',
-  [RiskScore.HIGH]: 'high'
+  [RiskScore.HIGH]: 'high',
+  [RiskScore.CRITICAL]: 'critical'
 }
 
 export type RiskResult = {
@@ -23,6 +28,13 @@ export type RiskResult = {
   risk_score: RiskScore
 }
 
+/**
+ * Returns the risk score for each address
+ *
+ * @async
+ * @param {Array<string>} addresses
+ * @returns {Promise<Array<RiskResult>>}
+ */
 export const getRisk = async (
   addresses: Array<string>
 ): Promise<Array<RiskResult>> => {
