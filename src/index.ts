@@ -15,7 +15,10 @@ import {
 import { fetchWrapper } from './fetch-wrapper'
 import { Network, validate as validateBTC } from 'bitcoin-address-validation'
 
-dotenv.config()
+dotenv.config({
+  path:
+    process.env.NODE_ENV === 'development' ? 'envs/dev.env' : 'envs/prod.env'
+})
 
 const app: Express = express()
 const port = process.env.PORT || 3001
