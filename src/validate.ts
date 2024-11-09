@@ -4,6 +4,7 @@ import { PublicKey } from '@solana/web3.js'
 import { isAddress } from 'viem'
 import { fetchWrapper } from './fetch-wrapper'
 import { Network, validate as validateBTC } from 'bitcoin-address-validation'
+import { ChainName } from './types/chain-name'
 
 dotenv.config()
 
@@ -52,20 +53,20 @@ async function isValidChain(
  *
  * @async
  * @param {string} address address to check
- * @param {string} chain chain symbol
+ * @param {ChainName} chain chain symbol
  * @returns {Promise<boolean>}
  */
 async function isValidAddress(
   address: string,
-  chain: string
+  chain: ChainName
 ): Promise<boolean> {
   try {
-    if (chain === 'SOL') {
+    if (chain === ChainName.SOLANA) {
       const owner = new PublicKey(address)
       return PublicKey.isOnCurve(owner)
     }
 
-    if (chain === 'TRX') {
+    if (chain === ChainName.TRON) {
       const res: any = await fetchWrapper.post(
         'https://api.nileex.io/wallet/validateaddress',
         {
@@ -77,7 +78,7 @@ async function isValidAddress(
       return res?.result as boolean
     }
 
-    if (chain === 'BTC') {
+    if (chain === ChainName.BTC) {
       return validateBTC(address, Network.testnet)
     }
 

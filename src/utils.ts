@@ -1,4 +1,4 @@
-function hexStringToUint8Array(hexString: string) {
+export function hexStringToUint8Array(hexString: string) {
   if (hexString.length % 2 !== 0) {
     throw new Error('Invalid hex string')
   }

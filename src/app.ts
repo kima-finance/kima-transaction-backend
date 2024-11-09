@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import express, { Express } from 'express'
 import CookieParser from 'cookie-parser'
+import './bigint-shim'
 
 import { rejectSameOrigin } from './middleware/same-origin'
 import { corsConfig } from './middleware/cors'
