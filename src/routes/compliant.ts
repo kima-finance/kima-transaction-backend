@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express'
-import { getRisk, RiskResult, RiskScore2String } from '../xplorisk'
 import { body } from 'express-validator'
 import { validateRequest } from '../middleware/validation'
+import { complianceService } from '../check-compliance'
 
 const compliantRouter = Router()
 
@@ -9,22 +9,18 @@ compliantRouter.post(
   '/',
   [body('address').notEmpty(), validateRequest],
   async (req: Request, res: Response) => {
-    const { address } = req.body
-
-    if (address) {
-      try {
-        const results: Array<RiskResult> = await getRisk([address])
-
-        if (results.length > 0) {
-          res.send(RiskScore2String[results[0].risk_score])
-          return
-        }
-      } catch (e) {
-        console.log(e)
-      }
+    if (!complianceService.enabled) {
+      return res.status(501).send('not supported')
     }
 
-    res.status(500).send('failed to check xplorisk')
+    try {
+      const { address } = req.body
+      const result = await complianceService.score(address)
+      res.send(result)
+    } catch (e) {
+      console.log(e)
+      res.status(500).send('failed to check compliance')
+    }
   }
 )
 

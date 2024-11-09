@@ -8,6 +8,7 @@ import htlcRouter from './htlc'
 import kycRouter from './kyc'
 import reclaimRouter from './reclaim'
 import submitRouter from './submit'
+import txRouter from './tx'
 
 const router = Router()
 
@@ -22,6 +23,7 @@ router.use('/htlc', htlcRouter)
 router.use('/kyc', kycRouter)
 router.use('/reclaim', reclaimRouter)
 router.use('/submit', submitRouter)
+router.use('/tx', txRouter)
 
 router.get('/uuid', async (_, res: Response) => {
   res.send(uuidv4())

@@ -7,15 +7,15 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "test": "cross-env NODE_ENV=test jest --testTimeout=10000",
-    "test:watch": "cross-env NODE_ENV=test jest --testTimeout=10000 --watch",
+    "test": "cross-env NODE_ENV=test jest --testTimeout=10000 --runInBand",
+    "test:watch": "cross-env NODE_ENV=test jest --testTimeout=10000 --watch --maxWorkers=50% --verbose",
     "dev": "cross-env NODE_ENV=development nodemon",
     "build": "rimraf ./build && tsc",
     "start": "npm run build && node build/index.js"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/cookie-parser": "^1.4.3",
     "@types/cors": "^2.8.13",

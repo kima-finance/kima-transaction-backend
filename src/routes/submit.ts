@@ -2,10 +2,13 @@ import { Request, Response, Router } from 'express'
 import { authenticateJWT } from '../middleware/auth'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
 import { validate } from '../validate'
-import { getRisk, RiskResult, RiskScore, RiskScore2String } from '../xplorisk'
 import { createTransValidation } from '../middleware/trans-validation'
 import { validateRequest } from '../middleware/validation'
-import { body } from 'express-validator'
+import { body, query } from 'express-validator'
+import { complianceService } from '../check-compliance'
+import { hexStringToUint8Array } from '../utils'
+import { ChainName } from '../types/chain-name'
+import { calcServiceFee } from '../fees'
 
 const submitRouter = Router()
 
@@ -20,7 +23,7 @@ submitRouter.post(
     ...createTransValidation(),
     body('htlcCreationHash').optional(),
     body('htlcCreationVout').optional().isInt({ gt: 0 }),
-    body('htlcExpirationTimestamp').optional().isInt({ gt: 0 }),
+    body('htlcExpirationTimestamp').optional().notEmpty(),
     body('htlcVersion').optional().notEmpty(),
     body('senderPubKey').optional().notEmpty(),
     validateRequest,
@@ -49,32 +52,9 @@ submitRouter.post(
       return res.status(400).send('validation error')
     }
 
-    if (process.env.XPLORISK_URL) {
-      try {
-        const results: Array<RiskResult> = await getRisk([
-          originAddress,
-          targetAddress
-        ])
-
-        const totalRisky: number = results.reduce(
-          (a, c) => a + (c.risk_score !== RiskScore.LOW ? 1 : 0),
-          0
-        )
-        if (totalRisky > 0) {
-          let riskyResult = ''
-          for (let i = 0; i < results.length; i++) {
-            if (results[i].risk_score === RiskScore.LOW) continue
-            if (riskyResult.length > 0) riskyResult += ', '
-            riskyResult += `${results[i].address} has ${
-              RiskScore2String[results[i].risk_score]
-            } risk`
-          }
-          res.status(403).send(riskyResult)
-          return
-        }
-      } catch (e) {
-        console.log(e)
-      }
+    const denied = await complianceService.check([originAddress, targetAddress])
+    if (denied) {
+      return res.status(403).send(denied)
     }
 
     try {
@@ -98,6 +78,36 @@ submitRouter.post(
     } catch (e) {
       console.log(e)
       res.status(500).send('failed to submit transaction')
+    }
+  }
+)
+
+submitRouter.get(
+  '/fees',
+  [
+    query('amount')
+      .isFloat({ gt: 0 })
+      .withMessage('amount must be greater than 0'),
+    query('originChain')
+      .isIn(Object.values(ChainName))
+      .withMessage('sourceChain must be a valid chain name'),
+    query('targetChain')
+      .isIn(Object.values(ChainName))
+      .withMessage('targetChain must be a valid chain name'),
+    validateRequest
+  ],
+  async (req: Request, res: Response) => {
+    const { amount, originChain, targetChain } = req.query
+    try {
+      const totalFeeUsd = await calcServiceFee({
+        amount: +amount!,
+        originChain: originChain as ChainName,
+        targetChain: targetChain as ChainName
+      })
+      res.send({ totalFeeUsd })
+    } catch (e) {
+      console.log(e)
+      res.status(500).send('failed to get fee')
     }
   }
 )

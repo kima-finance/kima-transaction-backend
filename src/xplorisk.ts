@@ -38,10 +38,11 @@ export type RiskResult = {
 export const getRisk = async (
   addresses: Array<string>
 ): Promise<Array<RiskResult>> => {
+  // TODO: refactor to use client Xplorisk (sub) API key
   if (!addresses.length) {
     throw new Error('Must provide at least one address to check')
   }
-  const response: Response = await fetch(process.env.XPLORISK_URL as string, {
+  const response: Response = await fetch(process.env.COMPLIANCE_URL as string, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
