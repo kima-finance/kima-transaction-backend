@@ -24,12 +24,10 @@ btcRouter.get(
         btcInfo.chain_stats.funded_txo_sum - btcInfo.chain_stats.spent_txo_sum
 
       res.send({ balance })
-      return
     } catch (e) {
-      console.log(e)
+      console.error(e)
+      res.status(500).send('failed to get bitcoin balance')
     }
-
-    res.status(500).send('failed to get bitcoin balance')
   }
 )
 
@@ -45,12 +43,10 @@ btcRouter.get(
       )
 
       res.send(btcInfo)
-      return
     } catch (e) {
       console.log(e)
+      res.status(500).send('failed to get bitcoin tx info')
     }
-
-    res.status(500).send('failed to get bitcoin tx info')
   }
 )
 

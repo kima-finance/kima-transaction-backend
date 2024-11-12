@@ -5,6 +5,7 @@ import './bigint-shim'
 
 import { rejectSameOrigin } from './middleware/same-origin'
 import { corsConfig } from './middleware/cors'
+import { unhandledError } from './middleware/error'
 import router from './routes'
 
 const app: Express = express()
@@ -18,5 +19,7 @@ app.use(express.urlencoded({ extended: false }))
 
 // API routes
 app.use('/', router)
+
+app.use(unhandledError)
 
 export default app

@@ -1,8 +1,36 @@
+import { ComplianceCheckResult } from './types/compliance'
 import { getRisk, RiskResult, RiskScore, RiskScore2String } from './xplorisk'
 
 export class ComplianceService {
+  readonly riskScoreToCompliance: Record<RiskScore, boolean> = {
+    [RiskScore.LOW]: true,
+    [RiskScore.MED]: false,
+    [RiskScore.HIGH]: false,
+    [RiskScore.CRITICAL]: false
+  }
+
   get enabled() {
     return !!process.env.COMPLIANCE_URL
+  }
+
+  private requireEnabled = () => {
+    if (!this.enabled) {
+      throw new Error('Compliance check is not enabled')
+    }
+  }
+
+  private newResult = (): ComplianceCheckResult => ({
+    isCompliant: true,
+    isError: false,
+    results: []
+  })
+
+  private isCompliant = (result: RiskResult): boolean | Error => {
+    const isCompliant = this.riskScoreToCompliance[result.risk_score]
+    if (isCompliant === undefined) {
+      return new Error('Unknown risk score')
+    }
+    return isCompliant
   }
 
   /**
@@ -10,60 +38,53 @@ export class ComplianceService {
    *
    * @async
    * @param {string[]} addresses
-   * @returns {Promise<string>} Returns the empty string when the check passes, a comma separated list
-   * of addresses and their scores otherwise.
+   * @returns {Promise<ComplianceCheckResult>}
    */
-  check = async (addresses: string[]): Promise<string> => {
-    if (!this.enabled || addresses.length === 0) {
-      return ''
+  check = async (addresses: string[]): Promise<ComplianceCheckResult> => {
+    this.requireEnabled()
+    if (!addresses || addresses.length === 0) {
+      return this.newResult()
     }
-
-    try {
-      const results = await getRisk(addresses)
-      return this.handleRiskScores(results)
-    } catch (e) {
-      // this should probably throw an error
-      console.log(e)
-      return ''
-    }
-  }
-
-  score = async (address: string): Promise<string> => {
-    if (!this.enabled) {
-      return ''
-    }
-
-    const results: Array<RiskResult> = await getRisk([address])
-    if (results.length === 0) return ''
-
-    return RiskScore2String[results[0].risk_score]
+    const results = await getRisk(addresses)
+    return this.handleRiskScores(results)
   }
 
   /**
    * Checks the risk score results. Only addresses with a score of LOW are considered safe.
    *
    * @param {RiskResult[]} results
-   * @returns {string} the empty string when the check passes,
-   * a comma separated list of addresses and their scores otherwise.
+   * @returns {ComplianceCheckResult}
    */
-  private handleRiskScores = (results: RiskResult[]) => {
-    const totalRisky: number = results.reduce(
-      (a, c) => a + (c.risk_score !== RiskScore.LOW ? 1 : 0),
-      0
-    )
-
-    let riskyResult = ''
-    if (totalRisky > 0) {
-      for (let i = 0; i < results.length; i++) {
-        if (results[i].risk_score === RiskScore.LOW) continue
-        if (riskyResult.length > 0) riskyResult += ', '
-        riskyResult += `${results[i].address} has ${
-          RiskScore2String[results[i].risk_score]
-        } risk`
-      }
+  private handleRiskScores = (results: RiskResult[]): ComplianceCheckResult => {
+    if (!results || results.length === 0) {
+      return this.newResult()
     }
 
-    return riskyResult
+    const output = results.reduce<ComplianceCheckResult>(
+      (acc: ComplianceCheckResult, result: RiskResult) => {
+        const isCompliant = this.isCompliant(result)
+        if (isCompliant instanceof Error) {
+          acc.isCompliant = false
+          acc.isError = true
+          acc.results.push({
+            address: result.address,
+            error: isCompliant.message
+          })
+          return acc
+        }
+
+        if (!isCompliant) acc.isCompliant = false
+        acc.results.push({
+          isCompliant,
+          result
+        })
+
+        return acc
+      },
+      this.newResult()
+    )
+
+    return output
   }
 }
 

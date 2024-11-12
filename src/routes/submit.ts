@@ -52,12 +52,15 @@ submitRouter.post(
       return res.status(400).send('validation error')
     }
 
-    const denied = await complianceService.check([originAddress, targetAddress])
-    if (denied) {
-      return res.status(403).send(denied)
-    }
-
     try {
+      const denied = await complianceService.check([
+        originAddress,
+        targetAddress
+      ])
+      if (denied) {
+        return res.status(403).send(denied)
+      }
+
       const result = await submitKimaTransaction({
         originAddress,
         originChain,
@@ -76,7 +79,7 @@ submitRouter.post(
       console.log(result)
       res.send(result)
     } catch (e) {
-      console.log(e)
+      console.error(e)
       res.status(500).send('failed to submit transaction')
     }
   }

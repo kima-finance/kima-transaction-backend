@@ -24,7 +24,7 @@ export const mockGetRisk = getRisk as jest.MockedFunction<typeof getRisk>
 
 export const setRisk = (risk: Partial<RiskResult>) =>
   mockGetRisk.mockImplementation(async (addresses: Array<string>) => {
-    if (addresses.length === 0) {
+    if (!addresses || addresses.length === 0) {
       throw new Error('Must provide at least one address to check')
     }
     return addresses.map((address: string) => ({

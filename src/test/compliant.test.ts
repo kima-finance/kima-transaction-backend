@@ -3,6 +3,7 @@ import { RiskScore } from '../xplorisk'
 import { testServer } from './config'
 import { mockGetRisk, setRisk } from './mocks/xplorisk.mock'
 import { ComplianceService } from '../check-compliance'
+import { ComplianceCheckResult } from '../types/compliance'
 
 jest.mock('../xplorisk')
 const originalEnv = process.env
@@ -37,17 +38,10 @@ describe('Compliance Service', () => {
     })
 
     describe('Check Compliance', () => {
-      it('should return the empty string', async () => {
-        const result = await service.check(addresses)
-        expect(result).toEqual('')
-        expect(mockGetRisk).not.toHaveBeenCalled()
-      })
-    })
-
-    describe('Score', () => {
-      it('should return the empty string', async () => {
-        const result = await service.score(addresses[0])
-        expect(result).toEqual('')
+      it('should throw an error', async () => {
+        await expect(service.check(addresses)).rejects.toThrow(
+          'Compliance check is not enabled'
+        )
         expect(mockGetRisk).not.toHaveBeenCalled()
       })
     })
@@ -61,46 +55,32 @@ describe('Compliance Service', () => {
     })
 
     describe.each([
-      { risk: RiskScore.LOW, expected: '' },
-      { risk: RiskScore.MED, expected: `${addresses[0]} has medium risk` },
-      { risk: RiskScore.HIGH, expected: `${addresses[0]} has high risk` },
-      {
-        risk: RiskScore.CRITICAL,
-        expected: `${addresses[0]} has critical risk`
-      }
+      { risk: RiskScore.LOW, expected: true },
+      { risk: RiskScore.MED, expected: false },
+      { risk: RiskScore.HIGH, expected: false },
+      { risk: RiskScore.CRITICAL, expected: false },
+      { risk: 'shady' as RiskScore, expected: 'error' }
     ])('Check Compliance: Risk $risk', ({ risk, expected }) => {
       beforeEach(() => {
         setRisk({ risk_score: risk })
       })
 
-      it('should return the expected string', async () => {
+      it('should return $expected', async () => {
         const result = await service.check(addresses)
-        expect(result).toEqual(expected)
-        expect(mockGetRisk).toHaveBeenCalledWith(addresses)
-      })
-    })
-
-    describe.each([
-      { risk: RiskScore.LOW, expected: 'low' },
-      { risk: RiskScore.MED, expected: 'medium' },
-      { risk: RiskScore.HIGH, expected: 'high' },
-      { risk: RiskScore.CRITICAL, expected: 'critical' }
-    ])('Score: Risk $risk', ({ risk, expected }) => {
-      beforeEach(() => {
-        setRisk({ risk_score: risk })
-      })
-
-      it('should return the expected string', async () => {
-        const result = await service.score(addresses[0])
-        expect(result).toEqual(expected)
+        if (expected === 'error') {
+          expect(result.isError).toEqual(true)
+        } else {
+          expect(result.isCompliant).toEqual(expected)
+          expect(result.isError).toEqual(false)
+        }
         expect(mockGetRisk).toHaveBeenCalledWith(addresses)
       })
     })
 
     describe('when no addresses are provided', () => {
-      it('should return the empty string', async () => {
+      it('should return true', async () => {
         const result = await service.check([])
-        expect(result).toEqual('')
+        expect(result.isCompliant).toEqual(true)
         expect(mockGetRisk).not.toHaveBeenCalled()
       })
     })
@@ -108,7 +88,7 @@ describe('Compliance Service', () => {
 })
 
 describe('POST /compliant', () => {
-  const addresses = ['0x76d031825134aaf073436Aba2087a3B589babd9F']
+  const address = '0x76d031825134aaf073436Aba2087a3B589babd9F'
 
   beforeEach(() => {
     jest.resetAllMocks()
@@ -116,42 +96,61 @@ describe('POST /compliant', () => {
 
   it('should respond with status 400 if no address is provided', async () => {
     setRisk({ risk_score: RiskScore.LOW })
-    const res = await testServer.post('/compliant').send({}).expect(400)
+    const res = await testServer.get('/compliant').expect(400)
 
     const errors = res.body.errors as FieldValidationError[]
     expect(errors.length).toEqual(1)
     expect(errors[0].path).toEqual('address')
   })
 
-  it('should return critical risk from compliant endpoint', async () => {
-    setRisk({ risk_score: RiskScore.CRITICAL })
-    const address = '0xDD4c48C0B24039969fC16D1cdF626eaB821d3384'
+  describe.each([
+    { risk: RiskScore.LOW, expected: true },
+    { risk: RiskScore.MED, expected: false },
+    { risk: RiskScore.HIGH, expected: false },
+    { risk: RiskScore.CRITICAL, expected: false },
+    { risk: 'shady' as RiskScore, expected: 'error' }
+  ])('Compliance: Risk $risk', ({ risk, expected }) => {
+    beforeEach(() => {
+      setRisk({ risk_score: risk })
+    })
 
-    const res = await testServer.post('/compliant').send({ address })
-
-    expect(res.status).toEqual(200)
-    expect(res.text).toEqual('critical')
-    expect(res.type).toEqual(expect.stringContaining('text/html'))
-    expect(mockGetRisk).toHaveBeenCalledWith([address])
+    it('should return $expected', async () => {
+      const res = await testServer.get('/compliant').query({ address })
+      const result = res.body as ComplianceCheckResult
+      if (expected === 'error') {
+        expect(res.status).toEqual(500)
+        expect(result.isError).toEqual(true)
+      } else {
+        expect(res.status).toEqual(200)
+        expect(result.isError).toEqual(false)
+        expect(result.isCompliant).toEqual(expected)
+      }
+      expect(mockGetRisk).toHaveBeenCalledWith([address])
+    })
   })
 
-  it('should return low risk from compliant endpoint', async () => {
+  it('should handle multiple addresses', async () => {
     setRisk({ risk_score: RiskScore.LOW })
-    const address = '0x76d031825134aaf073436Aba2087a3B589babd9F'
+    const addresses = [
+      '0x76d031825134aaf073436Aba2087a3B589babd9F',
+      '0xDD4c48C0B24039969fC16D1cdF626eaB821d3384'
+    ]
 
-    const res = await testServer.post('/compliant').send({ address })
+    const res = await testServer.get('/compliant').query({ address: addresses })
 
+    const result = res.body as ComplianceCheckResult
     expect(res.status).toEqual(200)
-    expect(res.text).toEqual('low')
-    expect(res.type).toEqual(expect.stringContaining('text/html'))
-    expect(mockGetRisk).toHaveBeenCalledWith([address])
+    expect(result.isError).toEqual(false)
+    expect(result.isCompliant).toEqual(true)
+    expect(result.results.length).toEqual(2)
+    expect(mockGetRisk).toHaveBeenCalledWith(addresses)
   })
 
   it('should respond with status 500 if xplorisk returns error', async () => {
     mockGetRisk.mockRejectedValue(new Error('Xplorisk test error'))
     const address = '0x76d031825134aaf073436Aba2087a3B589babd9F'
 
-    const res = await testServer.post('/compliant').send({ address })
+    const res = await testServer.get('/compliant').query({ address })
 
     expect(res.status).toEqual(500)
     expect(res.text).toEqual('failed to check compliance')
@@ -172,9 +171,7 @@ describe('POST /compliant', () => {
     })
 
     it('should return 501 with a not supported error', async () => {
-      const res = await testServer
-        .post('/compliant')
-        .send({ address: addresses[0] })
+      const res = await testServer.get('/compliant').query({ address })
       expect(res.status).toEqual(501)
       expect(res.text).toEqual('not supported')
     })

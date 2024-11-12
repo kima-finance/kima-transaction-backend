@@ -20,7 +20,7 @@ function post(url: string, body: any) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      Accept: 'application/json'
     },
     body: JSON.stringify(body)
   }

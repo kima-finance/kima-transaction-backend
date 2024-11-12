@@ -9,6 +9,7 @@ import kycRouter from './kyc'
 import reclaimRouter from './reclaim'
 import submitRouter from './submit'
 import txRouter from './tx'
+import chainsRouter from './chains'
 
 const router = Router()
 
@@ -18,6 +19,7 @@ router.get('/', (_, res: Response) => {
 
 router.use('/auth', authRouter)
 router.use('/btc', btcRouter)
+router.use('/chains', chainsRouter)
 router.use('/compliant', compliantRouter)
 router.use('/htlc', htlcRouter)
 router.use('/kyc', kycRouter)
