@@ -38,6 +38,8 @@
   "dependencies": {
     "@kimafinance/kima-transaction-api": "^1.0.30-beta.1",
     "@solana/web3.js": "^1.95.4",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.7",
     "bitcoin-address-validation": "^2.2.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -45,6 +47,8 @@
     "express": "^4.18.2",
     "express-validator": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "uuid": "^9.0.1",
     "viem": "^2.21.40"
   }

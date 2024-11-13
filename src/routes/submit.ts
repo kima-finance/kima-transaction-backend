@@ -13,9 +13,122 @@ import { calcServiceFee } from '../fees'
 const submitRouter = Router()
 
 /**
- * Submit a transaction to Kima Chain
- * @requires cookie from /auth. The transaction details in the body must match
- * what was passed to /auth.
+ * @openapi
+ * /submit:
+ *   post:
+ *     summary: Submit transaction
+ *     description: Submit a transaction to Kima Chain. Requires authentication by calling /auth with the transaction details.
+ *     tags:
+ *       - Submit
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               amount:
+ *                 type: number
+ *                 description: Amount to send
+ *               fee:
+ *                 type: number
+ *                 description: Fee to pay
+ *               originAddress:
+ *                 type: string
+ *                 description: Origin address
+ *               originChain:
+ *                 type: string
+ *                 description: Origin chain
+ *                 enum:
+ *                   - ARBITRUM
+ *                   - AVALANCHE
+ *                   - BSC
+ *                   - BTC
+ *                   - ETHEREUM
+ *                   - FIAT
+ *                   - OPTIMISM
+ *                   - POLYGON
+ *                   - POLYGON_ZKEVM
+ *                   - SOLANA
+ *                   - TRON
+ *               targetAddress:
+ *                 type: string
+ *                 description: Target address
+ *               targetChain:
+ *                 type: string
+ *                 description: Target chain
+ *                 enum:
+ *                   - ARBITRUM
+ *                   - AVALANCHE
+ *                   - BSC
+ *                   - BTC
+ *                   - ETHEREUM
+ *                   - FIAT
+ *                   - OPTIMISM
+ *                   - POLYGON
+ *                   - POLYGON_ZKEVM
+ *                   - SOLANA
+ *                   - TRON
+ *               targetSymbol:
+ *                 type: string
+ *                 description: Target symbol
+ *               htlcCreationHash:
+ *                 type: string
+ *                 description: HTLC creation hash
+ *               htlcCreationVout:
+ *                 type: number
+ *                 description: HTLC creation vout
+ *               htlcExpirationTimestamp:
+ *                 type: number
+ *                 description: HTLC expiration timestamp
+ *               htlcVersion:
+ *                 type: string
+ *                 description: HTLC version
+ *               senderPubKey:
+ *                 type: string
+ *                 description: Sender public key
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *       403:
+ *         description: Address is not compliant. Applies if compliance is enabled.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isCompliant:
+ *                   type: boolean
+ *                 isError:
+ *                   type: boolean
+ *                 results:
+ *                   type: object
+ *                   properties:
+ *                     isCompliant:
+ *                       type: boolean
+ *                     results:
+ *                       type: object
+ *                       properties:
+ *                         address:
+ *                           type: string
+ *                         error:
+ *                           type: string
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
  */
 submitRouter.post(
   '/',

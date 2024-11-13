@@ -5,6 +5,89 @@ import { complianceService } from '../check-compliance'
 
 const compliantRouter = Router()
 
+/**
+ * @openapi /compliant/enabled:
+ *   get:
+ *     summary: Check if compliance is enabled
+ *     description: Check if compliance is enabled
+ *     tags:
+ *       - Compliant
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 enabled:
+ *                   type: boolean
+ */
+compliantRouter.get('/enabled', async (_, res: Response) => {
+  res.json({ enabled: complianceService.enabled })
+})
+
+/**
+ * @openapi
+ * /compliant:
+ *   get:
+ *     summary: Check compliance
+ *     description: Check if the address is compliant
+ *     tags:
+ *       - Compliant
+ *     parameters:
+ *       - name: address
+ *         in: query
+ *         required: true
+ *         description: Address to check. Can also be an array of addresses.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isCompliant:
+ *                   type: boolean
+ *                 isError:
+ *                   type: boolean
+ *                 results:
+ *                   type: object
+ *                   properties:
+ *                     isCompliant:
+ *                       type: boolean
+ *                     result:
+ *                       type: object
+ *                       properties:
+ *                         address:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         classification:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                         risk_factors:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                         risk_score:
+ *                           type: string
+ *                           enum:
+ *                             - LOW
+ *                             - MED
+ *                             - HIGH
+ *                             - CRITICAL
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ */
 compliantRouter.get(
   '/',
   [

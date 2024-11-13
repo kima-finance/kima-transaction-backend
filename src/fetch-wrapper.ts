@@ -3,7 +3,7 @@ export const fetchWrapper = {
   post
 }
 
-function get(url: string, token?: string) {
+function get<T = any>(url: string, token?: string) {
   const requestOptions: any = {
     method: 'GET',
     headers: {
@@ -12,10 +12,10 @@ function get(url: string, token?: string) {
     }
   }
 
-  return fetch(url, requestOptions).then(handleResponse)
+  return fetch(url, requestOptions).then(handleResponse<T>)
 }
 
-function post(url: string, body: any) {
+function post<T = any>(url: string, body: any) {
   const requestOptions: any = {
     method: 'POST',
     headers: {
@@ -25,15 +25,15 @@ function post(url: string, body: any) {
     body: JSON.stringify(body)
   }
 
-  return fetch(url, requestOptions).then(handleResponse)
+  return fetch(url, requestOptions).then(handleResponse<T>)
 }
 
-function handleResponse(response: Response) {
+function handleResponse<T = any>(response: Response): Promise<T | string> {
   return response.text().then((text) => {
-    let data = text
+    let data: T | string = text
 
     try {
-      data = JSON.parse(text)
+      data = JSON.parse(text) as T
     } catch (error) {
       data = text
     }

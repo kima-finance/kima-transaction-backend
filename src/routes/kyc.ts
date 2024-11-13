@@ -2,9 +2,56 @@ import { Request, Response, Router } from 'express'
 import { fetchWrapper } from '../fetch-wrapper'
 import { validateRequest } from '../middleware/validation'
 import { query } from 'express-validator'
+import { KYCResponseDto } from '../types/kyc-response.dto'
 
 const kycRouter = Router()
 
+/**
+ * @openapi
+ * /kyc:
+ *   get:
+ *     summary: Get KYC status
+ *     description: Returns the KYC status for the given UUID
+ *     tags:
+ *       - KYC
+ *     parameters:
+ *       - name: uuid
+ *         in: query
+ *         required: true
+ *         description: UUID
+ *         schema:
+ *           type: string
+ *           format: uuidv4
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 status:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 surname:
+ *                   type: string
+ *                 external_uuid:
+ *                   type: string
+ *                   format: uuidv4
+ *                 account_id:
+ *                   type: string
+ *                 created_at:
+ *                   type: number
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ */
 kycRouter.get(
   '/',
   [
@@ -15,7 +62,7 @@ kycRouter.get(
     const { uuid } = req.body
 
     try {
-      const kycResult = await fetchWrapper.get(
+      const kycResult = await fetchWrapper.get<KYCResponseDto>(
         `http://sandbox.depasify.com/api/v1/identifications?filter[external_uuid]=${uuid}`,
         process.env.DEPASIFY_API_KEY as string
       )
