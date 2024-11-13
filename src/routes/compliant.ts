@@ -87,6 +87,12 @@ compliantRouter.get('/enabled', async (_, res: Response) => {
  *           text/plain:
  *             schema:
  *               type: string
+ *       501:
+ *         description: Returns 501 if compliance is not enabled
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
  */
 compliantRouter.get(
   '/',
