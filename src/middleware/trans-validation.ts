@@ -1,5 +1,6 @@
 import { body } from 'express-validator'
 
+// reusable validation for transaction details
 export const createTransValidation = () => [
   body('amount')
     .isFloat({ gt: 0 })
