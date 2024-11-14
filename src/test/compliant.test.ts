@@ -19,7 +19,7 @@ describe('Compliance Service', () => {
   })
 
   describe('when COMPLIANCE_URL is not set', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       jest.resetModules()
       process.env = {
         ...originalEnv,
@@ -27,7 +27,7 @@ describe('Compliance Service', () => {
       }
     })
 
-    afterAll(() => {
+    afterEach(() => {
       process.env = originalEnv
     })
 
@@ -157,7 +157,7 @@ describe('POST /compliant', () => {
   })
 
   describe('when COMPLIANCE_URL is not set', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       jest.resetModules()
       process.env = {
         ...originalEnv,
@@ -166,7 +166,7 @@ describe('POST /compliant', () => {
       setRisk({ risk_score: RiskScore.LOW })
     })
 
-    afterAll(() => {
+    afterEach(() => {
       process.env = originalEnv
     })
 

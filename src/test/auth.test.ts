@@ -1,14 +1,16 @@
 import { testServer } from './config'
 import jwt from 'jsonwebtoken'
-import { useTestAuth, getTokenFromReqCookie } from './utils/auth-utils'
+import {
+  useTestAuth,
+  getTokenFromReqCookie,
+  generateTransDetails
+} from './utils/auth-utils'
 
 describe('POST /auth', () => {
   it('should return ok from auth endpoint', async () => {
     const res = await testServer
       .post('/auth')
-      .send({
-        originAddress: '0x76d031825134aaf073436Aba2087a3B589babd9F'
-      })
+      .send(generateTransDetails())
       .expect('set-cookie', /authToken/)
 
     expect(res.status).toEqual(200)
@@ -16,13 +18,10 @@ describe('POST /auth', () => {
   })
 
   it('should include the body in the cookie', async () => {
-    const payload = {
-      someAddress: '0x76d031825134aaf073436Aba2087a3B589babd9F',
-      someChain: 'SOL'
-    }
+    const payload = generateTransDetails()
     const res = await testServer
       .post('/auth')
-      .send(payload)
+      .send(generateTransDetails())
       .expect('set-cookie', /authToken/)
 
     const token = getTokenFromReqCookie(res)

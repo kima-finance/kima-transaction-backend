@@ -6,6 +6,7 @@ import { createTransValidation } from '../middleware/trans-validation'
 import { body } from 'express-validator'
 import { fetchWrapper } from '../fetch-wrapper'
 import { validateRequest } from '../middleware/validation'
+import { checkCompliance } from '../middleware/compliance'
 
 const htlcRouter = Router()
 
@@ -170,7 +171,8 @@ htlcRouter.post(
     body('htlcAddress').notEmpty(),
     body('txHash').isHexadecimal(),
     validateRequest,
-    authenticateJWT
+    authenticateJWT,
+    checkCompliance
   ],
   async (req: Request, res: Response) => {
     const {
@@ -185,11 +187,6 @@ htlcRouter.post(
     console.log(req.body)
 
     try {
-      const denied = await complianceService.check([fromAddress])
-      if (denied) {
-        return res.status(403).send(denied)
-      }
-
       const result = await submitHtlcLock({
         fromAddress,
         amount,

@@ -9,6 +9,8 @@ import { complianceService } from '../check-compliance'
 import { hexStringToUint8Array } from '../utils'
 import { ChainName } from '../types/chain-name'
 import { calcServiceFee } from '../fees'
+import { SubmitRequestDto } from '../types/submit-request.dto'
+import { checkCompliance } from '../middleware/compliance'
 
 const submitRouter = Router()
 
@@ -79,7 +81,7 @@ const submitRouter = Router()
  *                 type: number
  *                 description: HTLC creation vout
  *               htlcExpirationTimestamp:
- *                 type: number
+ *                 type: string
  *                 description: HTLC expiration timestamp
  *               htlcVersion:
  *                 type: string
@@ -140,7 +142,8 @@ submitRouter.post(
     body('htlcVersion').optional().notEmpty(),
     body('senderPubKey').optional().notEmpty(),
     validateRequest,
-    authenticateJWT
+    authenticateJWT,
+    checkCompliance
   ],
   async (req: Request, res: Response) => {
     const {
@@ -152,12 +155,12 @@ submitRouter.post(
       targetSymbol,
       amount,
       fee,
-      htlcCreationHash,
-      htlcCreationVout,
-      htlcExpirationTimestamp,
-      htlcVersion,
-      senderPubKey
-    } = req.body
+      htlcCreationHash = '',
+      htlcCreationVout = 0,
+      htlcExpirationTimestamp = '',
+      htlcVersion = '',
+      senderPubKey = ''
+    } = req.body satisfies SubmitRequestDto
 
     console.log(req.body)
 
@@ -166,14 +169,6 @@ submitRouter.post(
     }
 
     try {
-      const denied = await complianceService.check([
-        originAddress,
-        targetAddress
-      ])
-      if (denied) {
-        return res.status(403).send(denied)
-      }
-
       const result = await submitKimaTransaction({
         originAddress,
         originChain,

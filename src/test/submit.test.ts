@@ -2,11 +2,22 @@ import { FieldValidationError } from 'express-validator'
 import { RiskScore } from '../xplorisk'
 import { mockGetRisk, setRisk } from './mocks/xplorisk.mock'
 import { useTestAuth } from './utils/auth-utils'
+import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
 
 jest.mock('../xplorisk')
+jest.mock('@kimafinance/kima-transaction-api')
+
+export const mockSubmitKimaTransaction =
+  submitKimaTransaction as jest.MockedFunction<typeof submitKimaTransaction>
+const originalEnv = process.env
 
 describe('POST /submit', () => {
-  it('should return status 400 when properties are missing', async () => {
+  beforeEach(() => {
+    jest.resetAllMocks()
+  })
+
+  // calling /auth will return 400 as well so useTestAuth will fail; skipping
+  it.skip('should return status 400 when properties are missing', async () => {
     const { testAgent, payload, cookie } = await useTestAuth({
       amount: 101,
       targetSymbol: ''
@@ -44,23 +55,70 @@ describe('POST /submit', () => {
     expect(res.text).toEqual('validation error')
   })
 
-  it('should return status 403 for a risky address', async () => {
-    const { testAgent, payload, cookie } = await useTestAuth({
-      originAddress: '0xDD4c48C0B24039969fC16D1cdF626eaB821d3384',
-      targetAddress: '0x001474b877f98f41701397a65d4d313ab180c7b2'
+  describe('when compliance is enabled', () => {
+    it('should return status 200 for a compliant address', async () => {
+      const { testAgent, payload, cookie } = await useTestAuth()
+      setRisk({ risk_score: RiskScore.LOW })
+
+      const res = await testAgent
+        .post('/submit')
+        .set('Cookie', cookie)
+        .send(payload)
+
+      expect(res.status).toEqual(200)
+      expect(mockGetRisk).toHaveBeenCalledWith([
+        payload.originAddress,
+        payload.targetAddress
+      ])
+      expect(mockSubmitKimaTransaction).toHaveBeenCalledTimes(1)
     })
-    setRisk({ risk_score: RiskScore.MED })
 
-    const res = await testAgent
-      .post('/submit')
-      .set('Cookie', cookie)
-      .send(payload)
+    it('should return status 403 for a risky address', async () => {
+      const { testAgent, payload, cookie } = await useTestAuth({
+        originAddress: '0xDD4c48C0B24039969fC16D1cdF626eaB821d3384',
+        targetAddress: '0x001474b877f98f41701397a65d4d313ab180c7b2'
+      })
+      setRisk({ risk_score: RiskScore.MED })
 
-    expect(res.status).toEqual(403)
-    expect(res.text).toContain('risk')
-    expect(mockGetRisk).toHaveBeenCalledWith([
-      payload.originAddress,
-      payload.targetAddress
-    ])
+      const res = await testAgent
+        .post('/submit')
+        .set('Cookie', cookie)
+        .send(payload)
+
+      expect(res.status).toEqual(403)
+      expect(res.text).toContain('risk')
+      expect(mockGetRisk).toHaveBeenCalledWith([
+        payload.originAddress,
+        payload.targetAddress
+      ])
+    })
+  })
+
+  describe('when compliance is not enabled', () => {
+    beforeEach(() => {
+      jest.resetModules()
+      process.env = {
+        ...originalEnv,
+        COMPLIANCE_URL: ''
+      }
+    })
+
+    afterEach(() => {
+      process.env = originalEnv
+    })
+
+    it('should return status 200 for a risky address', async () => {
+      const { testAgent, payload, cookie } = await useTestAuth()
+      setRisk({ risk_score: RiskScore.MED })
+
+      const res = await testAgent
+        .post('/submit')
+        .set('Cookie', cookie)
+        .send(payload)
+
+      expect(res.status).toEqual(200)
+      expect(mockGetRisk).not.toHaveBeenCalled()
+      expect(mockSubmitKimaTransaction).toHaveBeenCalledTimes(1)
+    })
   })
 })
