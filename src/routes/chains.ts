@@ -68,7 +68,7 @@ const baseUrl = `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/ki
 chainsRouter.get('/chain', async (_, res: Response) => {
   try {
     const result = await fetchWrapper.get<ChainsResponseDto>(
-      `${baseUrl}/chain/get_chains`
+      `${baseUrl}/chains/get`
     )
     res.json(result)
   } catch (e) {
@@ -241,6 +241,38 @@ chainsRouter.get(
     }
   }
 )
+
+/**
+ * @openapi /chains/names:
+ *   get:
+ *     summary: Get chain names
+ *     description: Returns an array of all chain names
+ *     tags:
+ *       - Chains
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 Chain:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ */
+chainsRouter.get('/names', async (_, res: Response) => {
+  try {
+    const result = await fetchWrapper.get<AvailableChainsResponseDto>(
+      `${baseUrl}/chains/get_chains`
+    )
+    res.json(result)
+  } catch (e) {
+    console.error(e)
+    res.status(500).send('failed to get chain names')
+  }
+})
 
 /**
  * @openapi
