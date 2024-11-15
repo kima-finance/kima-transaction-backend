@@ -154,7 +154,8 @@ export const CHAINS: Chain[] = [
         name: 'blockstream',
         url: 'https://blockstream.info/testnet/'
       }
-    }
+    },
+    testnet: true
   },
   {
     ...mainnet,
@@ -341,7 +342,8 @@ export const CHAINS: Chain[] = [
         name: 'solscan',
         url: 'https://solscan.io'
       }
-    }
+    },
+    testnet: true
   },
   {
     ...tron,
@@ -381,6 +383,29 @@ export const CHAINS: Chain[] = [
       }
     },
     testnet: true
+  },
+  {
+    id: 0,
+    name: 'Fiat',
+    shortName: 'FIAT',
+    compatibility: ChainCompatibility.FIAT,
+    supportedTokens: [],
+    nativeCurrency: {
+      name: 'USD',
+      symbol: 'USD',
+      decimals: 6
+    },
+    rpcUrls: {
+      default: { http: [] }
+    },
+    faucets: [],
+    blockExplorers: {
+      default: {
+        name: '',
+        url: ''
+      }
+    },
+    testnet: true
   }
   // Tron Shasta not supported yet
   // {
@@ -403,6 +428,7 @@ export const CHAINS: Chain[] = [
   //       name: 'Tronscan',
   //       url: 'https://shasta.tronscan.org'
   //     }
-  //   }
+  //   },
+  //   testnet: true
   // }
 ] satisfies Chain[]
