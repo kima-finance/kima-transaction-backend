@@ -1,4 +1,4 @@
-import { getRisk, RiskResult, RiskScore } from '../../xplorisk'
+import { getRisk, RiskResult, RiskScore } from '../../compliance'
 
 export const mockGetRisk = getRisk as jest.MockedFunction<typeof getRisk>
 

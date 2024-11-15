@@ -1,4 +1,4 @@
-import { RiskResult } from '../xplorisk'
+import { RiskResult } from '../compliance'
 
 export interface ComplianceResult {
   isCompliant: boolean

@@ -1,10 +1,10 @@
 import { FieldValidationError } from 'express-validator'
-import { RiskScore } from '../xplorisk'
-import { mockGetRisk, setRisk } from './mocks/xplorisk.mock'
+import { RiskScore } from '../compliance'
+import { mockGetRisk, setRisk } from './mocks/compliance.mock'
 import { useTestAuth } from './utils/auth-utils'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
 
-jest.mock('../xplorisk')
+jest.mock('../compliance')
 jest.mock('@kimafinance/kima-transaction-api')
 
 export const mockSubmitKimaTransaction =

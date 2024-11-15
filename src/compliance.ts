@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 /**
- * Xplorisk API
+ * Compliance API
  */
 
 import * as dotenv from 'dotenv'
@@ -38,7 +38,7 @@ export type RiskResult = {
 export const getRisk = async (
   addresses: Array<string>
 ): Promise<Array<RiskResult>> => {
-  // TODO: refactor to use client Xplorisk (sub) API key
+  // TODO: refactor to use client (sub) API key
   if (!addresses.length) {
     throw new Error('Must provide at least one address to check')
   }

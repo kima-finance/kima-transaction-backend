@@ -41,11 +41,3 @@ The following endpoints will return status `403` if the address is not compliant
 #### `POST /kyc`:
 
 Returns the KYC status for a specific `uuid` verification session.
-
-# Release log
-
-All notable changes to this project will be documented in this file.
-
-## 1.3.0 - 2024-11
-
-- Refactored project structure, added more unit tests, OpenAPI documentation

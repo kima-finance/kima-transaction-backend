@@ -1,11 +1,11 @@
 import { FieldValidationError } from 'express-validator'
-import { RiskScore } from '../xplorisk'
+import { RiskScore } from '../compliance'
 import { testServer } from './config'
-import { mockGetRisk, setRisk } from './mocks/xplorisk.mock'
+import { mockGetRisk, setRisk } from './mocks/compliance.mock'
 import { ComplianceService } from '../check-compliance'
 import { ComplianceCheckResult } from '../types/compliance'
 
-jest.mock('../xplorisk')
+jest.mock('../compliance')
 const originalEnv = process.env
 
 describe('Compliance Service', () => {

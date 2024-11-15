@@ -1,6 +1,6 @@
-import { getRisk, RiskResult, RiskScore } from '../xplorisk'
+import { getRisk, RiskResult, RiskScore } from '../compliance'
 
-// Used early in development to help Xplorisk build and debug their API
+// Used early in development to help build and debug their API
 describe.skip('xplorisk API test', () => {
   it('should reject empty addresses', async () => {
     await expect(getRisk([])).rejects.toThrowError(

@@ -1,12 +1,14 @@
 import { Request, Response, Router } from 'express'
 import { fetchWrapper } from '../fetch-wrapper'
-import { param } from 'express-validator'
+import { param, query } from 'express-validator'
 import { validateRequest } from '../middleware/validation'
 import { ChainName } from '../types/chain-name'
 import { ChainsResponseDto } from '../types/chains-response.dto'
 import { AvailableChainsResponseDto } from '../types/available-chains-response.dto'
 import { AvailableCurrenciesResponseDto } from '../types/available-currencies-response.dto'
 import { TssPubkeyResponseDto } from '../types/tss-pubkey-response.dto'
+import { ChainEnv } from '../types/chain-env'
+import { CHAINS } from '../data/chains'
 
 const chainsRouter = Router()
 const baseUrl = `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain`
@@ -15,8 +17,8 @@ const baseUrl = `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/ki
  * @openapi
  * /chains/chain:
  *   get:
- *     summary: Get all chains
- *     description: Returns an array of all chains and tokens
+ *     summary: Get all chains (dynamic)
+ *     description: Returns an array of all chains and tokens. Dynamic query from Kima API. Check disabled chains using this endpoint.
  *     tags:
  *       - Chains
  *     responses:
@@ -58,23 +60,45 @@ const baseUrl = `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/ki
  *       500:
  *         description: Internal server error
  *         content:
- *           application/json:
+ *           text/plain:
  *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
+ *               type: string
  */
 chainsRouter.get('/chain', async (_, res: Response) => {
   try {
     const result = await fetchWrapper.get<ChainsResponseDto>(
-      `${baseUrl}/chains/get`
+      `${baseUrl}/chains/chain`
     )
     res.json(result)
   } catch (e) {
     console.error(e)
     res.status(500).send('failed to get chains')
   }
+})
+
+/**
+ * @openapi /chains/env:
+ *   get:
+ *     summary: Get chain environment
+ *     description: Returns the chain environment
+ *     tags:
+ *       - Chains
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 env:
+ *                   type: string
+ *                   enum:
+ *                     - mainnet
+ *                     - testnet
+ */
+chainsRouter.get('/env', async (_, res: Response) => {
+  return res.json({ env: process.env.KIMA_ENVIRONMENT as ChainEnv })
 })
 
 /**
@@ -390,5 +414,117 @@ chainsRouter.get('/tss_pubkey', async (_, res: Response) => {
     res.status(500).send('failed to get tss pubkeys')
   }
 })
+
+/**
+ * @openapi /chains:
+ *   get:
+ *     summary: Get all supported chains (static)
+ *     description: Returns a list of supported chains. Static but has more information than the dynamic endpoint.
+ *     tags:
+ *       - Chains
+ *     parameters:
+ *       - name: env
+ *         in: query
+ *         required: false
+ *         description: Chain environment
+ *         schema:
+ *           type: string
+ *           enum:
+ *             - mainnet
+ *             - testnet
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   shortName:
+ *                     type: string
+ *                   compatibility:
+ *                     type: string
+ *                     enum:
+ *                       - EVM
+ *                       - FIAT
+ *                       - BTC
+ *                       - COSMOS
+ *                       - NONE
+ *                       - SOL
+ *                   supportedTokens:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         symbol:
+ *                           type: string
+ *                         address:
+ *                           type: string
+ *                   disabled:
+ *                     type: boolean
+ *                   faucets:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   rpcUrls:
+ *                     type: object
+ *                     properties:
+ *                       default:
+ *                         type: object
+ *                         properties:
+ *                           http:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                   blockExplorers:
+ *                     type: object
+ *                     properties:
+ *                       default:
+ *                         type: object
+ *                         properties:
+ *                           name:
+ *                             type: string
+ *                           url:
+ *                             type: string
+ *                   testnet:
+ *                    type: boolean
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *
+ */
+chainsRouter.get(
+  '/',
+  [
+    query('env')
+      .isIn(Object.values(ChainEnv))
+      .withMessage('env must be a valid chain environment')
+      .optional()
+  ],
+  async (req: Request, res: Response) => {
+    const { env = process.env.KIMA_ENVIRONMENT as ChainEnv } = req.query
+
+    if (env === ChainEnv.TESTNET) {
+      res.json(CHAINS.filter((chain) => chain.testnet))
+      return
+    }
+
+    res.json(CHAINS.filter((chain) => !chain.testnet))
+  }
+)
 
 export default chainsRouter

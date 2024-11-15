@@ -1,5 +1,5 @@
 import { ComplianceCheckResult } from './types/compliance'
-import { getRisk, RiskResult, RiskScore, RiskScore2String } from './xplorisk'
+import { getRisk, RiskResult, RiskScore, RiskScore2String } from './compliance'
 
 export class ComplianceService {
   readonly riskScoreToCompliance: Record<RiskScore, boolean> = {
