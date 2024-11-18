@@ -20,13 +20,17 @@ export const sameOriginOnly = (
   ) {
     return next()
   }
-  const originDomain = (req.headers['x-forwarded-host'] ||
-    req.headers['host']) as string
+  const xforwardedHost = req.headers['x-forwarded-host']
+  const host = req.headers['host']
+  const referrer = req.headers['referer']
+  let originDomain = (xforwardedHost || referrer || host) as string
+  const originHostname = new URL(originDomain).hostname
 
   const domains = (process.env.DOMAIN as string).split(',')
 
-  for (let i = 0; i < domains.length; i++) {
-    if (domains[i].length && originDomain.endsWith(domains[i])) {
+  for (const domain of domains.filter((domain) => !!domain)) {
+    const domainHostname = new URL(domain).hostname
+    if (originHostname.endsWith(domainHostname)) {
       return next()
     }
   }

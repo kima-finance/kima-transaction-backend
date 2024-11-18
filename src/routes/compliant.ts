@@ -55,32 +55,34 @@ compliantRouter.get('/enabled', async (_, res: Response) => {
  *                 isError:
  *                   type: boolean
  *                 results:
- *                   type: object
- *                   properties:
- *                     isCompliant:
- *                       type: boolean
- *                     result:
- *                       type: object
- *                       properties:
- *                         address:
- *                           type: string
- *                         name:
- *                           type: string
- *                         classification:
- *                           type: array
- *                           items:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       isCompliant:
+ *                         type: boolean
+ *                       result:
+ *                         type: object
+ *                         properties:
+ *                           address:
  *                             type: string
- *                         risk_factors:
- *                           type: array
- *                           items:
+ *                           name:
  *                             type: string
- *                         risk_score:
- *                           type: string
- *                           enum:
- *                             - LOW
- *                             - MED
- *                             - HIGH
- *                             - CRITICAL
+ *                           classification:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                           risk_factors:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                           risk_score:
+ *                             type: string
+ *                             enum:
+ *                               - LOW
+ *                               - MED
+ *                               - HIGH
+ *                               - CRITICAL
  *       500:
  *         description: Internal server error
  *         content:
