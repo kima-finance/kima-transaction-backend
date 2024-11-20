@@ -193,6 +193,75 @@ submitRouter.post(
   }
 )
 
+/**
+ * @openapi
+ * /submit/fees:
+ *   get:
+ *     summary: Get fees
+ *     description: Get the fees for a given amount and chains
+ *     tags:
+ *       - Submit
+ *     parameters:
+ *       - in: query
+ *         name: amount
+ *         required: true
+ *         schema:
+ *           type: number
+ *           description: Amount to send
+ *       - in: query
+ *         name: originChain
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: Origin chain
+ *           enum:
+ *             - ARBITRUM
+ *             - AVALANCHE
+ *             - BSC
+ *             - BTC
+ *             - ETHEREUM
+ *             - FIAT
+ *             - OPTIMISM
+ *             - POLYGON
+ *             - POLYGON_ZKEVM
+ *             - SOLANA
+ *             - TRON
+ *       - in: query
+ *         name: targetChain
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: Target chain
+ *           enum:
+ *             - ARBITRUM
+ *             - AVALANCHE
+ *             - BSC
+ *             - BTC
+ *             - ETHEREUM
+ *             - FIAT
+ *             - OPTIMISM
+ *             - POLYGON
+ *             - POLYGON_ZKEVM
+ *             - SOLANA
+ *             - TRON
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalFeeUsd:
+ *                   type: number
+ *                   description: Total fee in USD
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ */
 submitRouter.get(
   '/fees',
   [
