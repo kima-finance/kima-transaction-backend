@@ -36,11 +36,13 @@ export async function calcServiceFee(args: GetFeeInput): Promise<number> {
     getServiceFee(targetChain)
   ])
 
-  const fee = amount + originFee + targetFee
+  const fee = originFee + targetFee
 
   // TODO: convert amount into origin token amount
   // using USD price of origin token
   // Note even stable coins are often not exactly 1:1
+
+  // TODO: how to handle 0.05% Kima service fee?
 
   return fee
 }
