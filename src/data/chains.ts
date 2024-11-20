@@ -10,8 +10,6 @@ import {
   optimismSepolia,
   polygon,
   polygonAmoy,
-  polygonZkEvm,
-  polygonZkEvmTestnet,
   sepolia,
   tron
 } from 'viem/chains'
@@ -251,35 +249,6 @@ export const CHAINS: Chain[] = [
         id: '1',
         symbol: 'WBTC',
         address: '0x66E1537e2A62168Ca19Bf5b6e2E66b5C806b8ab1'
-      }
-    ]
-  },
-  {
-    ...polygonZkEvm,
-    shortName: 'ZKE',
-    compatibility: ChainCompatibility.EVM,
-    supportedTokens: [
-      {
-        id: '0',
-        symbol: 'USDT',
-        address: '0x1e4a5963abfd975d8c9021ce480b42188849d41d'
-      },
-      {
-        id: '1',
-        symbol: 'USDC',
-        address: '0xa8ce8aee21bc2a48a5ef670afcc9274c7bbbc035'
-      }
-    ]
-  },
-  {
-    ...polygonZkEvmTestnet,
-    shortName: 'ZKE',
-    compatibility: ChainCompatibility.EVM,
-    supportedTokens: [
-      {
-        id: '0',
-        symbol: 'USDK',
-        address: '0x2cf79df2879902a2fc06329b1760e0f2ad9a3a47'
       }
     ]
   },

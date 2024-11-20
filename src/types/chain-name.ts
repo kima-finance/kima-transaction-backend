@@ -7,7 +7,6 @@ export enum ChainName {
   FIAT = 'FIAT',
   OPTIMISM = 'OPT',
   POLYGON = 'POL',
-  POLYGON_ZKEVM = 'ZKE',
   SOLANA = 'SOL',
   TRON = 'TRX'
 }
