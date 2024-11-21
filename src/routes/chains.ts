@@ -6,9 +6,8 @@ import { ChainName } from '../types/chain-name'
 import { ChainsResponseDto } from '../types/chains-response.dto'
 import { AvailableChainsResponseDto } from '../types/available-chains-response.dto'
 import { AvailableCurrenciesResponseDto } from '../types/available-currencies-response.dto'
-import { TssPubkeyResponseDto } from '../types/tss-pubkey-response.dto'
 import { ChainEnv } from '../types/chain-env'
-import { CHAINS } from '../data/chains'
+import chainsService from '../service/chains.service'
 
 const chainsRouter = Router()
 const baseUrl = `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain`
@@ -117,17 +116,16 @@ chainsRouter.get('/env', async (_, res: Response) => {
  *         schema:
  *           type: string
  *           enum:
- *             - ARBITRUM
- *             - AVALANCHE
+ *             - ARB
+ *             - AVX
  *             - BSC
  *             - BTC
- *             - ETHEREUM
+ *             - ETH
  *             - FIAT
- *             - OPTIMISM
- *             - POLYGON
- *             - POLYGON_ZKEVM
- *             - SOLANA
- *             - TRON
+ *             - OPT
+ *             - POL
+ *             - SOL
+ *             - TRX
  *     responses:
  *       200:
  *         description: Successful response
@@ -188,17 +186,16 @@ chainsRouter.get(
  *         schema:
  *           type: string
  *           enum:
- *             - ARBITRUM
- *             - AVALANCHE
+ *             - ARB
+ *             - AVX
  *             - BSC
  *             - BTC
- *             - ETHEREUM
+ *             - ETH
  *             - FIAT
- *             - OPTIMISM
- *             - POLYGON
- *             - POLYGON_ZKEVM
- *             - SOLANA
- *             - TRON
+ *             - OPT
+ *             - POL
+ *             - SOL
+ *             - TRX
  *       - name: targetChain
  *         in: path
  *         required: true
@@ -359,6 +356,47 @@ chainsRouter.get('/pool_balance', async (_, res: Response) => {
 })
 
 /**
+ * @openapi /chains/pool:
+ *   get:
+ *     summary: Get pool addresses
+ *     description: Returns the pool addresses for the available chains
+ *     tags:
+ *       - Chains
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   chainName:
+ *                     type: string
+ *                   poolAddress:
+ *                     type: string
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
+chainsRouter.get('/pool', async (_, res: Response) => {
+  try {
+    const result = await chainsService.getPools()
+    res.json(result)
+  } catch (e) {
+    console.error(e)
+    res.status(500).send('failed to get pools')
+  }
+})
+
+/**
  * @openapi
  * /chains/tss_pubkey:
  *   get:
@@ -405,10 +443,8 @@ chainsRouter.get('/pool_balance', async (_, res: Response) => {
  */
 chainsRouter.get('/tss_pubkey', async (_, res: Response) => {
   try {
-    const result = await fetchWrapper.get<TssPubkeyResponseDto>(
-      `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/kima/tss_pubkey`
-    )
-    res.json(result)
+    const result = await chainsService.getTssPubkeys()
+    res.status(200).json(result)
   } catch (e) {
     console.error(e)
     res.status(500).send('failed to get tss pubkeys')
@@ -516,14 +552,16 @@ chainsRouter.get(
       .optional()
   ],
   async (req: Request, res: Response) => {
-    const { env = process.env.KIMA_ENVIRONMENT as ChainEnv } = req.query
+    const { env = process.env.KIMA_ENVIRONMENT } = req.query
+    const chains = chainsService.getChains(env as ChainEnv)
+    res.status(200).json(chains)
 
-    if (env === ChainEnv.TESTNET) {
-      res.json(CHAINS.filter((chain) => chain.testnet))
-      return
-    }
+    // if (env === ChainEnv.TESTNET) {
+    //   res.json(CHAINS.filter((chain) => chain.testnet))
+    //   return
+    // }
 
-    res.json(CHAINS.filter((chain) => !chain.testnet))
+    // res.json(CHAINS.filter((chain) => !chain.testnet))
   }
 )
 

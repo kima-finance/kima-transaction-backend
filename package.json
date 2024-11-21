@@ -49,6 +49,7 @@
     "jsonwebtoken": "^9.0.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "tron-format-address": "^0.1.12",
     "uuid": "^9.0.1",
     "viem": "^2.21.40"
   }

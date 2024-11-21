@@ -215,17 +215,16 @@ submitRouter.post(
  *           type: string
  *           description: Origin chain
  *           enum:
- *             - ARBITRUM
- *             - AVALANCHE
+ *             - ARB
+ *             - AVX
  *             - BSC
  *             - BTC
- *             - ETHEREUM
+ *             - ETH
  *             - FIAT
- *             - OPTIMISM
- *             - POLYGON
- *             - POLYGON_ZKEVM
- *             - SOLANA
- *             - TRON
+ *             - OPT
+ *             - POL
+ *             - SOL
+ *             - TRX
  *       - in: query
  *         name: targetChain
  *         required: true
@@ -233,17 +232,16 @@ submitRouter.post(
  *           type: string
  *           description: Target chain
  *           enum:
- *             - ARBITRUM
- *             - AVALANCHE
+ *             - ARB
+ *             - AVX
  *             - BSC
  *             - BTC
- *             - ETHEREUM
+ *             - ETH
  *             - FIAT
- *             - OPTIMISM
- *             - POLYGON
- *             - POLYGON_ZKEVM
- *             - SOLANA
- *             - TRON
+ *             - OPT
+ *             - POL
+ *             - SOL
+ *             - TRX
  *     responses:
  *       200:
  *         description: Successful response

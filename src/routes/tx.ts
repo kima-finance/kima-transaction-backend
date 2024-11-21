@@ -2,9 +2,78 @@ import { Request, Response, Router } from 'express'
 import { fetchWrapper } from '../fetch-wrapper'
 import { param } from 'express-validator'
 import { validateRequest } from '../middleware/validation'
+import { TransactionStatus } from '../types/transaction-status'
 
 const txRouter = Router()
 
+/**
+ * @openapi
+ * /tx/lp/{txId}/status:
+ *   get:
+ *     summary: Get LP transaction status
+ *     description: Returns the LP transaction status for the given transaction id
+ *     tags:
+ *       - Tx
+ *     parameters:
+ *       - in: path
+ *         name: txId
+ *         required: true
+ *         schema:
+ *           type: number
+ *           description: Transaction id
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     transaction_status:
+ *                       type: object
+ *                       properties:
+ *                         failreason:
+ *                           type: string
+ *                         pullfailcount:
+ *                           type: number
+ *                         pullhash:
+ *                           type: string
+ *                         releasefailcount:
+ *                           type: number
+ *                         releasehash:
+ *                           type: string
+ *                         txstatus:
+ *                           type: string
+ *                         amount:
+ *                           type: number
+ *                         creator:
+ *                           type: string
+ *                         originaddress:
+ *                           type: string
+ *                         originchain:
+ *                           type: string
+ *                         originsymbol:
+ *                           type: string
+ *                         targetsymbol:
+ *                           type: string
+ *                         targetaddress:
+ *                           type: string
+ *                         targetchain:
+ *                           type: string
+ *                         tx_id:
+ *                           type: string
+ *                         kimahash:
+ *                           type: string
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ */
 txRouter.get(
   '/lp/:txId/status',
   [
@@ -45,7 +114,7 @@ txRouter.get(
           }
         }
       )
-      res.status(200).send(result)
+      res.status(200).send(result as TransactionStatus)
     } catch (e) {
       console.error(e)
       res.status(500).send(`failed to get status for transaction ${txId}`)
@@ -53,6 +122,74 @@ txRouter.get(
   }
 )
 
+/**
+ * @openapi
+ * /tx/{txId}/status:
+ *   get:
+ *     summary: Get transaction status
+ *     description: Returns the transaction status for the given transaction id
+ *     tags:
+ *       - Tx
+ *     parameters:
+ *       - in: path
+ *         name: txId
+ *         required: true
+ *         schema:
+ *           type: number
+ *           description: Transaction id
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     transaction_status:
+ *                       type: object
+ *                       properties:
+ *                         failreason:
+ *                           type: string
+ *                         pullfailcount:
+ *                           type: number
+ *                         pullhash:
+ *                           type: string
+ *                         releasefailcount:
+ *                           type: number
+ *                         releasehash:
+ *                           type: string
+ *                         txstatus:
+ *                           type: string
+ *                         amount:
+ *                           type: number
+ *                         creator:
+ *                           type: string
+ *                         originaddress:
+ *                           type: string
+ *                         originchain:
+ *                           type: string
+ *                         originsymbol:
+ *                           type: string
+ *                         targetsymbol:
+ *                           type: string
+ *                         targetaddress:
+ *                           type: string
+ *                         targetchain:
+ *                           type: string
+ *                         tx_id:
+ *                           type: string
+ *                         kimahash:
+ *                           type: string
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ */
 txRouter.get(
   '/:txId/status',
   [
