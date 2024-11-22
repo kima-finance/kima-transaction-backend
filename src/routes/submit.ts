@@ -5,7 +5,6 @@ import { validate } from '../validate'
 import { createTransValidation } from '../middleware/trans-validation'
 import { validateRequest } from '../middleware/validation'
 import { body, query } from 'express-validator'
-import { complianceService } from '../check-compliance'
 import { hexStringToUint8Array } from '../utils'
 import { ChainName } from '../types/chain-name'
 import { calcServiceFee } from '../fees'
@@ -42,17 +41,16 @@ const submitRouter = Router()
  *                 type: string
  *                 description: Origin chain
  *                 enum:
- *                   - ARBITRUM
- *                   - AVALANCHE
+ *                   - ARB
+ *                   - AVX
  *                   - BSC
  *                   - BTC
- *                   - ETHEREUM
+ *                   - ETH
  *                   - FIAT
- *                   - OPTIMISM
- *                   - POLYGON
- *                   - POLYGON_ZKEVM
- *                   - SOLANA
- *                   - TRON
+ *                   - OPT
+ *                   - POL
+ *                   - SOL
+ *                   - TRX
  *               targetAddress:
  *                 type: string
  *                 description: Target address
@@ -60,17 +58,16 @@ const submitRouter = Router()
  *                 type: string
  *                 description: Target chain
  *                 enum:
- *                   - ARBITRUM
- *                   - AVALANCHE
+ *                   - ARB
+ *                   - AVX
  *                   - BSC
  *                   - BTC
- *                   - ETHEREUM
+ *                   - ETH
  *                   - FIAT
- *                   - OPTIMISM
- *                   - POLYGON
- *                   - POLYGON_ZKEVM
- *                   - SOLANA
- *                   - TRON
+ *                   - OPT
+ *                   - POL
+ *                   - SOL
+ *                   - TRX
  *               targetSymbol:
  *                 type: string
  *                 description: Target symbol

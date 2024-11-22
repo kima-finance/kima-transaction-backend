@@ -1,7 +1,6 @@
 import { Request, Response, Router } from 'express'
 import { authenticateJWT } from '../middleware/auth'
 import { submitHtlcLock } from '@kimafinance/kima-transaction-api'
-import { complianceService } from '../check-compliance'
 import { createTransValidation } from '../middleware/trans-validation'
 import { body } from 'express-validator'
 import { fetchWrapper } from '../fetch-wrapper'
@@ -38,17 +37,16 @@ const htlcRouter = Router()
  *                 type: string
  *                 description: Origin chain
  *                 enum:
- *                   - ARBITRUM
- *                   - AVALANCHE
+ *                   - ARB
+ *                   - AVX
  *                   - BSC
  *                   - BTC
- *                   - ETHEREUM
+ *                   - ETH
  *                   - FIAT
- *                   - OPTIMISM
- *                   - POLYGON
- *                   - POLYGON_ZKEVM
- *                   - SOLANA
- *                   - TRON
+ *                   - OPT
+ *                   - POL
+ *                   - SOL
+ *                   - TRX
  *               targetAddress:
  *                 type: string
  *                 description: Target address
@@ -56,17 +54,16 @@ const htlcRouter = Router()
  *                 type: string
  *                 description: Target chain
  *                 enum:
- *                   - ARBITRUM
- *                   - AVALANCHE
+ *                   - ARB
+ *                   - AVX
  *                   - BSC
  *                   - BTC
- *                   - ETHEREUM
+ *                   - ETH
  *                   - FIAT
- *                   - OPTIMISM
- *                   - POLYGON
- *                   - POLYGON_ZKEVM
- *                   - SOLANA
- *                   - TRON
+ *                   - OPT
+ *                   - POL
+ *                   - SOL
+ *                   - TRX
  *               targetSymbol:
  *                 type: string
  *                 description: Target symbol
