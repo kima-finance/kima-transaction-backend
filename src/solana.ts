@@ -1,5 +1,15 @@
-import { ASSOCIATED_TOKEN_PROGRAM_ID, getAccount, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { clusterApiUrl, Connection, PublicKey, TokenAmount } from "@solana/web3.js";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAccount,
+  getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID
+} from '@solana/spl-token'
+import {
+  clusterApiUrl,
+  Connection,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+} from '@solana/web3.js'
 
 export interface WalletTokenAddresses {
   tokenAddress: string
@@ -7,24 +17,30 @@ export interface WalletTokenAddresses {
 }
 
 export class SolanaService {
-  connection: Connection;
+  connection: Connection
 
   get getRpcUrl() {
     return process.env.SOLANA_RPC_URL
-      ? process.env.SOLANA_RPC_URL as string
-      : clusterApiUrl("mainnet-beta")
-  };
+      ? (process.env.SOLANA_RPC_URL as string)
+      : clusterApiUrl('mainnet-beta')
+  }
 
   constructor() {
-    this.connection = new Connection(this.getRpcUrl, "confirmed");
+    this.connection = new Connection(this.getRpcUrl, 'confirmed')
+  }
+
+  async getNativeBalance(walletAddress: string) {
+    const publicKey = new PublicKey(walletAddress)
+
+    const solBalance =
+      (await this.connection.getBalance(publicKey)) / LAMPORTS_PER_SOL
+
+    return { solBalance }
   }
 
   async getAllowance(addresses: WalletTokenAddresses) {
     const walletAccount = this.getWalletTokenAccount(addresses)
-    const account = await getAccount(
-      this.connection,
-      walletAccount,
-    )
+    const account = await getAccount(this.connection, walletAccount)
 
     return {
       balance: account.amount,
@@ -35,13 +51,16 @@ export class SolanaService {
 
   async getBalances(addresses: WalletTokenAddresses) {
     const walletAccount = this.getWalletTokenAccount(addresses)
-    const { value } = await this.connection.getTokenAccountBalance(walletAccount)
+    const { value } = await this.connection.getTokenAccountBalance(
+      walletAccount
+    )
     return value
   }
 
-  getWalletTokenAccount(
-    { tokenAddress,  walletAddress }: WalletTokenAddresses
-  ): PublicKey { 
+  getWalletTokenAccount({
+    tokenAddress,
+    walletAddress
+  }: WalletTokenAddresses): PublicKey {
     const mintPubKey = new PublicKey(tokenAddress)
     const walletPubKey = new PublicKey(walletAddress)
     const walletTokenAddress = getAssociatedTokenAddressSync(
@@ -53,7 +72,6 @@ export class SolanaService {
     )
     return walletTokenAddress
   }
-  
 }
 
 const solanaService = new SolanaService()

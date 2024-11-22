@@ -398,6 +398,21 @@ app.post('/submit', authenticateJWT, async (req: Request, res: Response) => {
 })
 
 /**
+ * Get Solana native balance
+ */
+app.get('/sol/:walletAddress', async (req: Request, res: Response) => {
+  const { walletAddress } = req.params
+
+  try {
+    const result = await solanaService.getNativeBalance(walletAddress)
+    res.send(result)
+  } catch (e) {
+    console.log(e)
+    res.status(500).send('failed to get solana native balance')
+  }
+})
+
+/**
  * Get Solana token balance
  */
 app.get(
