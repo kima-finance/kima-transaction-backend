@@ -1,5 +1,4 @@
 import { Request, Response, Router } from 'express'
-import { authenticateJWT } from '../middleware/auth'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
 import { validate } from '../validate'
 import { createTransValidation } from '../middleware/trans-validation'
@@ -139,7 +138,6 @@ submitRouter.post(
     body('htlcVersion').optional().notEmpty(),
     body('senderPubKey').optional().notEmpty(),
     validateRequest,
-    authenticateJWT,
     checkCompliance
   ],
   async (req: Request, res: Response) => {

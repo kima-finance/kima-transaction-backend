@@ -1,5 +1,4 @@
 import { Request, Response, Router } from 'express'
-import { authenticateJWT } from '../middleware/auth'
 import { HtlcReclaim } from '@kimafinance/kima-transaction-api'
 import { createTransValidation } from '../middleware/trans-validation'
 import { body } from 'express-validator'
@@ -136,8 +135,7 @@ reclaimRouter.post(
     ...createTransValidation(),
     body('senderAddress').notEmpty(),
     body('txHash').isHexadecimal(),
-    validateRequest,
-    authenticateJWT
+    validateRequest
   ],
   async (req: Request, res: Response) => {
     const { senderAddress, txHash } = req.body

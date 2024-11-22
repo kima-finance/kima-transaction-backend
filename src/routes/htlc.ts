@@ -1,5 +1,4 @@
 import { Request, Response, Router } from 'express'
-import { authenticateJWT } from '../middleware/auth'
 import { submitHtlcLock } from '@kimafinance/kima-transaction-api'
 import { createTransValidation } from '../middleware/trans-validation'
 import { body } from 'express-validator'
@@ -168,7 +167,6 @@ htlcRouter.post(
     body('htlcAddress').notEmpty(),
     body('txHash').isHexadecimal(),
     validateRequest,
-    authenticateJWT,
     checkCompliance
   ],
   async (req: Request, res: Response) => {

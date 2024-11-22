@@ -1,7 +1,8 @@
 import { FieldValidationError } from 'express-validator'
 import { RiskScore } from '../compliance'
+import { generateTransDetails } from './utils/trans-generator'
 import { mockGetRisk, setRisk } from './mocks/compliance.mock'
-import { useTestAuth } from './utils/auth-utils'
+import { testServer } from './config'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
 
 jest.mock('../compliance')
@@ -18,7 +19,7 @@ describe('POST /submit', () => {
 
   // calling /auth will return 400 as well so useTestAuth will fail; skipping
   it.skip('should return status 400 when properties are missing', async () => {
-    const { testAgent, payload, cookie } = await useTestAuth({
+    const payload = generateTransDetails({
       amount: 101,
       targetSymbol: ''
     })
@@ -26,11 +27,7 @@ describe('POST /submit', () => {
     setRisk({ risk_score: RiskScore.LOW })
     console.log('payload', payload)
 
-    const res = await testAgent
-      .post('/submit')
-      .set('Cookie', cookie)
-      .send(payload)
-      .expect(400)
+    const res = await testServer.post('/submit').send(payload).expect(400)
 
     const errors = res.body.errors as FieldValidationError[]
     expect(errors.length).toEqual(1)
@@ -40,16 +37,13 @@ describe('POST /submit', () => {
   })
 
   it('should return status 400 with an invalid Solana address', async () => {
-    const { testAgent, payload, cookie } = await useTestAuth({
+    const payload = generateTransDetails({
       originAddress: '8bct1AEUdkfVdEaQBrFVpCYXdw6kUDReo5ZF3cxqsEQU',
       originChain: 'SOL'
     })
     setRisk({ risk_score: RiskScore.LOW })
 
-    const res = await testAgent
-      .post('/submit')
-      .set('Cookie', cookie)
-      .send(payload)
+    const res = await testServer.post('/submit').send(payload)
 
     expect(res.status).toEqual(400)
     expect(res.text).toEqual('validation error')
@@ -57,13 +51,10 @@ describe('POST /submit', () => {
 
   describe('when compliance is enabled', () => {
     it('should return status 200 for a compliant address', async () => {
-      const { testAgent, payload, cookie } = await useTestAuth()
+      const payload = generateTransDetails()
       setRisk({ risk_score: RiskScore.LOW })
 
-      const res = await testAgent
-        .post('/submit')
-        .set('Cookie', cookie)
-        .send(payload)
+      const res = await testServer.post('/submit').send(payload)
 
       expect(res.status).toEqual(200)
       expect(mockGetRisk).toHaveBeenCalledWith([
@@ -74,16 +65,13 @@ describe('POST /submit', () => {
     })
 
     it('should return status 403 for a risky address', async () => {
-      const { testAgent, payload, cookie } = await useTestAuth({
+      const payload = generateTransDetails({
         originAddress: '0xDD4c48C0B24039969fC16D1cdF626eaB821d3384',
         targetAddress: '0x001474b877f98f41701397a65d4d313ab180c7b2'
       })
       setRisk({ risk_score: RiskScore.MED })
 
-      const res = await testAgent
-        .post('/submit')
-        .set('Cookie', cookie)
-        .send(payload)
+      const res = await testServer.post('/submit').send(payload)
 
       expect(res.status).toEqual(403)
       expect(res.text).toContain('risk')
@@ -108,13 +96,10 @@ describe('POST /submit', () => {
     })
 
     it('should return status 200 for a risky address', async () => {
-      const { testAgent, payload, cookie } = await useTestAuth()
+      const payload = generateTransDetails()
       setRisk({ risk_score: RiskScore.MED })
 
-      const res = await testAgent
-        .post('/submit')
-        .set('Cookie', cookie)
-        .send(payload)
+      const res = await testServer.post('/submit').send(payload)
 
       expect(res.status).toEqual(200)
       expect(mockGetRisk).not.toHaveBeenCalled()

@@ -1,6 +1,5 @@
 import { Response, Router } from 'express'
 
-import authRouter from './auth'
 import btcRouter from './btc'
 import compliantRouter from './compliant'
 import htlcRouter from './htlc'
@@ -33,7 +32,6 @@ router.get('/', (_, res: Response) => {
   res.send('ok')
 })
 
-router.use('/auth', authRouter)
 router.use('/btc', btcRouter)
 router.use('/docs', docsRouter)
 router.use('/chains', chainsRouter)
