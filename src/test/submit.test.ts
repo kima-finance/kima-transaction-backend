@@ -4,7 +4,10 @@ import { generateTransDetails } from './utils/trans-generator'
 import { mockGetRisk, setRisk } from './mocks/compliance.mock'
 import { testServer } from './config'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
+import { CHAINS } from '../data/chains'
+import chainsService from '../service/chains.service'
 
+jest.mock('../service/chains.service')
 jest.mock('../compliance')
 jest.mock('@kimafinance/kima-transaction-api')
 
@@ -12,13 +15,18 @@ export const mockSubmitKimaTransaction =
   submitKimaTransaction as jest.MockedFunction<typeof submitKimaTransaction>
 const originalEnv = process.env
 
+const mockChainService = chainsService as jest.Mocked<typeof chainsService>
+
 describe('POST /submit', () => {
   beforeEach(() => {
     jest.resetAllMocks()
+
+    const chains = CHAINS.map((chain) => chain.shortName)
+    mockChainService.getChainNames.mockResolvedValue(chains)
+    mockChainService.getAvailableCurrencies.mockResolvedValue(['USDK'])
   })
 
-  // calling /auth will return 400 as well so useTestAuth will fail; skipping
-  it.skip('should return status 400 when properties are missing', async () => {
+  it('should return status 400 when properties are missing', async () => {
     const payload = generateTransDetails({
       amount: 101,
       targetSymbol: ''
@@ -46,7 +54,8 @@ describe('POST /submit', () => {
     const res = await testServer.post('/submit').send(payload)
 
     expect(res.status).toEqual(400)
-    expect(res.text).toEqual('validation error')
+    expect(res.text).toMatch(/invalid Solana address/i)
+    expect(mockChainService.getChainNames).toHaveBeenCalledTimes(1)
   })
 
   describe('when compliance is enabled', () => {

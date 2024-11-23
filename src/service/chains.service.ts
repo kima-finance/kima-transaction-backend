@@ -6,6 +6,8 @@ import { ChainName } from '../types/chain-name'
 import { TssPubkeyResponseDto } from '../types/tss-pubkey-response.dto'
 import { PoolDto } from '../types/pool.dto'
 import { fromHex as toTronAddress } from 'tron-format-address'
+import { AvailableChainsResponseDto } from '../types/available-chains-response.dto'
+import { AvailableCurrenciesResponseDto } from '../types/available-currencies-response.dto'
 
 export class ChainsService {
   getChains = (env: ChainEnv): Chain[] => {
@@ -14,6 +16,24 @@ export class ChainsService {
     }
 
     return CHAINS.filter((chain) => !chain.testnet)
+  }
+
+  getChainNames = async () => {
+    const result = await fetchWrapper.get<AvailableChainsResponseDto>(
+      `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_chains`
+    )
+    return typeof result === 'string' ? [] : result.Chains
+  }
+
+  getAvailableCurrencies = async (args: {
+    originChain: string
+    targetChain: string
+  }) => {
+    const { originChain, targetChain } = args
+    const result = await fetchWrapper.get<AvailableCurrenciesResponseDto>(
+      `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_currencies/${originChain}/${targetChain}`
+    )
+    return typeof result === 'string' ? [] : result.Currencies
   }
 
   /**

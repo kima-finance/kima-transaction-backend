@@ -1,10 +1,10 @@
 import { Request, Response, Router } from 'express'
 import { submitHtlcLock } from '@kimafinance/kima-transaction-api'
-import { createTransValidation } from '../middleware/trans-validation'
 import { body } from 'express-validator'
 import { fetchWrapper } from '../fetch-wrapper'
 import { validateRequest } from '../middleware/validation'
 import { checkCompliance } from '../middleware/compliance'
+import { HtlcTransactionResponseDto } from '../types/htlc-transaction.dto'
 
 const htlcRouter = Router()
 
@@ -26,46 +26,6 @@ const htlcRouter = Router()
  *               amount:
  *                 type: number
  *                 description: Amount to send
- *               fee:
- *                 type: number
- *                 description: Fee to pay
- *               originAddress:
- *                 type: string
- *                 description: Origin address
- *               originChain:
- *                 type: string
- *                 description: Origin chain
- *                 enum:
- *                   - ARB
- *                   - AVX
- *                   - BSC
- *                   - BTC
- *                   - ETH
- *                   - FIAT
- *                   - OPT
- *                   - POL
- *                   - SOL
- *                   - TRX
- *               targetAddress:
- *                 type: string
- *                 description: Target address
- *               targetChain:
- *                 type: string
- *                 description: Target chain
- *                 enum:
- *                   - ARB
- *                   - AVX
- *                   - BSC
- *                   - BTC
- *                   - ETH
- *                   - FIAT
- *                   - OPT
- *                   - POL
- *                   - SOL
- *                   - TRX
- *               targetSymbol:
- *                 type: string
- *                 description: Target symbol
  *               fromAddress:
  *                 type: string
  *                 description: Sender address
@@ -160,7 +120,9 @@ const htlcRouter = Router()
 htlcRouter.post(
   '/',
   [
-    ...createTransValidation(),
+    body('amount')
+      .isFloat({ gt: 0 })
+      .withMessage('amount must be greater than 0'),
     body('fromAddress').notEmpty(),
     body('senderPubkey').notEmpty(),
     body('htlcTimeout').notEmpty(),
@@ -199,10 +161,67 @@ htlcRouter.post(
   }
 )
 
+/**
+ * @openapi
+ * /htlc/{senderAddress}:
+ *   get:
+ *     summary: Get HTLC transaction
+ *     description: Returns the HTLC transaction details for the given sender address
+ *     tags:
+ *       - HTLC
+ *     parameters:
+ *       - in: path
+ *         name: senderAddress
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: Sender address
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 htlcLockingTransaction:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       senderAddress:
+ *                         type: string
+ *                       senderPubkey:
+ *                         type: string
+ *                       htlcTimestamp:
+ *                         type: string
+ *                       amount:
+ *                         type: string
+ *                       txHash:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                       errReason:
+ *                         type: string
+ *                       creator:
+ *                         type: string
+ *                       htlcAddress:
+ *                         type: string
+ *                       pull_status:
+ *                         type: string
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ */
 htlcRouter.get('/:senderAddress', async (req: Request, res: Response) => {
   const { senderAddress } = req.params
   try {
-    const result = await fetchWrapper.get(
+    const result = await fetchWrapper.get<HtlcTransactionResponseDto>(
       `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/transaction/get_htlc_transaction/${senderAddress}`
     )
     res.json(result)

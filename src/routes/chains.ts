@@ -250,10 +250,13 @@ chainsRouter.get(
   async (req: Request, res: Response) => {
     const { originChain, targetChain } = req.params
     try {
-      const result = await fetchWrapper.get<AvailableCurrenciesResponseDto>(
-        `${baseUrl}/chains/get_currencies/${originChain}/${targetChain}`
-      )
-      res.json(result)
+      const result = await chainsService.getAvailableCurrencies({
+        originChain,
+        targetChain
+      })
+      res.json({
+        Currencies: result
+      })
     } catch (e) {
       console.error(e)
       res
@@ -285,10 +288,10 @@ chainsRouter.get(
  */
 chainsRouter.get('/names', async (_, res: Response) => {
   try {
-    const result = await fetchWrapper.get<AvailableChainsResponseDto>(
-      `${baseUrl}/chains/get_chains`
-    )
-    res.json(result)
+    const result = await chainsService.getChainNames()
+    res.json({
+      Chains: result
+    })
   } catch (e) {
     console.error(e)
     res.status(500).send('failed to get chain names')

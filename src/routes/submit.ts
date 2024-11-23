@@ -1,7 +1,6 @@
 import { Request, Response, Router } from 'express'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
 import { validate } from '../validate'
-import { createTransValidation } from '../middleware/trans-validation'
 import { validateRequest } from '../middleware/validation'
 import { body, query } from 'express-validator'
 import { hexStringToUint8Array } from '../utils'
@@ -9,6 +8,7 @@ import { ChainName } from '../types/chain-name'
 import { calcServiceFee } from '../fees'
 import { SubmitRequestDto } from '../types/submit-request.dto'
 import { checkCompliance } from '../middleware/compliance'
+import { transValidation } from '../middleware/trans-validation'
 
 const submitRouter = Router()
 
@@ -131,13 +131,27 @@ const submitRouter = Router()
 submitRouter.post(
   '/',
   [
-    ...createTransValidation(),
+    body('amount')
+      .isFloat({ gt: 0 })
+      .withMessage('amount must be greater than 0'),
+    body('fee').isFloat({ gt: 0 }).withMessage('fee must be greater than 0'),
+    body('originAddress').notEmpty(),
+    body('originChain')
+      .isIn(Object.values(ChainName))
+      .withMessage('originChain must be a valid chain name'),
+    body('originSymbol').notEmpty(),
+    body('targetAddress').notEmpty(),
+    body('targetChain')
+      .isIn(Object.values(ChainName))
+      .withMessage('targetChain must be a valid chain name'),
+    body('targetSymbol').notEmpty(),
     body('htlcCreationHash').optional(),
     body('htlcCreationVout').optional().isInt({ gt: 0 }),
     body('htlcExpirationTimestamp').optional().notEmpty(),
     body('htlcVersion').optional().notEmpty(),
     body('senderPubKey').optional().notEmpty(),
     validateRequest,
+    transValidation,
     checkCompliance
   ],
   async (req: Request, res: Response) => {
@@ -158,10 +172,6 @@ submitRouter.post(
     } = req.body satisfies SubmitRequestDto
 
     console.log(req.body)
-
-    if (!(await validate(req))) {
-      return res.status(400).send('validation error')
-    }
 
     try {
       const result = await submitKimaTransaction({

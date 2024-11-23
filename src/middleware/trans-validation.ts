@@ -1,15 +1,21 @@
-import { body } from 'express-validator'
+import { NextFunction, Request, Response } from 'express'
+import { validate } from '../validate'
+import { customTransValidation } from '../custom-trans-validation'
 
-// reusable validation for transaction details
-export const createTransValidation = () => [
-  body('amount')
-    .isFloat({ gt: 0 })
-    .withMessage('amount must be greater than 0'),
-  body('fee').isFloat({ gt: 0 }).withMessage('fee must be greater than 0'),
-  body('originAddress').notEmpty(),
-  body('originChain').notEmpty(),
-  body('originSymbol').notEmpty(),
-  body('targetAddress').notEmpty(),
-  body('targetChain').notEmpty(),
-  body('targetSymbol').notEmpty()
-]
+export const transValidation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  let error = await validate(req)
+  if (error) {
+    return res.status(400).send(error)
+  }
+
+  error = await customTransValidation(req)
+  if (error) {
+    return res.status(400).send(error)
+  }
+
+  next()
+}

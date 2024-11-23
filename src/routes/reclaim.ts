@@ -1,6 +1,5 @@
 import { Request, Response, Router } from 'express'
 import { HtlcReclaim } from '@kimafinance/kima-transaction-api'
-import { createTransValidation } from '../middleware/trans-validation'
 import { body } from 'express-validator'
 import { validateRequest } from '../middleware/validation'
 
@@ -21,51 +20,6 @@ const reclaimRouter = Router()
  *           schema:
  *             type: object
  *             properties:
- *               amount:
- *                 type: number
- *                 description: Amount to send
- *               fee:
- *                 type: number
- *                 description: Fee to pay
- *               originAddress:
- *                 type: string
- *                 description: Origin address
- *               originChain:
- *                 type: string
- *                 description: Origin chain
- *                 enum:
- *                   - ARBITRUM
- *                   - AVALANCHE
- *                   - BSC
- *                   - BTC
- *                   - ETHEREUM
- *                   - FIAT
- *                   - OPTIMISM
- *                   - POLYGON
- *                   - POLYGON_ZKEVM
- *                   - SOLANA
- *                   - TRON
- *               targetAddress:
- *                 type: string
- *                 description: Target address
- *               targetChain:
- *                 type: string
- *                 description: Target chain
- *                 enum:
- *                   - ARBITRUM
- *                   - AVALANCHE
- *                   - BSC
- *                   - BTC
- *                   - ETHEREUM
- *                   - FIAT
- *                   - OPTIMISM
- *                   - POLYGON
- *                   - POLYGON_ZKEVM
- *                   - SOLANA
- *                   - TRON
- *               targetSymbol:
- *                 type: string
- *                 description: Target symbol
  *               senderAddress:
  *                 type: string
  *                 description: Sender address
@@ -132,7 +86,6 @@ const reclaimRouter = Router()
 reclaimRouter.post(
   '/',
   [
-    ...createTransValidation(),
     body('senderAddress').notEmpty(),
     body('txHash').isHexadecimal(),
     validateRequest
