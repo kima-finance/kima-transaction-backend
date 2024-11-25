@@ -72,7 +72,19 @@ export class SolanaService {
     )
     return walletTokenAddress
   }
+
+  async getLatestBlockhash() {
+    const blockHashResponse = await this.connection.getLatestBlockhash();
+    const hash = await blockHashResponse.blockhash;
+
+    return hash;
+  }
+
+  async sendTransaction(transaction: Buffer) {
+    await this.connection.sendRawTransaction(transaction);
+  }
 }
+
 
 const solanaService = new SolanaService()
 

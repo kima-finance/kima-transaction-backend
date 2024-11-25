@@ -454,6 +454,40 @@ app.get(
   }
 )
 
+/**
+ * Get Solana token account info & latest block hash
+ */
+app.get(
+  '/sol/info/:tokenAddress/:walletAddress',
+  async (req: Request, res: Response) => {
+    const { tokenAddress, walletAddress } = req.params
+
+    try {
+      const tokenAccount = await solanaService.getWalletTokenAccount({
+        tokenAddress,
+        walletAddress
+      })
+      const blockHash = await solanaService.getLatestBlockhash()
+      res.status(200).json({
+        tokenAccount,
+        blockHash
+      })
+    } catch (e) {
+      console.log(e)
+      res.status(500).send('failed to get solana allowance')
+    }
+  }
+)
+
+/**
+ * Send raw transaction to solana
+ */
+app.post('/sol/send', async (req: Request, res: Response) => {
+  const { transaction } = req.body
+  await solanaService.sendTransaction(transaction as Buffer)
+  res.send('ok')
+})
+
 const server = app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
 })
