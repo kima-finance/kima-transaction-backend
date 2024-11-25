@@ -14,6 +14,14 @@ import {
 } from '@kimafinance/kima-transaction-api'
 import { fetchWrapper } from './fetch-wrapper'
 import { Network, validate as validateBTC } from 'bitcoin-address-validation'
+import solanaService from './solana'
+
+// shim for bigint
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+;(BigInt.prototype as any).toJSON = function () {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+  return this.toString()
+}
 
 dotenv.config({
   path:
@@ -24,6 +32,12 @@ const app: Express = express()
 const port = process.env.PORT || 3001
 
 app.use((req, res, next) => {
+  if (
+    process.env.NODE_ENV === 'test' ||
+    process.env.NODE_ENV === 'development'
+  ) {
+    return next()
+  }
   const originDomain = (req.headers['x-forwarded-host'] ||
     req.headers['host']) as string
 
@@ -381,6 +395,97 @@ app.post('/submit', authenticateJWT, async (req: Request, res: Response) => {
     console.log(e)
     res.status(500).send('failed to submit transaction')
   }
+})
+
+/**
+ * Get Solana native balance
+ */
+app.get('/sol/:walletAddress', async (req: Request, res: Response) => {
+  const { walletAddress } = req.params
+
+  try {
+    const result = await solanaService.getNativeBalance(walletAddress)
+    res.send(result)
+  } catch (e) {
+    console.log(e)
+    res.status(500).send('failed to get solana native balance')
+  }
+})
+
+/**
+ * Get Solana token balance
+ */
+app.get(
+  '/sol/balances/:tokenAddress/:walletAddress',
+  async (req: Request, res: Response) => {
+    const { tokenAddress, walletAddress } = req.params
+
+    try {
+      const result = await solanaService.getBalances({
+        tokenAddress,
+        walletAddress
+      })
+      res.send(result)
+    } catch (e) {
+      console.log(e)
+      res.status(500).send('failed to get solana balances')
+    }
+  }
+)
+
+/**
+ * Get Solana token allowance
+ */
+app.get(
+  '/sol/allowance/:tokenAddress/:walletAddress',
+  async (req: Request, res: Response) => {
+    const { tokenAddress, walletAddress } = req.params
+
+    try {
+      const result = await solanaService.getAllowance({
+        tokenAddress,
+        walletAddress
+      })
+      res.status(200).json(result)
+    } catch (e) {
+      console.log(e)
+      res.status(500).send('failed to get solana allowance')
+    }
+  }
+)
+
+/**
+ * Get Solana token account info & latest block hash
+ */
+app.get(
+  '/sol/info/:tokenAddress/:walletAddress',
+  async (req: Request, res: Response) => {
+    const { tokenAddress, walletAddress } = req.params
+
+    try {
+      const tokenAccount = await solanaService.getWalletTokenAccount({
+        tokenAddress,
+        walletAddress
+      })
+      const blockHash = await solanaService.getLatestBlockhash()
+      res.status(200).json({
+        tokenAccount,
+        blockHash
+      })
+    } catch (e) {
+      console.log(e)
+      res.status(500).send('failed to get solana allowance')
+    }
+  }
+)
+
+/**
+ * Send raw transaction to solana
+ */
+app.post('/sol/send', async (req: Request, res: Response) => {
+  const { transaction } = req.body
+  await solanaService.sendTransaction(transaction as Buffer)
+  res.send('ok')
 })
 
 const server = app.listen(port, () => {
