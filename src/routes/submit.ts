@@ -246,7 +246,8 @@ submitRouter.post(
  *             schema:
  *               type: object
  *               properties:
- *                 totalFeeUsd: number
+ *                 totalFeeUsd:
+ *                   type: number
  *                 breakdown:
  *                   type: array
  *                   items:
@@ -254,7 +255,7 @@ submitRouter.post(
  *                     properties:
  *                       amount:
  *                         type: number
- *                       type:
+ *                       feeType:
  *                         type: string
  *                         enum:
  *                           - gas

@@ -15,7 +15,7 @@ export interface FeeResult {
 
 export interface FeeBreakdown {
   amount: number
-  type: 'gas' | 'service'
+  feeType: 'gas' | 'service'
   chain: ChainName | 'KIMA'
 }
 
@@ -59,8 +59,8 @@ export async function calcServiceFee(args: GetFeeInput): Promise<FeeResult> {
   return {
     totalFeeUsd: fee,
     breakdown: [
-      { amount: originFee, type: 'gas', chain: originChain },
-      { amount: targetFee, type: 'gas', chain: targetChain }
+      { amount: originFee, feeType: 'gas', chain: originChain },
+      { amount: targetFee, feeType: 'gas', chain: targetChain }
     ]
   }
 }
