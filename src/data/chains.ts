@@ -104,57 +104,57 @@ export const CHAINS: Chain[] = [
     ],
     faucets: ['https://testnet.bnbchain.org/faucet-smart']
   },
-  {
-    id: 0,
-    shortName: 'BTC',
-    name: 'Bitcoin',
-    supportedTokens: [],
-    compatibility: ChainCompatibility.BTC,
-    rpcUrls: {
-      default: { http: [] }
-    },
-    faucets: [],
-    nativeCurrency: {
-      name: 'Bitcoin',
-      symbol: 'BTC',
-      decimals: 8
-    },
-    blockExplorers: {
-      default: {
-        name: 'blockstream',
-        url: 'https://blockstream.info'
-      }
-    }
-  },
-  {
-    id: 0,
-    name: 'Bitcoin Testnet',
-    shortName: 'BTC',
-    supportedTokens: [
-      {
-        id: '1',
-        symbol: 'WBTC',
-        address: 'NativeCoin'
-      }
-    ],
-    compatibility: ChainCompatibility.BTC,
-    rpcUrls: {
-      default: { http: [] }
-    },
-    faucets: [],
-    nativeCurrency: {
-      name: 'Bitcoin',
-      symbol: 'BTC',
-      decimals: 8
-    },
-    blockExplorers: {
-      default: {
-        name: 'blockstream',
-        url: 'https://blockstream.info/testnet/'
-      }
-    },
-    testnet: true
-  },
+  // {
+  //   id: 0,
+  //   shortName: 'BTC',
+  //   name: 'Bitcoin',
+  //   supportedTokens: [],
+  //   compatibility: ChainCompatibility.BTC,
+  //   rpcUrls: {
+  //     default: { http: [] }
+  //   },
+  //   faucets: [],
+  //   nativeCurrency: {
+  //     name: 'Bitcoin',
+  //     symbol: 'BTC',
+  //     decimals: 8
+  //   },
+  //   blockExplorers: {
+  //     default: {
+  //       name: 'blockstream',
+  //       url: 'https://blockstream.info'
+  //     }
+  //   }
+  // },
+  // {
+  //   id: 0,
+  //   name: 'Bitcoin Testnet',
+  //   shortName: 'BTC',
+  //   supportedTokens: [
+  //     {
+  //       id: '1',
+  //       symbol: 'WBTC',
+  //       address: 'NativeCoin'
+  //     }
+  //   ],
+  //   compatibility: ChainCompatibility.BTC,
+  //   rpcUrls: {
+  //     default: { http: [] }
+  //   },
+  //   faucets: [],
+  //   nativeCurrency: {
+  //     name: 'Bitcoin',
+  //     symbol: 'BTC',
+  //     decimals: 8
+  //   },
+  //   blockExplorers: {
+  //     default: {
+  //       name: 'blockstream',
+  //       url: 'https://blockstream.info/testnet/'
+  //     }
+  //   },
+  //   testnet: true
+  // },
   {
     ...mainnet,
     shortName: 'ETH',
@@ -352,30 +352,30 @@ export const CHAINS: Chain[] = [
       }
     },
     testnet: true
-  },
-  {
-    id: 0,
-    name: 'Fiat',
-    shortName: 'FIAT',
-    compatibility: ChainCompatibility.FIAT,
-    supportedTokens: [],
-    nativeCurrency: {
-      name: 'USD',
-      symbol: 'USD',
-      decimals: 6
-    },
-    rpcUrls: {
-      default: { http: [] }
-    },
-    faucets: [],
-    blockExplorers: {
-      default: {
-        name: '',
-        url: ''
-      }
-    },
-    testnet: true
   }
+  // {
+  //   id: 0,
+  //   name: 'Fiat',
+  //   shortName: 'FIAT',
+  //   compatibility: ChainCompatibility.FIAT,
+  //   supportedTokens: [],
+  //   nativeCurrency: {
+  //     name: 'USD',
+  //     symbol: 'USD',
+  //     decimals: 6
+  //   },
+  //   rpcUrls: {
+  //     default: { http: [] }
+  //   },
+  //   faucets: [],
+  //   blockExplorers: {
+  //     default: {
+  //       name: '',
+  //       url: ''
+  //     }
+  //   },
+  //   testnet: true
+  // }
   // Tron Shasta not supported yet
   // {
   //   id: 2494104990,

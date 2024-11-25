@@ -3,7 +3,7 @@ import { Request } from 'express'
 import { PublicKey } from '@solana/web3.js'
 import { isAddress } from 'viem'
 import { fetchWrapper } from './fetch-wrapper'
-import { Network, validate as validateBTC } from 'bitcoin-address-validation'
+// import { Network, validate as validateBTC } from 'bitcoin-address-validation'
 import { ChainName } from './types/chain-name'
 import chainsService from './service/chains.service'
 
@@ -86,9 +86,10 @@ async function isValidAddress(
       if (res?.result === false) return 'invalid Tron address'
     }
 
-    if (chain === ChainName.BTC) {
-      if (!validateBTC(address, Network.testnet)) return 'invalid BTC address'
-    }
+    // TODO: add BTC once supported in mainnet
+    // if (chain === ChainName.BTC) {
+    //   if (!validateBTC(address, Network.testnet)) return 'invalid BTC address'
+    // }
 
     return isAddress(address) ? '' : 'invalid EVM address'
   } catch (e) {

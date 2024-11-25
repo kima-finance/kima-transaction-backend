@@ -12,10 +12,10 @@ const htlcRouter = Router()
  * @openapi
  * /htlc:
  *   post:
- *     summary: Submit Bitcoin HTLC lock transaction
- *     description: Submit Bitcoin HTLC lock transaction
+ *     summary: (DISABLED) Submit Bitcoin HTLC lock transaction
+ *     description: (DISABLED untiled BTC supported added to mainnet) Submit Bitcoin HTLC lock transaction
  *     tags:
- *       - HTLC
+ *       - HTLC (DISABLED)
  *     requestBody:
  *       required: true
  *       content:
@@ -165,10 +165,10 @@ htlcRouter.post(
  * @openapi
  * /htlc/{senderAddress}:
  *   get:
- *     summary: Get HTLC transaction
- *     description: Returns the HTLC transaction details for the given sender address
+ *     summary: (DISABLED) Get HTLC transaction
+ *     description: (DISABLED untiled BTC supported added to mainnet) Returns the HTLC transaction details for the given sender address
  *     tags:
- *       - HTLC
+ *       - HTLC (DISABLED)
  *     parameters:
  *       - in: path
  *         name: senderAddress

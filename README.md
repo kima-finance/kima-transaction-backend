@@ -16,28 +16,19 @@ This wallet is called Developer Wallet, and it should have enough KIMA token to 
 
 See OpenAPI documentation at `/docs` for more details (only available when `NODE_ENV` is `development`). The following is an overview of how the routes are used together.
 
-- `POST /auth` :
-
-  The `Kima Transaction Widget` calls this endpoint before it submits a transaction request.
-  Returns [`JWT`](https://jwt.io/) as cookie which has 5 seconds of life time. This cookie will be expired after 5 seconds. `Kima Transaction Widget` calls then calls `/auth` right after it receives `JWT Auth Token`.
-
-- `POST /submit`:
-
-  1. Validates the `JWT Auth Token` sent as cookie from the frontend.
-  2. Submits a transaction to Kima Chain using the backend wallet.
-  3. Returns the transaction id to the frontend so that it starts monitoring it's status.
+- Get various info for the frontend from `/chains/*` like supported chains, tokens, pool addresses, etc.
+- `GET /submit/fee`: get the fees. Use this to determine the total amount for the ERC20 approval. The approval must be completed before submitting the transaction or the transfer will fail.
+- `POST /submit`: submit will initiate the Kima Transaction and return a transaction id that can be used to monitor the status of the transaction
+- `GET /tx/{txId}/status`: use the transaction id from submit to get the transaction status
 
 ### Optional Routes
 
 #### `GET /compliant`:
 
-If enabled by suppling the `COMPLIANCE_URL` environment variable, this route will check if the address meets compliance requirements- is not sanctioned, blocked, etc.
+If enabled by suppling the `COMPLIANCE_URL` environment variable, this route will check if an address meets compliance requirements- is not sanctioned, blocked, etc.
 
-The following endpoints will return status `403` if the address is not compliant:
-
-- `POST /htlc`
-- `POST /submit`
+Use this in the frontend to notify the user an address is not compliant BEFORE doing the ERC20 approval. When compliance is enabled, the `/submit` endpoint will return status `403` (Forbidden) if an address is not compliant.
 
 #### `POST /kyc`:
 
-Returns the KYC status for a specific `uuid` verification session.
+Returns the KYC status for a specific `uuid` verification session. You can use `GET /uuid` to get a new `uuid`.

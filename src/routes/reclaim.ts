@@ -9,10 +9,10 @@ const reclaimRouter = Router()
  * @openapi
  * /reclaim:
  *   post:
- *     summary: Submit Bitcoin HTLC reclaim transaction
- *     description: Submit Bitcoin HTLC reclaim transaction
+ *     summary: (DISABLED) Submit Bitcoin HTLC reclaim transaction
+ *     description: (DISABLED untiled BTC supported added to mainnet) Submit Bitcoin HTLC reclaim transaction
  *     tags:
- *       - Reclaim
+ *       - Reclaim (DISABLED)
  *     requestBody:
  *       required: true
  *       content:

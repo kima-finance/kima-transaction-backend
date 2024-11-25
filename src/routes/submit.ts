@@ -1,6 +1,5 @@
 import { Request, Response, Router } from 'express'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
-import { validate } from '../validate'
 import { validateRequest } from '../middleware/validation'
 import { body, query } from 'express-validator'
 import { hexStringToUint8Array } from '../utils'
@@ -43,9 +42,7 @@ const submitRouter = Router()
  *                   - ARB
  *                   - AVX
  *                   - BSC
- *                   - BTC
  *                   - ETH
- *                   - FIAT
  *                   - OPT
  *                   - POL
  *                   - SOL
@@ -60,9 +57,7 @@ const submitRouter = Router()
  *                   - ARB
  *                   - AVX
  *                   - BSC
- *                   - BTC
  *                   - ETH
- *                   - FIAT
  *                   - OPT
  *                   - POL
  *                   - SOL
@@ -223,9 +218,7 @@ submitRouter.post(
  *             - ARB
  *             - AVX
  *             - BSC
- *             - BTC
  *             - ETH
- *             - FIAT
  *             - OPT
  *             - POL
  *             - SOL
@@ -240,9 +233,7 @@ submitRouter.post(
  *             - ARB
  *             - AVX
  *             - BSC
- *             - BTC
  *             - ETH
- *             - FIAT
  *             - OPT
  *             - POL
  *             - SOL
@@ -255,9 +246,31 @@ submitRouter.post(
  *             schema:
  *               type: object
  *               properties:
- *                 totalFeeUsd:
- *                   type: number
- *                   description: Total fee in USD
+ *                 totalFeeUsd: number
+ *                 breakdown:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       amount:
+ *                         type: number
+ *                       type:
+ *                         type: string
+ *                         enum:
+ *                           - gas
+ *                           - service
+ *                       chain:
+ *                         type: string
+ *                         enum:
+ *                           - ARB
+ *                           - AVX
+ *                           - BSC
+ *                           - ETH
+ *                           - OPT
+ *                           - POL
+ *                           - SOL
+ *                           - TRX
+ *                           - KIMA
  *       500:
  *         description: Internal server error
  *         content:
@@ -282,12 +295,12 @@ submitRouter.get(
   async (req: Request, res: Response) => {
     const { amount, originChain, targetChain } = req.query
     try {
-      const totalFeeUsd = await calcServiceFee({
+      const result = await calcServiceFee({
         amount: +amount!,
         originChain: originChain as ChainName,
         targetChain: targetChain as ChainName
       })
-      res.send({ totalFeeUsd })
+      res.status(200).send(result)
     } catch (e) {
       console.log(e)
       res.status(500).send('failed to get fee')

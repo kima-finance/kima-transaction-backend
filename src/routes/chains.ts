@@ -119,9 +119,7 @@ chainsRouter.get('/env', async (_, res: Response) => {
  *             - ARB
  *             - AVX
  *             - BSC
- *             - BTC
  *             - ETH
- *             - FIAT
  *             - OPT
  *             - POL
  *             - SOL
@@ -189,9 +187,7 @@ chainsRouter.get(
  *             - ARB
  *             - AVX
  *             - BSC
- *             - BTC
  *             - ETH
- *             - FIAT
  *             - OPT
  *             - POL
  *             - SOL
@@ -206,9 +202,7 @@ chainsRouter.get(
  *             - ARBITRUM
  *             - AVALANCHE
  *             - BSC
- *             - BTC
  *             - ETHEREUM
- *             - FIAT
  *             - OPTIMISM
  *             - POLYGON
  *             - POLYGON_ZKEVM

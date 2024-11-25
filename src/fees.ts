@@ -8,28 +8,40 @@ export interface GetFeeInput {
   targetChain: ChainName
 }
 
+export interface FeeResult {
+  totalFeeUsd: number
+  breakdown: FeeBreakdown[]
+}
+
+export interface FeeBreakdown {
+  amount: number
+  type: 'gas' | 'service'
+  chain: ChainName | 'KIMA'
+}
+
 /**
  * Fetch the total gas fees in USD for the given chains
  *
  * @export
  * @async
  * @param {GetFeeInput} args amount and chains
- * @returns {Promise<number>} the total fee in USD
+ * @returns {Promise<FeeResult>} the total fee in USD
  */
-export async function calcServiceFee(args: GetFeeInput): Promise<number> {
+export async function calcServiceFee(args: GetFeeInput): Promise<FeeResult> {
   const { amount, originChain, targetChain } = args
-  // exceptions
-  if (originChain === ChainName.FIAT || targetChain === ChainName.FIAT) {
-    return 0
-  }
 
-  if (originChain === ChainName.BTC) {
-    return 0.0004
-  }
+  // TODO: add FIAT fees once supported in mainnet
+  // if (originChain === ChainName.FIAT || targetChain === ChainName.FIAT) {
+  //   return 0
+  // }
 
-  if (targetChain === ChainName.BTC) {
-    return 0
-  }
+  // TODO: add BTC fees once supported in mainnet
+  // if (originChain === ChainName.BTC) {
+  //   return 0.0004
+  // }
+  // if (targetChain === ChainName.BTC) {
+  //   return 0
+  // }
 
   const [originFee, targetFee] = await Promise.all([
     getServiceFee(originChain),
@@ -44,7 +56,13 @@ export async function calcServiceFee(args: GetFeeInput): Promise<number> {
 
   // TODO: how to handle 0.05% Kima service fee?
 
-  return fee
+  return {
+    totalFeeUsd: fee,
+    breakdown: [
+      { amount: originFee, type: 'gas', chain: originChain },
+      { amount: targetFee, type: 'gas', chain: targetChain }
+    ]
+  }
 }
 
 async function getServiceFee(chain: ChainName): Promise<number> {

@@ -36,9 +36,9 @@ router.use('/btc', btcRouter)
 router.use('/docs', docsRouter)
 router.use('/chains', chainsRouter)
 router.use('/compliant', compliantRouter)
-router.use('/htlc', htlcRouter)
+// router.use('/htlc', htlcRouter) TODO: enable once BTC supported in mainnet
 router.use('/kyc', kycRouter)
-router.use('/reclaim', reclaimRouter)
+// router.use('/reclaim', reclaimRouter) TODO: enable once BTC supported in mainnet
 router.use('/submit', submitRouter)
 router.use('/tx', txRouter)
 router.use('/uuid', uuidRouter)
