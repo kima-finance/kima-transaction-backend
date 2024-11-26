@@ -32,7 +32,7 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@kimafinance/kima-transaction-api": "^1.0.30-beta.1",
+    "@kimafinance/kima-transaction-api": "^1.0.31-beta.1",
     "@solana/spl-token": "^0.4.9",
     "@solana/web3.js": "^1.95.5",
     "axios": "^1.1.3",
