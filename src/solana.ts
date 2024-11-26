@@ -8,7 +8,8 @@ import {
   clusterApiUrl,
   Connection,
   LAMPORTS_PER_SOL,
-  PublicKey,
+  ParsedAccountData,
+  PublicKey
 } from '@solana/web3.js'
 
 export interface WalletTokenAddresses {
@@ -40,12 +41,17 @@ export class SolanaService {
 
   async getAllowance(addresses: WalletTokenAddresses) {
     const walletAccount = this.getWalletTokenAccount(addresses)
-    const account = await getAccount(this.connection, walletAccount)
+    const accountInfo = await this.connection.getParsedAccountInfo(
+      walletAccount
+    )
+
+    const parsedAccountInfo = accountInfo?.value?.data as ParsedAccountData
 
     return {
-      balance: account.amount,
-      spender: account.delegate,
-      allowance: account.delegatedAmount
+      balance: parsedAccountInfo.parsed?.info?.tokenAmount?.uiAmount,
+      spender: parsedAccountInfo.parsed?.info?.delegate,
+      decimals: parsedAccountInfo.parsed?.info?.tokenAmount?.decimals,
+      allowance: parsedAccountInfo.parsed?.info?.delegatedAmount?.uiAmount
     }
   }
 
@@ -74,17 +80,16 @@ export class SolanaService {
   }
 
   async getLatestBlockhash() {
-    const blockHashResponse = await this.connection.getLatestBlockhash();
-    const hash = await blockHashResponse.blockhash;
+    const blockHashResponse = await this.connection.getLatestBlockhash()
+    const hash = await blockHashResponse.blockhash
 
-    return hash;
+    return hash
   }
 
   async sendTransaction(transaction: Buffer) {
-    await this.connection.sendRawTransaction(transaction);
+    await this.connection.sendRawTransaction(transaction)
   }
 }
-
 
 const solanaService = new SolanaService()
 
