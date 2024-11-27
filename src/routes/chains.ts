@@ -342,10 +342,8 @@ chainsRouter.get('/names', async (_, res: Response) => {
  */
 chainsRouter.get('/pool_balance', async (_, res: Response) => {
   try {
-    const result = await fetchWrapper.get(
-      `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/pool_balance`
-    )
-    res.json(result)
+    const result = await chainsService.getPoolBalances()
+    res.json({ poolBalance: result })
   } catch (e) {
     console.error(e)
     res.status(500).send('failed to get pool balance')
@@ -355,7 +353,7 @@ chainsRouter.get('/pool_balance', async (_, res: Response) => {
 /**
  * @openapi /chains/pool:
  *   get:
- *     summary: Get pool addresses
+ *     summary: Get all pool addresses and balances
  *     description: Returns the pool addresses for the available chains
  *     tags:
  *       - Chains
@@ -372,6 +370,19 @@ chainsRouter.get('/pool_balance', async (_, res: Response) => {
  *                   chainName:
  *                     type: string
  *                   poolAddress:
+ *                     type: string
+ *                   balance:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         amount:
+ *                           type: string
+ *                         tokenSymbol:
+ *                           type: string
+ *                         decimal:
+ *                           type: string
+ *                   nativeGasAmount:
  *                     type: string
  *       500:
  *         description: Internal server error
@@ -552,13 +563,6 @@ chainsRouter.get(
     const { env = process.env.KIMA_ENVIRONMENT } = req.query
     const chains = chainsService.getChains(env as ChainEnv)
     res.status(200).json(chains)
-
-    // if (env === ChainEnv.TESTNET) {
-    //   res.json(CHAINS.filter((chain) => chain.testnet))
-    //   return
-    // }
-
-    // res.json(CHAINS.filter((chain) => !chain.testnet))
   }
 )
 

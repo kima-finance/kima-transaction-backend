@@ -8,6 +8,9 @@ import { PoolDto } from '../types/pool.dto'
 import { fromHex as toTronAddress } from 'tron-format-address'
 import { AvailableChainsResponseDto } from '../types/available-chains-response.dto'
 import { AvailableCurrenciesResponseDto } from '../types/available-currencies-response.dto'
+import { TssPubkeyDto } from '../types/tss-pubkey.dto'
+import { PoolBalanceDto } from '../types/pool-balance.dto'
+import { PoolBalanceResponseDto } from '../types/pool-balance-response.dto'
 
 export class ChainsService {
   getChains = (env: ChainEnv): Chain[] => {
@@ -41,39 +44,57 @@ export class ChainsService {
    * TODO: replace with the Kima API endpoint when implemented
    *
    * @async
-   * @param {?ChainName} [chain] filter by chain name
    * @returns {Promise<PoolDto[]>}
    */
-  getPools = async (chain?: ChainName): Promise<PoolDto[]> => {
+  getPools = async (): Promise<PoolDto[]> => {
     const pubKeyResult = await this.getTssPubkeys()
     if (typeof pubKeyResult === 'string') {
       throw new Error('Failed to get TSS public keys')
     }
     const [pubKeys] = pubKeyResult.tssPubkey
 
-    let chains = this.getChains(process.env.KIMA_ENVIRONMENT as ChainEnv)
-    if (chain) {
-      chains = chains.filter((c) => c.shortName === chain)
-    }
+    const [chains, poolBalances] = await Promise.all([
+      this.getChains(process.env.KIMA_ENVIRONMENT as ChainEnv),
+      this.getPoolBalances()
+    ])
 
     const pools = chains.map((chain) => {
-      let poolAddress = ''
-      if (chain.shortName === ChainName.TRON) {
-        poolAddress = toTronAddress(pubKeys.ecdsa)
-      } else if (chain.compatibility === ChainCompatibility.EVM) {
-        poolAddress = pubKeys.ecdsa
-      } else if (chain.compatibility === ChainCompatibility.SOL) {
-        poolAddress = pubKeys.eddsa
-      } else {
-        // unknown address type
-      }
+      const poolAddress = this.getPoolAddress({ data: pubKeys, chain })
+      const poolInfo = poolBalances.find((b) => b.chainName === chain.shortName)
+
       return {
         chainName: chain.shortName,
-        poolAddress
-      }
+        poolAddress,
+        balance: poolInfo?.balance ?? [],
+        nativeGasAmount: poolInfo?.nativeGasAmount ?? ''
+      } satisfies PoolDto
     })
 
     return pools
+  }
+
+  private getPoolAddress = (args: { data: TssPubkeyDto; chain: Chain }) => {
+    const { chain, data } = args
+
+    let poolAddress = ''
+    if (chain.shortName === ChainName.TRON) {
+      poolAddress = toTronAddress(data.ecdsa)
+    } else if (chain.compatibility === ChainCompatibility.EVM) {
+      poolAddress = data.ecdsa
+    } else if (chain.compatibility === ChainCompatibility.SOL) {
+      poolAddress = data.eddsa
+    } else {
+      // unknown address type
+    }
+
+    return poolAddress
+  }
+
+  getPoolBalances = async (): Promise<PoolBalanceDto[]> => {
+    const result = await fetchWrapper.get<PoolBalanceResponseDto>(
+      `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/pool_balance`
+    )
+    return typeof result === 'string' ? [] : result.poolBalance
   }
 
   /**
