@@ -15,17 +15,18 @@ export const corsConfig = cors({
       return
     }
 
-    const hostname = new URL(origin as string).hostname
+    const originHostname = new URL(origin as string).hostname
     const domains = (process.env.DOMAIN as string).split(',')
 
-    for (let i = 0; i < domains.length; i++) {
-      if (domains[i].length && hostname.endsWith(domains[i])) {
+    for (const domain of domains.filter((domain) => !!domain)) {
+      const domainHostname = new URL(domain).hostname
+      if (originHostname.endsWith(domainHostname)) {
         callback(null, true)
         return
       }
     }
 
-    callback(new Error())
+    callback(new Error('Not allowed by CORS'))
   },
   credentials: true
 })
