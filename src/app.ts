@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import express, { Express } from 'express'
 import CookieParser from 'cookie-parser'
+import helmet from 'helmet'
 import './bigint-shim'
 
 import { sameOriginOnly } from './middleware/same-origin'
@@ -13,6 +14,7 @@ const app: Express = express()
 // middleware
 app.use(sameOriginOnly)
 app.use(corsConfig)
+app.use(helmet())
 app.use(CookieParser())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))

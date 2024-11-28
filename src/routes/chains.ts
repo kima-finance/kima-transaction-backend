@@ -476,6 +476,21 @@ chainsRouter.get('/tss_pubkey', async (_, res: Response) => {
  *           enum:
  *             - mainnet
  *             - testnet
+ *       - name: symbol
+ *         in: query
+ *         required: false
+ *         description: Chain symbol
+ *         schema:
+ *           type: string
+ *           enum:
+ *             - ARB
+ *             - AVX
+ *             - BSC
+ *             - ETH
+ *             - OPT
+ *             - POL
+ *             - SOL
+ *             - TRX
  *     responses:
  *       200:
  *         description: Successful response
@@ -557,11 +572,15 @@ chainsRouter.get(
     query('env')
       .isIn(Object.values(ChainEnv))
       .withMessage('env must be a valid chain environment')
+      .optional(),
+    query('symbol')
+      .isIn(Object.values(ChainName))
+      .withMessage('symbol must be a valid chain name')
       .optional()
   ],
   async (req: Request, res: Response) => {
-    const { env = process.env.KIMA_ENVIRONMENT } = req.query
-    const chains = chainsService.getChains(env as ChainEnv)
+    const { env = process.env.KIMA_ENVIRONMENT, symbol } = req.query
+    const chains = chainsService.getChains(env as ChainEnv, symbol as ChainName)
     res.status(200).json(chains)
   }
 )

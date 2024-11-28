@@ -13,12 +13,19 @@ import { PoolBalanceDto } from '../types/pool-balance.dto'
 import { PoolBalanceResponseDto } from '../types/pool-balance-response.dto'
 
 export class ChainsService {
-  getChains = (env: ChainEnv): Chain[] => {
-    if (env === ChainEnv.TESTNET) {
-      return CHAINS.filter((chain) => chain.testnet)
-    }
+  getChains = (env: ChainEnv, symbol?: ChainName): Chain[] => {
+    const isTestnet = env === ChainEnv.TESTNET
+    const upperCaseSymbol = symbol?.toUpperCase()
+    return CHAINS.filter(
+      (chain) =>
+        chain.testnet === isTestnet &&
+        (!upperCaseSymbol || chain.shortName === upperCaseSymbol)
+    )
+  }
 
-    return CHAINS.filter((chain) => !chain.testnet)
+  getChain = (env: ChainEnv, symbol: ChainName): Chain | undefined => {
+    const [chain] = this.getChains(env, symbol)
+    return chain
   }
 
   getChainNames = async () => {
