@@ -1,3 +1,5 @@
+import { ChainEnv } from './types/chain-env'
+
 export function hexStringToUint8Array(hexString: string) {
   if (hexString.length % 2 !== 0) {
     throw new Error('Invalid hex string')
@@ -8,3 +10,6 @@ export function hexStringToUint8Array(hexString: string) {
   }
   return arrayBuffer
 }
+
+export const isMainnet = process.env.KIMA_ENVIRONMENT === ChainEnv.MAINNET
+export const isTestnet = process.env.KIMA_ENVIRONMENT === ChainEnv.TESTNET

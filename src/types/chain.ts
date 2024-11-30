@@ -6,7 +6,7 @@ export enum ChainCompatibility {
   EVM = 'EVM',
   FIAT = 'FIAT',
   COSMOS = 'COSMOS',
-  NONE = 'NONE',
+  SELF = 'SELF',
   SOL = 'SOL'
 }
 

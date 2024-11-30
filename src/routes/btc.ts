@@ -1,9 +1,11 @@
 import { Request, Response, Router } from 'express'
 import { fetchWrapper } from '../fetch-wrapper'
 import { Network, validate as validateBTC } from 'bitcoin-address-validation'
-import { query } from 'express-validator'
+import { param, query } from 'express-validator'
 import { validateRequest } from '../middleware/validation'
 import { BtcTransactionDto } from '../types/btc-transaction.dto'
+import { isTestnet } from '../utils'
+import { BtcUtxoResponseDto } from '../types/btc-utxo-response.dto'
 
 const btcRouter = Router()
 
@@ -174,6 +176,73 @@ btcRouter.get(
     } catch (e) {
       console.log(e)
       res.status(500).send('failed to get bitcoin tx info')
+    }
+  }
+)
+
+/**
+ * @openapi
+ * /btc/utxo/{address}:
+ *   get:
+ *     summary: Get BTC UTXOs
+ *     description: Returns the BTC UTXOs for the given address
+ *     tags:
+ *       - BTC
+ *     parameters:
+ *       - in: path
+ *         name: address
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: ^bc1[a-zA-Z0-9]{25,39}$
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   txid:
+ *                     type: string
+ *                   vout:
+ *                     type: number
+ *                   value:
+ *                     type: number
+ *                   status:
+ *                     type: object
+ *                     properties:
+ *                       confirmed:
+ *                         type: boolean
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ */
+btcRouter.get(
+  '/utxo/:address',
+  [
+    param('address')
+      .notEmpty()
+      .withMessage('address path parameter must be provided'),
+    validateRequest
+  ],
+  async (req: Request, res: Response) => {
+    const { address } = req.params
+
+    try {
+      const networkSubpath = isTestnet ? '/testnet' : ''
+      const url = `https://mempool.space${networkSubpath}/api/address/${address}/utxo`
+
+      const response = await fetchWrapper.get<BtcUtxoResponseDto[]>(url)
+      res.send(response)
+    } catch (e) {
+      console.error(e)
+      res.status(500).send(`failed to get bitcoin utxo for address ${address}`)
     }
   }
 )
