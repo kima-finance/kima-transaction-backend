@@ -140,11 +140,11 @@ submitRouter.post(
       .isIn(Object.values(ChainName))
       .withMessage('targetChain must be a valid chain name'),
     body('targetSymbol').notEmpty(),
-    body('htlcCreationHash').optional(),
-    body('htlcCreationVout').optional().isInt({ gt: 0 }),
-    body('htlcExpirationTimestamp').optional().notEmpty(),
-    body('htlcVersion').optional().notEmpty(),
-    body('senderPubKey').optional().notEmpty(),
+    body('htlcCreationHash').optional().isString(),
+    body('htlcCreationVout').optional().isInt(),
+    body('htlcExpirationTimestamp').optional().isString(),
+    body('htlcVersion').optional().isString(),
+    body('senderPubKey').optional().isString(),
     validateRequest,
     transValidation,
     checkCompliance

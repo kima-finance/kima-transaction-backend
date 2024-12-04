@@ -26,10 +26,10 @@ async function isValidChain(
   const chainNames = await chainsService.getChainNames()
 
   if (!chainNames.find((item: string) => item === originChain)) {
-    return 'origin chain not found'
+    return 'origin chain ${originChain} not found'
   }
   if (!chainNames.find((item: string) => item === targetChain)) {
-    return 'target chain not found'
+    return 'target chain ${targetChain} not found'
   }
 
   const currencies = await chainsService.getAvailableCurrencies({
@@ -42,14 +42,14 @@ async function isValidChain(
       (item: string) => item.toLowerCase() === originSymbol.toLowerCase()
     )
   ) {
-    return 'origin symbol not found'
+    return `origin symbol ${originSymbol} not found`
   }
   if (
     !currencies.find(
       (item: string) => item.toLowerCase() === targetSymbol.toLowerCase()
     )
   ) {
-    return 'target symbol not found'
+    return `target symbol ${targetSymbol} not found`
   }
 
   return ''
@@ -70,8 +70,9 @@ async function isValidAddress(
   try {
     if (chain === ChainName.SOLANA) {
       const owner = new PublicKey(address)
-      if (!PublicKey.isOnCurve(owner))
-        return 'invalid Solana address: not on curve'
+      return !PublicKey.isOnCurve(owner)
+        ? 'invalid Solana address ${address}'
+        : ''
     }
 
     if (chain === ChainName.TRON) {
@@ -83,7 +84,7 @@ async function isValidAddress(
         }
       )
 
-      if (res?.result === false) return 'invalid Tron address'
+      return res?.result === false ? 'invalid Tron address ${address}' : ''
     }
 
     // TODO: add BTC once supported in mainnet
@@ -91,10 +92,10 @@ async function isValidAddress(
     //   if (!validateBTC(address, Network.testnet)) return 'invalid BTC address'
     // }
 
-    return isAddress(address) ? '' : 'invalid EVM address'
+    return isAddress(address) ? '' : `invalid EVM address ${address}`
   } catch (e) {
     console.error(e)
-    return 'unknown error: invalid address'
+    return `unknown error: invalid address ${address}`
   }
 }
 
