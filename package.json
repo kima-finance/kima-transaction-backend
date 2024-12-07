@@ -38,6 +38,7 @@
   "dependencies": {
     "@kimafinance/kima-transaction-api": "^1.0.30-beta.1",
     "@solana/web3.js": "^1.95.4",
+    "@types/morgan": "^1.9.9",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.7",
     "bitcoin-address-validation": "^2.2.3",
@@ -48,6 +49,7 @@
     "express-validator": "^7.2.0",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "tron-format-address": "^0.1.12",

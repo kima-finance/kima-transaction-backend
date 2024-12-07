@@ -22,14 +22,14 @@ export const CHAINS: Chain[] = [
     shortName: 'ARB',
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDT',
-        address: '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9'
+        address: '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9',
+        decimals: 6
       },
       {
-        id: '1',
         symbol: 'USDC',
-        address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+        address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+        decimals: 6
       }
     ]
   },
@@ -39,9 +39,9 @@ export const CHAINS: Chain[] = [
     shortName: 'ARB',
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDK',
-        address: '0x2cf79df2879902a2fc06329b1760e0f2ad9a3a47'
+        address: '0x2cf79df2879902a2fc06329b1760e0f2ad9a3a47',
+        decimals: 6
       }
     ]
   },
@@ -51,14 +51,14 @@ export const CHAINS: Chain[] = [
     shortName: 'AVX',
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDT',
-        address: '0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7'
+        address: '0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7',
+        decimals: 6
       },
       {
-        id: '1',
         symbol: 'USDC',
-        address: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E'
+        address: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
+        decimals: 6
       }
     ]
   },
@@ -68,9 +68,9 @@ export const CHAINS: Chain[] = [
     shortName: 'AVX',
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDK',
-        address: '0x5d8598Ce65f15f14c58aD3a4CD285223c8e76a2E'
+        address: '0x5d8598Ce65f15f14c58aD3a4CD285223c8e76a2E',
+        decimals: 6
       }
     ]
   },
@@ -80,14 +80,14 @@ export const CHAINS: Chain[] = [
     shortName: 'BSC',
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDT',
-        address: '0x55d398326f99059fF775485246999027B3197955'
+        address: '0x55d398326f99059fF775485246999027B3197955',
+        decimals: 6
       },
       {
-        id: '1',
         symbol: 'USDC',
-        address: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d'
+        address: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
+        decimals: 6
       }
     ]
   },
@@ -97,9 +97,9 @@ export const CHAINS: Chain[] = [
     shortName: 'BSC',
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDK',
-        address: '0x3eb36be2c3FD244139756F681420637a2a9464e3'
+        address: '0x3eb36be2c3FD244139756F681420637a2a9464e3',
+        decimals: 6
       }
     ],
     faucets: ['https://testnet.bnbchain.org/faucet-smart']
@@ -161,14 +161,14 @@ export const CHAINS: Chain[] = [
     compatibility: ChainCompatibility.EVM,
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDT',
-        address: '0xdAC17F958D2ee523a2206206994597C13D831ec7'
+        address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+        decimals: 6
       },
       {
-        id: '1',
         symbol: 'USDC',
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        decimals: 6
       }
     ]
   },
@@ -178,14 +178,14 @@ export const CHAINS: Chain[] = [
     compatibility: ChainCompatibility.EVM,
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDK',
-        address: '0x5FF59Bf2277A1e6bA9bB8A38Ea3F9ABfd3d9345a'
+        address: '0x5FF59Bf2277A1e6bA9bB8A38Ea3F9ABfd3d9345a',
+        decimals: 6
       },
       {
-        id: '1',
         symbol: 'WBTC',
-        address: '0x5703992Cd91cAB655f2BF3EcbD4cD22e3c75832D'
+        address: '0x5703992Cd91cAB655f2BF3EcbD4cD22e3c75832D',
+        decimals: 8
       }
     ]
   },
@@ -195,14 +195,14 @@ export const CHAINS: Chain[] = [
     compatibility: ChainCompatibility.EVM,
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDT',
-        address: '0x94b008aa00579c1307b0ef2c499ad98a8ce58e58'
+        address: '0x94b008aa00579c1307b0ef2c499ad98a8ce58e58',
+        decimals: 6
       },
       {
-        id: '1',
         symbol: 'USDC',
-        address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85'
+        address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
+        decimals: 6
       }
     ]
   },
@@ -212,9 +212,9 @@ export const CHAINS: Chain[] = [
     compatibility: ChainCompatibility.EVM,
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDK',
-        address: '0x2cf79df2879902a2fc06329b1760e0f2ad9a3a47'
+        address: '0x2cf79df2879902a2fc06329b1760e0f2ad9a3a47',
+        decimals: 6
       }
     ]
   },
@@ -224,14 +224,14 @@ export const CHAINS: Chain[] = [
     compatibility: ChainCompatibility.EVM,
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDT',
-        address: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
+        address: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+        decimals: 6
       },
       {
-        id: '1',
         symbol: 'USDC',
-        address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'
+        address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+        decimals: 6
       }
     ]
   },
@@ -241,32 +241,32 @@ export const CHAINS: Chain[] = [
     compatibility: ChainCompatibility.EVM,
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDK',
-        address: '0x30171cfb10ed578814a22475a190306776bc8392'
-      },
-      {
-        id: '1',
-        symbol: 'WBTC',
-        address: '0x66E1537e2A62168Ca19Bf5b6e2E66b5C806b8ab1'
+        address: '0x30171cfb10ed578814a22475a190306776bc8392',
+        decimals: 6
       }
+      // {
+      //   symbol: 'WBTC',
+      //   address: '0x66E1537e2A62168Ca19Bf5b6e2E66b5C806b8ab1',
+      //   decimals: 8
+      // }
     ]
   },
   {
     id: 101,
     name: 'Solana',
     shortName: 'SOL',
-    compatibility: ChainCompatibility.SOL,
+    compatibility: ChainCompatibility.SELF,
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDT',
-        address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'
+        address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+        decimals: 6
       },
       {
-        id: '1',
         symbol: 'USDC',
-        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        decimals: 6
       }
     ],
     rpcUrls: {
@@ -289,12 +289,12 @@ export const CHAINS: Chain[] = [
     id: 102,
     name: 'Solana Testnet',
     shortName: 'SOL',
-    compatibility: ChainCompatibility.SOL,
+    compatibility: ChainCompatibility.SELF,
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDK',
-        address: '9YSFWfU9Ram6mAo2QP9zsTnA8yFkkkFGEs3kGgjtQKvp'
+        address: '9YSFWfU9Ram6mAo2QP9zsTnA8yFkkkFGEs3kGgjtQKvp',
+        decimals: 6
       }
     ],
     rpcUrls: {
@@ -320,9 +320,9 @@ export const CHAINS: Chain[] = [
     compatibility: ChainCompatibility.EVM,
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDT',
-        address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'
+        address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+        decimals: 6
       }
     ]
   },
@@ -333,9 +333,9 @@ export const CHAINS: Chain[] = [
     compatibility: ChainCompatibility.EVM,
     supportedTokens: [
       {
-        id: '0',
         symbol: 'USDK',
-        address: 'TEuRmCALTUY2syY1EE6mMYnyfmNfFfMpYz'
+        address: 'TEuRmCALTUY2syY1EE6mMYnyfmNfFfMpYz',
+        decimals: 6
       }
     ],
     nativeCurrency: {
