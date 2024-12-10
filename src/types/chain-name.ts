@@ -2,6 +2,7 @@
 export enum ChainName {
   ARBITRUM = 'ARB',
   AVALANCHE = 'AVX',
+  BASE = 'BASE',
   BSC = 'BSC',
   // BTC = 'BTC',
   ETHEREUM = 'ETH',
