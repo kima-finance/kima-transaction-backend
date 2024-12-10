@@ -3,6 +3,8 @@ import {
   arbitrumSepolia,
   avalanche,
   avalancheFuji,
+  // base,
+  baseSepolia,
   bsc,
   bscTestnet,
   mainnet,
@@ -70,6 +72,31 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x5d8598Ce65f15f14c58aD3a4CD285223c8e76a2E',
+        decimals: 6
+      }
+    ]
+  },
+  // TODO: enable once BASE supported in mainnet
+  // {
+  //   ...base,
+  //   compatibility: ChainCompatibility.EVM,
+  //   shortName: 'BASE',
+  //   supportedTokens: [
+  //     {
+  //       symbol: 'USDC',
+  //       address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+  //       decimals: 6
+  //     }
+  //   ]
+  // },
+  {
+    ...baseSepolia,
+    compatibility: ChainCompatibility.EVM,
+    shortName: 'BASE',
+    supportedTokens: [
+      {
+        symbol: 'USDK',
+        address: '0x2cF79df2879902A2Fc06329B1760E0f2aD9a3a47',
         decimals: 6
       }
     ]
@@ -181,12 +208,12 @@ export const CHAINS: Chain[] = [
         symbol: 'USDK',
         address: '0x5FF59Bf2277A1e6bA9bB8A38Ea3F9ABfd3d9345a',
         decimals: 6
-      },
-      {
-        symbol: 'WBTC',
-        address: '0x5703992Cd91cAB655f2BF3EcbD4cD22e3c75832D',
-        decimals: 8
       }
+      // {
+      //   symbol: 'WBTC',
+      //   address: '0x5703992Cd91cAB655f2BF3EcbD4cD22e3c75832D',
+      //   decimals: 8
+      // }
     ]
   },
   {
@@ -335,13 +362,13 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: 'TEuRmCALTUY2syY1EE6mMYnyfmNfFfMpYz',
-        decimals: 6
+        decimals: 18
       }
     ],
     nativeCurrency: {
       name: 'TRON',
       symbol: 'TRX',
-      decimals: 6
+      decimals: 10
     },
     rpcUrls: { default: { http: ['https://api.nileex.io/jsonrpc'] } },
     faucets: ['http://nileex.io/join/getJoinPage'],
