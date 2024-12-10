@@ -41,6 +41,7 @@ const submitRouter = Router()
  *                 enum:
  *                   - ARB
  *                   - AVX
+ *                   - BASE
  *                   - BSC
  *                   - ETH
  *                   - OPT
@@ -56,6 +57,7 @@ const submitRouter = Router()
  *                 enum:
  *                   - ARB
  *                   - AVX
+ *                   - BASE
  *                   - BSC
  *                   - ETH
  *                   - OPT
@@ -217,6 +219,7 @@ submitRouter.post(
  *           enum:
  *             - ARB
  *             - AVX
+ *             - BASE
  *             - BSC
  *             - ETH
  *             - OPT
@@ -232,6 +235,7 @@ submitRouter.post(
  *           enum:
  *             - ARB
  *             - AVX
+ *             - BASE
  *             - BSC
  *             - ETH
  *             - OPT
@@ -265,6 +269,7 @@ submitRouter.post(
  *                         enum:
  *                           - ARB
  *                           - AVX
+ *                           - BASE
  *                           - BSC
  *                           - ETH
  *                           - OPT

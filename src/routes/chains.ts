@@ -118,6 +118,7 @@ chainsRouter.get('/env', async (_, res: Response) => {
  *           enum:
  *             - ARB
  *             - AVX
+ *             - BASE
  *             - BSC
  *             - ETH
  *             - OPT
@@ -186,6 +187,7 @@ chainsRouter.get(
  *           enum:
  *             - ARB
  *             - AVX
+ *             - BASE
  *             - BSC
  *             - ETH
  *             - OPT
@@ -485,6 +487,7 @@ chainsRouter.get('/tss_pubkey', async (_, res: Response) => {
  *           enum:
  *             - ARB
  *             - AVX
+ *             - BASE
  *             - BSC
  *             - ETH
  *             - OPT
