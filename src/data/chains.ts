@@ -344,7 +344,7 @@ export const CHAINS: Chain[] = [
   {
     ...tron,
     shortName: 'TRX',
-    compatibility: ChainCompatibility.EVM,
+    compatibility: ChainCompatibility.SELF,
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -357,7 +357,7 @@ export const CHAINS: Chain[] = [
     id: 3448148188,
     name: 'Tron Nile',
     shortName: 'TRX',
-    compatibility: ChainCompatibility.EVM,
+    compatibility: ChainCompatibility.SELF,
     supportedTokens: [
       {
         symbol: 'USDK',
