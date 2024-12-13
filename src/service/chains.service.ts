@@ -88,7 +88,7 @@ export class ChainsService {
       poolAddress = toTronAddress(data.ecdsa)
     } else if (chain.compatibility === ChainCompatibility.EVM) {
       poolAddress = data.ecdsa
-    } else if (chain.name === ChainName.SOLANA) {
+    } else if (chain.shortName === ChainName.SOLANA) {
       poolAddress = data.eddsa
     } else {
       // unknown address type
