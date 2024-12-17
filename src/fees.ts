@@ -1,13 +1,14 @@
-import { DECIMALS } from './constants'
 import { ChainName } from './types/chain-name'
 import { fetchWrapper } from './fetch-wrapper'
 import { parseUnits } from 'viem'
 import { bigintToNumber } from './utils'
+import chainsService from './service/chains.service'
 
 export interface GetFeeInput {
   amount: string
   deductFee: boolean
   originChain: ChainName
+  originSymbol: string
   targetChain: ChainName
 }
 
@@ -31,16 +32,21 @@ export interface FeeBreakdown {
 }
 
 /**
- * Fetch the total gas fees in USD for the given chains
+ * Get the total fees in USD for the given amount and chains
+ * then calculate the allowance and submit amounts accordingly
  *
  * @export
  * @async
  * @param {GetFeeInput} args amount and chains
  * @returns {Promise<FeeResult>} the total fee in USD
  */
-export async function calcServiceFee(args: GetFeeInput): Promise<FeeResult> {
-  const { amount: amountStr, deductFee, originChain, targetChain } = args
-
+export async function calcServiceFee({
+  amount: amountStr,
+  deductFee,
+  originChain,
+  originSymbol,
+  targetChain
+}: GetFeeInput): Promise<FeeResult> {
   // TODO: add FIAT fees once supported in mainnet
   // if (originChain === ChainName.FIAT || targetChain === ChainName.FIAT) {
   //   return 0
@@ -59,19 +65,33 @@ export async function calcServiceFee(args: GetFeeInput): Promise<FeeResult> {
     getServiceFee(targetChain)
   ])
 
-  // calculate amounts with integer math to avoid rounding errors
-  const decimals = originFee.decimals
-  const amount = parseUnits(amountStr, decimals)
-  const fee = originFee.amount + targetFee.amount
+  // convert USD fee amounts into the origin chain token amounts
+  const originFeeTokenAmount = chainsService.toTokenDecimals(
+    originChain,
+    originSymbol,
+    originFee
+  )
+  const targetFeeTokenAmount = chainsService.toTokenDecimals(
+    originChain,
+    originSymbol,
+    targetFee
+  )
 
+  // calculate amounts with integer math to avoid rounding errors
+  const decimals = originFeeTokenAmount.decimals
+  const amount = parseUnits(amountStr, decimals)
+
+  // TODO: add 0.05% Kima service fee when implemented on chain
+  const fee = originFeeTokenAmount.amount + targetFeeTokenAmount.amount
+
+  // the amount sent to the Kima transaction should reflect
+  // what the target address will receive
   const allowanceAmount = deductFee ? amount : amount + fee
   const submitAmount = deductFee ? amount - fee : amount
 
   // TODO: convert amount into origin token amount
   // using USD price of origin token
   // Note even stable coins are often not exactly 1:1
-
-  // TODO: how to handle 0.05% Kima service fee?
 
   return {
     totalFee: fee.toString(),
@@ -82,12 +102,12 @@ export async function calcServiceFee(args: GetFeeInput): Promise<FeeResult> {
     submitAmount: submitAmount.toString(),
     breakdown: [
       {
-        amount: bigintToNumber(originFee.amount, decimals),
+        amount: bigintToNumber(originFeeTokenAmount.amount, decimals),
         feeType: 'gas',
         chain: originChain
       },
       {
-        amount: bigintToNumber(targetFee.amount, decimals),
+        amount: bigintToNumber(targetFeeTokenAmount.amount, decimals),
         feeType: 'gas',
         chain: targetChain
       }
@@ -95,9 +115,14 @@ export async function calcServiceFee(args: GetFeeInput): Promise<FeeResult> {
   }
 }
 
-async function getServiceFee(
-  chain: ChainName
-): Promise<{ amount: bigint; decimals: number }> {
+/**
+ * Query the Kima API for the gas fees in USD on the given chain
+ *
+ * @async
+ * @param {ChainName} chain
+ * @returns {Promise<string>} the estimated gas fee in USD
+ */
+async function getServiceFee(chain: ChainName): Promise<string> {
   const result = (await fetchWrapper.get(
     `${process.env.KIMA_BACKEND_FEE_URL as string}/fee/${chain}`
   )) as unknown as { fee: string }
@@ -107,9 +132,5 @@ async function getServiceFee(
   // we want the USD amount
   const { fee } = result
   const [amount] = fee.split('-')
-
-  return {
-    amount: parseUnits(amount, DECIMALS),
-    decimals: DECIMALS
-  }
+  return amount
 }

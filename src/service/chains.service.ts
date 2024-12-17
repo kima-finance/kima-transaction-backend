@@ -11,8 +11,18 @@ import { AvailableCurrenciesResponseDto } from '../types/available-currencies-re
 import { TssPubkeyDto } from '../types/tss-pubkey.dto'
 import { PoolBalanceDto } from '../types/pool-balance.dto'
 import { PoolBalanceResponseDto } from '../types/pool-balance-response.dto'
+import { TokenDto } from '../types/token.dto'
+import { TokenAmount } from '../types/token-amount.dto'
+import { parseUnits } from 'viem'
 
 export class ChainsService {
+  /**
+   * Get the static list of chain data for testnet or mainnet
+   *
+   * @param {ChainEnv} env
+   * @param {?ChainName} [symbol]
+   * @returns {Chain[]}
+   */
   getChains = (env: ChainEnv, symbol?: ChainName): Chain[] => {
     const isTestnet = env === ChainEnv.TESTNET
     const upperCaseSymbol = symbol?.toUpperCase()
@@ -23,11 +33,24 @@ export class ChainsService {
     )
   }
 
+  /**
+   * Get the static chain data for the given chain short name
+   *
+   * @param {ChainEnv} env
+   * @param {ChainName} symbol
+   * @returns {(Chain | undefined)}
+   */
   getChain = (env: ChainEnv, symbol: ChainName): Chain | undefined => {
     const [chain] = this.getChains(env, symbol)
     return chain
   }
 
+  /**
+   * Get a list of supported chain short names
+   *
+   * @async
+   * @returns {string[]}
+   */
   getChainNames = async () => {
     const result = await fetchWrapper.get<AvailableChainsResponseDto>(
       `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_chains`
@@ -35,6 +58,16 @@ export class ChainsService {
     return typeof result === 'string' ? [] : result.Chains
   }
 
+  /**
+   * Get the available tokens when a transaction between the given orgin and target chains
+   *
+   * @async
+   * @param {{
+   *     originChain: string
+   *     targetChain: string
+   *   }} args
+   * @returns {string[]}
+   */
   getAvailableCurrencies = async (args: {
     originChain: string
     targetChain: string
@@ -80,6 +113,9 @@ export class ChainsService {
     return pools
   }
 
+  /**
+   * Extract the pool address for a chain from the TSS public keys
+   */
   private getPoolAddress = (args: { data: TssPubkeyDto; chain: Chain }) => {
     const { chain, data } = args
 
@@ -97,11 +133,35 @@ export class ChainsService {
     return poolAddress
   }
 
+  /**
+   * Get the pool balance for all chains
+   *
+   * @async
+   * @returns {Promise<PoolBalanceDto[]>}
+   */
   getPoolBalances = async (): Promise<PoolBalanceDto[]> => {
     const result = await fetchWrapper.get<PoolBalanceResponseDto>(
       `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/pool_balance`
     )
     return typeof result === 'string' ? [] : result.poolBalance
+  }
+
+  /**
+   * Get the token data for the given chain and token symbol
+   *
+   * @param {string} chainName
+   * @param {string} tokenSymbol
+   * @returns {(TokenDto | undefined)}
+   */
+  getToken = (chainName: string, tokenSymbol: string): TokenDto | undefined => {
+    const chain = this.getChain(
+      process.env.KIMA_ENVIRONMENT as ChainEnv,
+      chainName as ChainName
+    )
+    if (!chain) {
+      throw new Error(`Chain ${chainName} not found`)
+    }
+    return chain.supportedTokens.find((t) => t.symbol === tokenSymbol)
   }
 
   /**
@@ -115,6 +175,28 @@ export class ChainsService {
       `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/kima/tss_pubkey`
     )
     return result
+  }
+
+  /**
+   * Convert a numeric amount to a token amount with decimals
+   * @param {string} chainName
+   * @param {string} tokenSymbol
+   * @param {number | string} amount
+   * @returns {TokenAmount}
+   */
+  toTokenDecimals = (
+    chainName: string,
+    tokenSymbol: string,
+    amount: number | string
+  ): TokenAmount => {
+    const token = this.getToken(chainName, tokenSymbol)
+    if (!token) {
+      throw new Error(`Token ${tokenSymbol} not found`)
+    }
+    return {
+      amount: parseUnits(amount.toString(), token.decimals),
+      decimals: token.decimals
+    }
   }
 }
 

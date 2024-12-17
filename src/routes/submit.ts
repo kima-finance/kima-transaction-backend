@@ -237,6 +237,12 @@ submitRouter.post(
  *             - SOL
  *             - TRX
  *       - in: query
+ *         name: originSymbol
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: Origin token symbol
+ *       - in: query
  *         name: targetChain
  *         required: true
  *         schema:
@@ -327,6 +333,7 @@ submitRouter.get(
     query('originChain')
       .isIn(Object.values(ChainName))
       .withMessage('sourceChain must be a valid chain name'),
+    query('originSymbol').notEmpty(),
     query('targetChain')
       .isIn(Object.values(ChainName))
       .withMessage('targetChain must be a valid chain name'),
@@ -334,12 +341,14 @@ submitRouter.get(
     validateRequest
   ],
   async (req: Request, res: Response) => {
-    const { amount, deductFee, originChain, targetChain } = req.query
+    const { amount, deductFee, originChain, originSymbol, targetChain } =
+      req.query
     try {
       const result = await calcServiceFee({
         amount: amount as string,
         deductFee: deductFee === 'true',
         originChain: originChain as ChainName,
+        originSymbol: originSymbol as string,
         targetChain: targetChain as ChainName
       })
       res.status(200).send(result)
