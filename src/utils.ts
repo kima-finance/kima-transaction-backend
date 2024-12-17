@@ -1,4 +1,9 @@
-import { ChainEnv } from './types/chain-env'
+import { formatUnits } from 'viem'
+import { DECIMALS } from './constants'
+
+export function bigintToNumber(amount: bigint, decimals: number): number {
+  return Number(formatUnits(amount, decimals))
+}
 
 export function hexStringToUint8Array(hexString: string) {
   if (hexString.length % 2 !== 0) {
@@ -11,5 +16,16 @@ export function hexStringToUint8Array(hexString: string) {
   return arrayBuffer
 }
 
-export const isMainnet = process.env.KIMA_ENVIRONMENT === ChainEnv.MAINNET
-export const isTestnet = process.env.KIMA_ENVIRONMENT === ChainEnv.TESTNET
+export function toFixedNumber(
+  value: bigint | number | string,
+  decimals = DECIMALS
+): number {
+  return Number(Number(value).toFixed(decimals))
+}
+
+export function bigintToFixedNumber(
+  value: bigint | number | string,
+  decimals = DECIMALS
+): number {
+  return toFixedNumber(bigintToNumber(BigInt(value), decimals), decimals)
+}

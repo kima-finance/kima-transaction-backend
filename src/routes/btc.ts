@@ -4,7 +4,7 @@ import { Network, validate as validateBTC } from 'bitcoin-address-validation'
 import { param, query } from 'express-validator'
 import { validateRequest } from '../middleware/validation'
 import { BtcTransactionDto } from '../types/btc-transaction.dto'
-import { isTestnet } from '../utils'
+import { isTestnet } from '../constants'
 import { BtcUtxoResponseDto } from '../types/btc-utxo-response.dto'
 
 const btcRouter = Router()

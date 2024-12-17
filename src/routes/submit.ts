@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
 import { validateRequest } from '../middleware/validation'
 import { body, query } from 'express-validator'
-import { hexStringToUint8Array } from '../utils'
+import { bigintToFixedNumber, hexStringToUint8Array } from '../utils'
 import { ChainName } from '../types/chain-name'
 import { calcServiceFee } from '../fees'
 import { SubmitRequestDto } from '../types/submit-request.dto'
@@ -28,10 +28,13 @@ const submitRouter = Router()
  *             properties:
  *               amount:
  *                 type: number
- *                 description: Amount to send
+ *                 description: Amount target address will receive. Will be rounded to 6 decimals.
  *               fee:
  *                 type: number
- *                 description: Fee to pay
+ *                 description: Total service fees. Will be rounded to 6 decimals.
+ *               decimals:
+ *                 type: number
+ *                 description: Number of decimals for the amount and fee
  *               originAddress:
  *                 type: string
  *                 description: Origin address
@@ -129,9 +132,12 @@ submitRouter.post(
   '/',
   [
     body('amount')
-      .isFloat({ gt: 0 })
+      .isInt({ gt: 0 })
       .withMessage('amount must be greater than 0'),
-    body('fee').isFloat({ gt: 0 }).withMessage('fee must be greater than 0'),
+    body('fee').isInt({ gt: 0 }).withMessage('fee must be greater than 0'),
+    body('decimals')
+      .isInt({ gt: 0 })
+      .withMessage('decimals must be greater than 0'),
     body('originAddress').notEmpty(),
     body('originChain')
       .isIn(Object.values(ChainName))
@@ -161,6 +167,7 @@ submitRouter.post(
       targetSymbol,
       amount,
       fee,
+      decimals,
       htlcCreationHash = '',
       htlcCreationVout = 0,
       htlcExpirationTimestamp = '',
@@ -168,7 +175,10 @@ submitRouter.post(
       senderPubKey = ''
     } = req.body satisfies SubmitRequestDto
 
-    console.log(req.body)
+    const fixedAmount = bigintToFixedNumber(amount, decimals)
+    const fixedFee = bigintToFixedNumber(fee, decimals)
+
+    console.log(req.body, { fixedAmount, fixedFee })
 
     try {
       const result = await submitKimaTransaction({
@@ -178,8 +188,8 @@ submitRouter.post(
         targetChain,
         originSymbol,
         targetSymbol,
-        amount,
-        fee,
+        amount: fixedAmount,
+        fee: fixedFee,
         htlcCreationHash,
         htlcCreationVout,
         htlcExpirationTimestamp,
@@ -242,6 +252,13 @@ submitRouter.post(
  *             - POL
  *             - SOL
  *             - TRX
+ *       - in: query
+ *         name: deductFee
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *           description: whether to deduct the fee from the amount
  *     responses:
  *       200:
  *         description: Successful response
@@ -250,10 +267,27 @@ submitRouter.post(
  *             schema:
  *               type: object
  *               properties:
+ *                 allowanceAmount:
+ *                   type: string
+ *                   description: bigint string of amount to approve
+ *                 totalFee:
+ *                   type: string
+ *                   description: bigint string of total fees
  *                 totalFeeUsd:
  *                   type: number
+ *                   description: total fee in USD for display
+ *                 decimals:
+ *                   type: number
+ *                   description: number for decimals for the bigint strings
+ *                 deductFee:
+ *                   type: boolean
+ *                   description: whether the allowance and submit amounts reflect fee decduction
+ *                 submitAmount:
+ *                   type: string
+ *                   description: bigint string of amount to submit in the Kima transaction
  *                 breakdown:
  *                   type: array
+ *                   description: breakdown of fees by chain
  *                   items:
  *                     type: object
  *                     properties:
@@ -296,13 +330,15 @@ submitRouter.get(
     query('targetChain')
       .isIn(Object.values(ChainName))
       .withMessage('targetChain must be a valid chain name'),
+    query('deductFee').optional().isBoolean().default(false),
     validateRequest
   ],
   async (req: Request, res: Response) => {
-    const { amount, originChain, targetChain } = req.query
+    const { amount, deductFee, originChain, targetChain } = req.query
     try {
       const result = await calcServiceFee({
-        amount: +amount!,
+        amount: amount as string,
+        deductFee: deductFee === 'true',
         originChain: originChain as ChainName,
         targetChain: targetChain as ChainName
       })
