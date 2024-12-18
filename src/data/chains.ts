@@ -43,7 +43,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x2cf79df2879902a2fc06329b1760e0f2ad9a3a47',
-        decimals: 6
+        decimals: 18
       }
     ]
   },
