@@ -3,69 +3,79 @@ import { Request } from 'express'
 import { PublicKey } from '@solana/web3.js'
 import { isAddress } from 'viem'
 import { fetchWrapper } from './fetch-wrapper'
-import { Network, validate as validateBTC } from 'bitcoin-address-validation'
+// import { Network, validate as validateBTC } from 'bitcoin-address-validation'
+import { ChainName } from './types/chain-name'
+import chainsService from './service/chains.service'
 
 dotenv.config()
 
 /**
- * Returns true if the tokens are supported on the given chains
+ * Returns empty string if the tokens are supported on the given chains
  * @param {string} originChain sending chain
  * @param {string} targetChain receiving chain
  * @param {string} originSymbol sending token symbol
  * @param {string} targetSymbol receiving token symbol
- * @returns {Promise<boolean>}
+ * @returns {Promise<string>}
  */
 async function isValidChain(
   originChain: string,
   targetChain: string,
   originSymbol: string,
   targetSymbol: string
-): Promise<boolean> {
-  let res: any = await fetchWrapper.get(
-    `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_chains`
-  )
+): Promise<string> {
+  const chainNames = await chainsService.getChainNames()
 
-  if (!res?.Chains?.length) return false
+  if (!chainNames.find((item: string) => item === originChain)) {
+    return 'origin chain ${originChain} not found'
+  }
+  if (!chainNames.find((item: string) => item === targetChain)) {
+    return 'target chain ${targetChain} not found'
+  }
+
+  const currencies = await chainsService.getAvailableCurrencies({
+    originChain,
+    targetChain
+  })
+
   if (
-    !res.Chains.find((item: string) => item === originChain) ||
-    !res.Chains.find((item: string) => item === targetChain)
-  )
-    return false
-
-  res = await fetchWrapper.get(
-    `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_currencies/${originChain}/${targetChain}`
-  )
-
-  if (!res?.Currencies?.length) return false
-  return (
-    res.Currencies.find(
+    !currencies.find(
       (item: string) => item.toLowerCase() === originSymbol.toLowerCase()
-    ) &&
-    res.Currencies.find(
+    )
+  ) {
+    return `origin symbol ${originSymbol} not found`
+  }
+  if (
+    !currencies.find(
       (item: string) => item.toLowerCase() === targetSymbol.toLowerCase()
     )
-  )
+  ) {
+    return `target symbol ${targetSymbol} not found`
+  }
+
+  return ''
 }
 
 /**
- * Returns true if the address is valid for the given chain
+ * Returns emtpy string if the address is valid for the given chain
  *
  * @async
  * @param {string} address address to check
- * @param {string} chain chain symbol
- * @returns {Promise<boolean>}
+ * @param {ChainName} chain chain symbol
+ * @returns {Promise<string>}
  */
 async function isValidAddress(
   address: string,
-  chain: string
-): Promise<boolean> {
+  chain: ChainName
+): Promise<string> {
   try {
-    if (chain === 'SOL') {
+    if (chain === ChainName.SOLANA) {
       const owner = new PublicKey(address)
-      return PublicKey.isOnCurve(owner)
+      return !PublicKey.isOnCurve(owner)
+        ? 'invalid Solana address ${address}'
+        : ''
     }
 
-    if (chain === 'TRX') {
+    if (chain === ChainName.TRON) {
       const res: any = await fetchWrapper.post(
         'https://api.nileex.io/wallet/validateaddress',
         {
@@ -74,18 +84,19 @@ async function isValidAddress(
         }
       )
 
-      return res?.result as boolean
+      return res?.result === false ? 'invalid Tron address ${address}' : ''
     }
 
-    if (chain === 'BTC') {
-      return validateBTC(address, Network.testnet)
-    }
+    // TODO: add BTC once supported in mainnet
+    // if (chain === ChainName.BTC) {
+    //   if (!validateBTC(address, Network.testnet)) return 'invalid BTC address'
+    // }
 
-    return isAddress(address)
+    return isAddress(address) ? '' : `invalid EVM address ${address}`
   } catch (e) {
-    console.log(e)
+    console.error(e)
+    return `unknown error: invalid address ${address}`
   }
-  return false
 }
 
 /**
@@ -94,9 +105,9 @@ async function isValidAddress(
  * @export
  * @async
  * @param {Request} req
- * @returns {Promise<boolean>}
+ * @returns {Promise<string>}
  */
-export async function validate(req: Request): Promise<boolean> {
+export async function validate(req: Request): Promise<string> {
   const {
     originAddress,
     originChain,
@@ -109,28 +120,23 @@ export async function validate(req: Request): Promise<boolean> {
   } = req.body
 
   try {
-    if (
-      !(await isValidChain(
-        originChain,
-        targetChain,
-        originSymbol,
-        targetSymbol
-      ))
-    ) {
-      return false
+    let error = await isValidChain(
+      originChain,
+      targetChain,
+      originSymbol,
+      targetSymbol
+    )
+    if (error) {
+      return error
     }
 
-    if (
-      !(await isValidAddress(originAddress, originChain)) ||
-      !(await isValidAddress(targetAddress, targetChain))
-    ) {
-      return false
-    }
+    error = await isValidAddress(originAddress, originChain)
+    if (error) return error
 
-    return amount > 0 && fee >= 0
+    error = await isValidAddress(targetAddress, targetChain)
+    return error
   } catch (e) {
-    console.log(e)
+    console.error(e)
+    return 'unknown error: invalid chain or address'
   }
-
-  return false
 }
