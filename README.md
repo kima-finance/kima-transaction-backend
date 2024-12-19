@@ -8,9 +8,10 @@ This wallet is called Developer Wallet, and it should have enough KIMA token to 
 
 1. Create a `.env` file
 2. Copy the values from `.env.sample` into your `.env` and fill in the values
-3. To run locally: `npm run dev`
-4. Otherwise build the `docker-compose` and run it
-5. Use `docker-compose.yml` for dev, `docker-compose-prod.yml` for prod
+3. Repeat for the Docker ENV files `/envs/dev.env` and `/envs/prod.env`
+4. To run locally: `npm run dev`
+5. Otherwise build the `docker-compose` and run it
+6. Use `docker-compose.yml` for dev, `docker-compose-prod.yml` for prod
 
 ## Available Routes
 
