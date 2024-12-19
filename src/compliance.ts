@@ -1,4 +1,7 @@
 /// <reference lib="dom" />
+/**
+ * Compliance API
+ */
 
 import * as dotenv from 'dotenv'
 dotenv.config()
@@ -6,13 +9,15 @@ dotenv.config()
 export enum RiskScore {
   LOW = 'low',
   MED = 'med',
-  HIGH = 'high'
+  HIGH = 'high',
+  CRITICAL = 'critical'
 }
 
 export const RiskScore2String: { [riskScore: string]: string } = {
   [RiskScore.LOW]: 'low',
   [RiskScore.MED]: 'medium',
-  [RiskScore.HIGH]: 'high'
+  [RiskScore.HIGH]: 'high',
+  [RiskScore.CRITICAL]: 'critical'
 }
 
 export type RiskResult = {
@@ -23,13 +28,21 @@ export type RiskResult = {
   risk_score: RiskScore
 }
 
+/**
+ * Returns the risk score for each address
+ *
+ * @async
+ * @param {Array<string>} addresses
+ * @returns {Promise<Array<RiskResult>>}
+ */
 export const getRisk = async (
   addresses: Array<string>
 ): Promise<Array<RiskResult>> => {
+  // TODO: refactor to use client (sub) API key
   if (!addresses.length) {
     throw new Error('Must provide at least one address to check')
   }
-  const response: Response = await fetch(process.env.XPLORISK_URL as string, {
+  const response: Response = await fetch(process.env.COMPLIANCE_URL as string, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
