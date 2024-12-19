@@ -72,7 +72,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x5d8598Ce65f15f14c58aD3a4CD285223c8e76a2E',
-        decimals: 6
+        decimals: 18
       }
     ]
   },
@@ -97,7 +97,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x2cF79df2879902A2Fc06329B1760E0f2aD9a3a47',
-        decimals: 6
+        decimals: 18
       }
     ]
   },
@@ -126,7 +126,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x3eb36be2c3FD244139756F681420637a2a9464e3',
-        decimals: 6
+        decimals: 18
       }
     ],
     faucets: ['https://testnet.bnbchain.org/faucet-smart']
@@ -207,7 +207,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x5FF59Bf2277A1e6bA9bB8A38Ea3F9ABfd3d9345a',
-        decimals: 6
+        decimals: 18
       }
       // {
       //   symbol: 'WBTC',
@@ -241,7 +241,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x2cf79df2879902a2fc06329b1760e0f2ad9a3a47',
-        decimals: 6
+        decimals: 18
       }
     ]
   },
@@ -270,7 +270,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x30171cfb10ed578814a22475a190306776bc8392',
-        decimals: 6
+        decimals: 18
       }
       // {
       //   symbol: 'WBTC',
