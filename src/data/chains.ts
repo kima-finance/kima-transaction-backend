@@ -95,7 +95,7 @@ export const CHAINS: Chain[] = [
     shortName: 'BASE',
     supportedTokens: [
       {
-        symbol: 'USDK',
+        symbol: 'KIMAUSD',
         address: '0x2cF79df2879902A2Fc06329B1760E0f2aD9a3a47',
         decimals: 18
       }
@@ -201,6 +201,7 @@ export const CHAINS: Chain[] = [
   },
   {
     ...sepolia,
+    name: 'Ethereum Sepolia',
     shortName: 'ETH',
     compatibility: ChainCompatibility.EVM,
     supportedTokens: [
