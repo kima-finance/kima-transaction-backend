@@ -16,7 +16,7 @@ const submitRouter = Router()
  * /submit:
  *   post:
  *     summary: Submit transaction
- *     description: Submit a transaction to Kima Chain. Requires authentication by calling /auth with the transaction details.
+ *     description: Submit a transaction to the Kima Chain
  *     tags:
  *       - Submit
  *     requestBody:
@@ -27,20 +27,20 @@ const submitRouter = Router()
  *             type: object
  *             properties:
  *               amount:
- *                 type: number
- *                 description: Amount target address will receive. Will be rounded to 6 decimals.
+ *                 type: string
+ *                 description: (bigint string) Amount target address will receive
  *               fee:
- *                 type: number
- *                 description: Total service fees. Will be rounded to 6 decimals.
+ *                 type: string
+ *                 description: (bigint string) Total service fees.
  *               decimals:
  *                 type: number
  *                 description: Number of decimals for the amount and fee
  *               originAddress:
  *                 type: string
- *                 description: Origin address
+ *                 description: sender address
  *               originChain:
  *                 type: string
- *                 description: Origin chain
+ *                 description: starting chain
  *                 enum:
  *                   - ARB
  *                   - AVX
@@ -53,10 +53,10 @@ const submitRouter = Router()
  *                   - TRX
  *               targetAddress:
  *                 type: string
- *                 description: Target address
+ *                 description: receiver address
  *               targetChain:
  *                 type: string
- *                 description: Target chain
+ *                 description: receiving chain
  *                 enum:
  *                   - ARB
  *                   - AVX
@@ -69,22 +69,22 @@ const submitRouter = Router()
  *                   - TRX
  *               targetSymbol:
  *                 type: string
- *                 description: Target symbol
+ *                 description: receiving token symbol
  *               htlcCreationHash:
  *                 type: string
- *                 description: HTLC creation hash
+ *                 description: (Bitcoin only) HTLC creation hash
  *               htlcCreationVout:
  *                 type: number
- *                 description: HTLC creation vout
+ *                 description: (Bitcoin only) HTLC creation vout
  *               htlcExpirationTimestamp:
  *                 type: string
- *                 description: HTLC expiration timestamp
+ *                 description: (Bitcoin only) HTLC expiration timestamp
  *               htlcVersion:
  *                 type: string
- *                 description: HTLC version
+ *                 description: (Bitcoin only) HTLC version
  *               senderPubKey:
  *                 type: string
- *                 description: Sender public key
+ *                 description: (Bitcoin only) Sender public key
  *     responses:
  *       200:
  *         description: Successful response
@@ -210,7 +210,7 @@ submitRouter.post(
  * /submit/fees:
  *   get:
  *     summary: Get fees
- *     description: Get the fees for a given amount and chains
+ *     description: Get the fees and allowance for a given amount and chains
  *     tags:
  *       - Submit
  *     parameters:
