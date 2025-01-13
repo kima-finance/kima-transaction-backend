@@ -1,0 +1,15 @@
+version: '3.3'
+
+services:
+  kima-transaction-backend-refactor:
+    image: gcr.io/hardy-crossbar-428319-k2/kima-transaction-backend-refactor:latest
+    build:
+      context: ./
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    env_file:
+      - ./envs/dev.env
+    ports:
+      - '3001:3001'

@@ -1,0 +1,15 @@
+// TODO: add FIAT and BTC once supported in mainnet
+export enum ChainName {
+  ARBITRUM = 'ARB',
+  AVALANCHE = 'AVX',
+  BASE = 'BASE',
+  BSC = 'BSC',
+  // BTC = 'BTC',
+  ETHEREUM = 'ETH',
+  // FIAT = 'FIAT',
+  OPTIMISM = 'OPT',
+  POLYGON = 'POL',
+  MASTERCARD = 'MCD',
+  SOLANA = 'SOL',
+  TRON = 'TRX'
+}
