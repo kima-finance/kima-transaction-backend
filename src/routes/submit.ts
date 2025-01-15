@@ -135,7 +135,8 @@ submitRouter.post(
     body('amount')
       .isInt({ gt: 0 })
       .withMessage('amount must be greater than 0'),
-    body('fee').isInt({ gt: 0 }).withMessage('fee must be greater than 0'),
+    // TODO: how to handle sub cent fees?
+    body('fee').isInt(/*{ gt: 0 }*/).withMessage('fee must be greater than 0'),
     body('decimals')
       .isInt({ gt: 0 })
       .withMessage('decimals must be greater than 0'),
@@ -182,37 +183,41 @@ submitRouter.post(
     console.log(req.body, { fixedAmount, fixedFee })
 
     try {
-      const result = await fetchWrapper.post(
-        `${process.env.KIMA_BACKEND_NODE_PROVIDER}/api/v1/submit` as string,
-        {
+      let result
+      if (process.env.KIMA_BLOCKCHAIN_SIMULATOR === 'true') {
+        result = await fetchWrapper.post(
+          `${process.env.KIMA_BACKEND_NODE_PROVIDER}/submit` as string,
+          {
+            originAddress,
+            originChain,
+            originAmount: fixedAmount,
+            originSymbol,
+            targetAddress,
+            targetChain,
+            targetAmount: fixedAmount,
+            targetSymbol,
+            fee: fixedFee
+          }
+        )
+      } else {
+        result = await submitKimaTransaction({
           originAddress,
           originChain,
-          originAmount: fixedAmount,
-          originSymbol,
           targetAddress,
           targetChain,
-          targetAmount: fixedAmount,
+          originSymbol,
           targetSymbol,
-          fee: fixedFee
-        }
-      )
-      // const result = await submitKimaTransaction({
-      //   originAddress,
-      //   originChain,
-      //   targetAddress,
-      //   targetChain,
-      //   originSymbol,
-      //   targetSymbol,
-      //   amount: fixedAmount,
-      //   fee: fixedFee,
-      //   htlcCreationHash,
-      //   htlcCreationVout,
-      //   htlcExpirationTimestamp,
-      //   htlcVersion,
-      //   senderPubKey: hexStringToUint8Array(senderPubKey)
-      // })
-      console.log(result)
-      res.send(result)
+          amount: fixedAmount,
+          fee: fixedFee,
+          htlcCreationHash,
+          htlcCreationVout,
+          htlcExpirationTimestamp,
+          htlcVersion,
+          senderPubKey: hexStringToUint8Array(senderPubKey)
+        })
+      }
+      console.log('submit result:', result)
+      res.status(200).json(result)
     } catch (e) {
       console.error(e)
       res.status(500).send('failed to submit transaction')

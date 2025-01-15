@@ -3,6 +3,7 @@ import { fetchWrapper } from '../fetch-wrapper'
 import { param } from 'express-validator'
 import { validateRequest } from '../middleware/validation'
 import { TransactionStatus } from '../types/transaction-status'
+import { useSimulator } from '../constants'
 
 const txRouter = Router()
 
@@ -194,6 +195,8 @@ txRouter.get(
   '/:txId/status',
   [
     param('txId')
+      .notEmpty()
+      .if(() => !useSimulator)
       .isInt()
       .withMessage(
         'txId must be a valid tx id (a sequential numeric value different from the hash)'
@@ -204,10 +207,16 @@ txRouter.get(
     const { txId } = req.params
 
     try {
-      const result = await fetchWrapper.post(
-        process.env.KIMA_BACKEND_NODE_PROVIDER_GRAPHQL as string,
-        {
-          query: `
+      let result
+      if (useSimulator) {
+        result = await fetchWrapper.get<TransactionStatus>(
+          `${process.env.KIMA_BACKEND_NODE_PROVIDER}/status/${txId}`
+        )
+      } else {
+        result = await fetchWrapper.post(
+          process.env.KIMA_BACKEND_NODE_PROVIDER_GRAPHQL as string,
+          {
+            query: `
             query TransactionDetailsKima($txId: bigint) {
               transaction_data(where: { tx_id: { _eq: $txId } }, limit: 1) {
                 failreason
@@ -228,12 +237,13 @@ txRouter.get(
                 kimahash
               }
             }`,
-          variables: {
-            txId: BigInt(txId)
+            variables: {
+              txId: BigInt(txId)
+            }
           }
-        }
-      )
-      res.status(200).send(result)
+        )
+      }
+      res.status(200).json(result)
     } catch (e) {
       console.error(e)
       res.status(500).send(`failed to get status for transaction ${txId}`)

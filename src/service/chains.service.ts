@@ -107,12 +107,12 @@ export class ChainsService {
       this.getChains(process.env.KIMA_ENVIRONMENT as ChainEnv),
       this.getPoolBalances()
     ])
-    poolBalances.push({
-      index: '0',
-      chainName: ChainName.MASTERCARD,
-      balance: [{ amount: '10000', tokenSymbol: 'PPD', decimal: '2' }],
-      nativeGasAmount: '10'
-    })
+    // poolBalances.push({
+    //   index: '0',
+    //   chainName: ChainName.MASTERCARD,
+    //   balance: [{ amount: '10000', tokenSymbol: 'USD', decimal: '2' }],
+    //   nativeGasAmount: '10'
+    // })
 
     const pools = chains.map((chain) => {
       const poolAddress = this.getPoolAddress({ data: pubKeys, chain })
