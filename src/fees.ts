@@ -123,10 +123,6 @@ export async function calcServiceFee({
  * @returns {Promise<string>} the estimated gas fee in USD
  */
 async function getServiceFee(chain: ChainName): Promise<string> {
-  if (chain === ChainName.MASTERCARD) {
-    return '0'
-  }
-  
   const result = (await fetchWrapper.get(
     `${process.env.KIMA_BACKEND_FEE_URL as string}/fee/${chain}`
   )) as unknown as { fee: string }

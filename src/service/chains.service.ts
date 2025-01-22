@@ -107,6 +107,10 @@ export class ChainsService {
       this.getChains(process.env.KIMA_ENVIRONMENT as ChainEnv),
       this.getPoolBalances()
     ])
+
+    // the mastercard pool is not returned from the Kima testnet API
+    // so the balance will be missing if not using the Simulator
+    // but this is OK as the transaction cannot work on the Kima chain anyway
     // poolBalances.push({
     //   index: '0',
     //   chainName: ChainName.MASTERCARD,
