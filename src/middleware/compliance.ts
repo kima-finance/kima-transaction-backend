@@ -21,10 +21,10 @@ export const checkCompliance = async (
     return next()
   }
 
-  const { originAddress, targetAddress, targetChain } =
+  const { originAddress, originChain, targetAddress, targetChain } =
     req.body as TransactionDetails
-  if (targetChain === ChainName.MASTERCARD) {
-    // the compliance is handled by the Mastercard API
+  if (targetChain === ChainName.MASTERCARD || originChain === ChainName.FIAT) {
+    // the compliance is handled by the Mastercard API and depasify for onramping
     return next()
   }
 

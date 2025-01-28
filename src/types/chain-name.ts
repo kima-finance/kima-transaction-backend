@@ -6,7 +6,7 @@ export enum ChainName {
   BSC = 'BSC',
   // BTC = 'BTC',
   ETHEREUM = 'ETH',
-  // FIAT = 'FIAT',
+  FIAT = 'FIAT',
   OPTIMISM = 'OPT',
   POLYGON = 'POL',
   MASTERCARD = 'MCD',

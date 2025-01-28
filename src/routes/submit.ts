@@ -140,7 +140,17 @@ submitRouter.post(
     body('decimals')
       .isInt({ gt: 0 })
       .withMessage('decimals must be greater than 0'),
-    body('originAddress').notEmpty(),
+    body('originAddress').custom((value, { req }) => {
+      if (
+        req.body.originChain !== ChainName.FIAT &&
+        (!value || value.trim() === '')
+      ) {
+        throw new Error(
+          'originAddress must not be empty if originChain is not "fiat"'
+        )
+      }
+      return true
+    }),
     body('originChain')
       .isIn(Object.values(ChainName))
       .withMessage('originChain must be a valid chain name'),
@@ -357,19 +367,26 @@ submitRouter.get(
     query('targetChain')
       .isIn(Object.values(ChainName))
       .withMessage('targetChain must be a valid chain name'),
+    query('targetSymbol').notEmpty(),
     query('deductFee').optional().isBoolean().default(false),
     validateRequest
   ],
   async (req: Request, res: Response) => {
-    const { amount, deductFee, originChain, originSymbol, targetChain } =
-      req.query
+    const {
+      amount,
+      deductFee,
+      originChain,
+      originSymbol,
+      targetChain,
+      targetSymbol
+    } = req.query
     try {
       const result = await calcServiceFee({
         amount: amount as string,
         deductFee: deductFee === 'true',
         originChain: originChain as ChainName,
         originSymbol: originSymbol as string,
-        targetChain: targetChain as ChainName
+        targetChain: targetChain as ChainName,
       })
       res.status(200).send(result)
     } catch (e) {

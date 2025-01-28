@@ -47,11 +47,6 @@ export async function calcServiceFee({
   originSymbol,
   targetChain
 }: GetFeeInput): Promise<FeeResult> {
-  // TODO: add FIAT fees once supported in mainnet
-  // if (originChain === ChainName.FIAT || targetChain === ChainName.FIAT) {
-  //   return 0
-  // }
-
   // TODO: add BTC fees once supported in mainnet
   // if (originChain === ChainName.BTC) {
   //   return 0.0004
@@ -71,6 +66,8 @@ export async function calcServiceFee({
     originSymbol,
     originFee
   )
+  console.log('CalcServiceFee: origin fee token amount: ', originFeeTokenAmount)
+
   const targetFeeTokenAmount = chainsService.toTokenDecimals(
     originChain,
     originSymbol,
@@ -81,8 +78,23 @@ export async function calcServiceFee({
   const decimals = originFeeTokenAmount.decimals
   const amount = parseUnits(amountStr, decimals)
 
-  // TODO: add 0.05% Kima service fee when implemented on chain
-  const fee = originFeeTokenAmount.amount + targetFeeTokenAmount.amount
+  // 0.015% Kima service fee 
+  // fiat onramp transaction takes 3% fees as comission
+  const kimaFee = (amount * BigInt(15)) / BigInt(10000)
+  
+  const targetFeeAmount = targetFeeTokenAmount.amount
+  
+  // Calculate the total base amount (sum of the amount and other fees)
+  const baseFiatAmount = amount + kimaFee + targetFeeAmount;
+  const creditCardFee = (baseFiatAmount * BigInt(3)) / BigInt(100)
+
+  const originFeeAmount = 
+    originChain === 'FIAT'
+      ? kimaFee + creditCardFee
+      : originFeeTokenAmount.amount
+
+
+  const fee = originFeeAmount + targetFeeAmount
 
   // the amount sent to the Kima transaction should reflect
   // what the target address will receive
@@ -102,13 +114,13 @@ export async function calcServiceFee({
     submitAmount: submitAmount.toString(),
     breakdown: [
       {
-        amount: bigintToNumber(originFeeTokenAmount.amount, decimals),
-        feeType: 'gas',
+        amount: bigintToNumber(originFeeAmount, decimals),
+        feeType: originChain === 'FIAT' ? 'service' : 'gas',
         chain: originChain
       },
       {
-        amount: bigintToNumber(targetFeeTokenAmount.amount, decimals),
-        feeType: 'gas',
+        amount: bigintToNumber(targetFeeAmount, decimals),
+        feeType: targetChain === 'FIAT' ? 'service' : 'gas',
         chain: targetChain
       }
     ]

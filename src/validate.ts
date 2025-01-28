@@ -25,6 +25,8 @@ async function isValidChain(
 ): Promise<string> {
   const chainNames = await chainsService.getChainNames()
 
+  console.log("chain names: ", chainNames)
+
   if (!chainNames.find((item: string) => item === originChain)) {
     return `origin chain ${originChain} not found`
   }
@@ -91,6 +93,11 @@ async function isValidAddress(
       return Number.isInteger(Number(address))
         ? ''
         : 'invalid Mastercard address'
+    }
+
+    // origin address doesn't matter here
+    if (chain === ChainName.FIAT) {
+      return ''
     }
 
     // TODO: add BTC once supported in mainnet

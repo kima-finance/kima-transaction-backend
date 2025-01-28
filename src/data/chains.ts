@@ -381,16 +381,45 @@ export const CHAINS: Chain[] = [
     },
     testnet: true
   },
+  // {
+  //   id: 0,
+  //   name: 'Mastercard',
+  //   shortName: 'MCD',
+  //   compatibility: ChainCompatibility.MASTERCARD,
+  //   supportedTokens: [
+  //     {
+  //       symbol: 'USD', // Prepaid Card
+  //       address: '0x0',
+  //       decimals: 2
+  //     }
+  //   ],
+  //   nativeCurrency: {
+  //     name: 'USD',
+  //     symbol: 'USD',
+  //     decimals: 6
+  //   },
+  //   rpcUrls: {
+  //     default: { http: [] }
+  //   },
+  //   faucets: [],
+  //   blockExplorers: {
+  //     default: {
+  //       name: '',
+  //       url: ''
+  //     }
+  //   },
+  //   testnet: true
+  // },
   {
     id: 0,
-    name: 'Mastercard',
-    shortName: 'MCD',
-    compatibility: ChainCompatibility.MASTERCARD,
+    name: 'Credit Card',
+    shortName: 'FIAT',
+    compatibility: ChainCompatibility.FIAT,
     supportedTokens: [
       {
-        symbol: 'USD', // Prepaid Card
+        symbol: 'USD', // default from depasify is EUR but better work with a 1-1 token for testing
         address: '0x0',
-        decimals: 2
+        decimals: 4
       }
     ],
     nativeCurrency: {
@@ -410,29 +439,6 @@ export const CHAINS: Chain[] = [
     },
     testnet: true
   }
-  // {
-  //   id: 0,
-  //   name: 'Fiat',
-  //   shortName: 'FIAT',
-  //   compatibility: ChainCompatibility.FIAT,
-  //   supportedTokens: [],
-  //   nativeCurrency: {
-  //     name: 'USD',
-  //     symbol: 'USD',
-  //     decimals: 6
-  //   },
-  //   rpcUrls: {
-  //     default: { http: [] }
-  //   },
-  //   faucets: [],
-  //   blockExplorers: {
-  //     default: {
-  //       name: '',
-  //       url: ''
-  //     }
-  //   },
-  //   testnet: true
-  // }
   // Tron Shasta not supported yet
   // {
   //   id: 2494104990,
