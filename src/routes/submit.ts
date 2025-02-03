@@ -367,7 +367,6 @@ submitRouter.get(
     query('targetChain')
       .isIn(Object.values(ChainName))
       .withMessage('targetChain must be a valid chain name'),
-    query('targetSymbol').notEmpty(),
     query('deductFee').optional().isBoolean().default(false),
     validateRequest
   ],

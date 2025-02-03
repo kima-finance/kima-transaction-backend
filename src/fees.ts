@@ -78,21 +78,23 @@ export async function calcServiceFee({
   const decimals = originFeeTokenAmount.decimals
   const amount = parseUnits(amountStr, decimals)
 
-  // 0.015% Kima service fee 
+  // 0.015% Kima service fee
   // fiat onramp transaction takes 3% fees as comission
-  const kimaFee = (amount * BigInt(15)) / BigInt(10000)
-  
+  let kimaFee = (amount * BigInt(15)) / BigInt(10000)
+
+  kimaFee =
+    kimaFee > BigInt(100) ? kimaFee : BigInt(100)
+
   const targetFeeAmount = targetFeeTokenAmount.amount
-  
+
   // Calculate the total base amount (sum of the amount and other fees)
-  const baseFiatAmount = amount + kimaFee + targetFeeAmount;
+  const baseFiatAmount = amount + kimaFee + targetFeeAmount
   const creditCardFee = (baseFiatAmount * BigInt(3)) / BigInt(100)
 
-  const originFeeAmount = 
+  const originFeeAmount =
     originChain === 'FIAT'
       ? kimaFee + creditCardFee
       : originFeeTokenAmount.amount
-
 
   const fee = originFeeAmount + targetFeeAmount
 
