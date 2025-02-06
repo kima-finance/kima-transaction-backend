@@ -134,7 +134,7 @@ submitRouter.post(
     body('amount')
       .isInt({ gt: 0 })
       .withMessage('amount must be greater than 0'),
-    body('fee').isInt({ gt: 0 }).withMessage('fee must be greater than 0'),
+    body('fee').isInt({ min: 0 }).withMessage('fee must be positive'),
     body('decimals')
       .isInt({ gt: 0 })
       .withMessage('decimals must be greater than 0'),
