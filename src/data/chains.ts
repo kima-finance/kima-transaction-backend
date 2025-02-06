@@ -315,7 +315,7 @@ export const CHAINS: Chain[] = [
   },
   {
     id: 102,
-    name: 'Solana Testnet',
+    name: 'Solana Devnet',
     shortName: 'SOL',
     compatibility: ChainCompatibility.SELF,
     supportedTokens: [
