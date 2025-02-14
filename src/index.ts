@@ -29,7 +29,7 @@ dotenv.config({
 })
 
 const app: Express = express()
-const port = process.env.PORT || 3001
+const port = 3000
 
 app.use((req, res, next) => {
   if (
@@ -488,8 +488,8 @@ app.post('/sol/send', async (req: Request, res: Response) => {
   res.send('ok')
 })
 
-const server = app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
+const server = app.listen(port, '0.0.0.0', () => {
+  console.log(`⚡️[server]: Server is running at http://0.0.0.0:${port}`)
 })
 
 module.exports = server

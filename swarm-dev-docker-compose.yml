@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  txbackend:
+    image: ghcr.io/kima-finance/backend:latest-dev
+    ports:
+      - "3001:3000"
+    env_file:
+      - .env
+
