@@ -7,39 +7,29 @@ This wallet is called Developer Wallet, and it should have enough KIMA token to 
 ## Usage
 
 1. Create a `.env` file
-2. Fill in parameters:
-   ```env.smaple
-   PORT=3001 <or any other port>
-   KIMA_BACKEND_MNEMONIC=<developer wallet's mnemonic>
-   KIMA_BACKEND_SECRET=<secret for jwt>
-   KIMA_BACKEND_NODE_PROVIDER=rpc_testnet.kima.finance
-   XPLORISK_URL=<xplorisk lambda function endpoint>
-   ```
-3. To run locally: `npm run dev`
-4. Otherwise build the `docker-compose` and run it
-5. Use `docker-compose.yml` for dev, `docker-compose-prod.yml` for prod
+2. Copy the values from `.env.sample` into your `.env` and fill in the values
+3. Repeat for the Docker ENV files `/envs/dev.env` and `/envs/prod.env`
+4. To run locally: `npm run dev`
+5. Otherwise build the `docker-compose` and run it
+6. Use `docker-compose.yml` for dev, `docker-compose-prod.yml` for prod
 
 ## Available Routes
 
-- `/auth` :
+See OpenAPI documentation at `/docs` for more details (only available when `NODE_ENV` is `development`). The following is an overview of how the routes are used together.
 
-  The `Kima Transaction Widget` calls this endpoint before it submits a transaction request.
-  Returns [`JWT`](https://jwt.io/) as cookie which has 5 seconds of life time. This cookie will be expired after 5 seconds. `Kima Transaction Widget` calls second endpoint right after it receives `JWT Auth Token`.
+- Get various info for the frontend from `/chains/*` like supported chains, tokens, pool addresses, etc.
+- `GET /submit/fee`: get the fees. Use this to determine the total amount for the ERC20 approval. The approval must be completed before submitting the transaction or the transfer will fail.
+- `POST /submit`: submit will initiate the Kima Transaction and return a transaction id that can be used to monitor the status of the transaction
+- `GET /tx/{txId}/status`: use the transaction id from submit to get the transaction status
 
-- `/submit`:
+### Optional Routes
 
-  1. Validate `JWT Auth Token` which has sent as cookie from the frontend.
-  2. Submit a transaction to Kima Chain using `Developer Wallet`.
-  3. Return transaction id to the frontend so that it starts monitoring it's status.
+#### `GET /compliant`:
 
-- `/compliant`:
-  `Request parameter`: wallet address to check compliant
-  `Response`: `ok` if address is compliant, `fail` if address is non-compliant
+If enabled by suppling the `COMPLIANCE_URL` environment variable, this route will check if an address meets compliance requirements- is not sanctioned, blocked, etc.
 
-- `/uuid`:
+Use this in the frontend to notify the user an address is not compliant BEFORE doing the ERC20 approval. When compliance is enabled, the `/submit` endpoint will return status `403` (Forbidden) if an address is not compliant.
 
-  Generate `uuid` for FIAT payment session to use depasify API.
+#### `POST /kyc`:
 
-- `/kyc`:
-
-  Return kyc status for specific `uuid` of verification session using depasify API.
+Returns the KYC status for a specific `uuid` verification session. You can use `GET /uuid` to get a new `uuid`.

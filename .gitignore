@@ -29,5 +29,6 @@ yarn-error.log*
 /src/ethers-contracts
 
 .env
+/**/*.env
 .package-lock.json
 yarn.lock
