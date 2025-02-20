@@ -24,11 +24,12 @@ export class ChainsService {
    * @returns {Chain[]}
    */
   getChains = (env: ChainEnv, symbol?: ChainName): Chain[] => {
-    const isTestnet = env === ChainEnv.TESTNET
+    // get only testnet or mainnet chains
+    // the chain will have the isTestnet property only if it is a testnet chain
     const upperCaseSymbol = symbol?.toUpperCase()
     return CHAINS.filter(
       (chain) =>
-        chain.testnet === isTestnet &&
+        (env == ChainEnv.MAINNET ? !chain.testnet : chain.testnet === true) &&
         (!upperCaseSymbol || chain.shortName === upperCaseSymbol)
     )
   }
