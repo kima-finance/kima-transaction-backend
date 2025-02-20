@@ -10,5 +10,5 @@ WORKDIR /usr/src/app
 RUN yarn install
 RUN yarn build
 RUN rm -f .npmrc
-EXPOSE 3000
+EXPOSE 3001
 CMD yarn start
