@@ -102,19 +102,18 @@ export const CHAINS: Chain[] = [
       }
     ]
   },
-  // TODO: enable once native USDC or USDT supported on BERA
-  // {
-  //   ...berachainTestnetbArtio,
-  //   shortName: 'BERA',
-  //   compatibility: ChainCompatibility.EVM,
-  //   supportedTokens: [
-  //     {
-  //       symbol: 'USDK',
-  //       address: '0xB16de57a9c4D28CFe7Ce2ab87EE4A4deBD643cD1',
-  //       decimals: 18
-  //     }
-  //   ]
-  // },
+  {
+    ...berachainTestnetbArtio,
+    shortName: 'BERA',
+    compatibility: ChainCompatibility.EVM,
+    supportedTokens: [
+      {
+        symbol: 'USDK',
+        address: '0xB16de57a9c4D28CFe7Ce2ab87EE4A4deBD643cD1',
+        decimals: 18
+      }
+    ]
+  },
   {
     ...bsc,
     compatibility: ChainCompatibility.EVM,
