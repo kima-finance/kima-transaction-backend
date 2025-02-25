@@ -24,6 +24,7 @@ export const sameOriginOnly = (
   const host = req.headers['host']
   const referrer = req.headers['referer']
   let originDomain = (xforwardedHost || referrer || host) as string
+  console.log('originDomain', originDomain)
   const originHostname = new URL(originDomain).hostname
 
   const domains = (process.env.DOMAIN as string).split(',')
