@@ -62,7 +62,7 @@ export async function calcServiceFee({
 
   const [originFee, targetFee] = await Promise.all([
     getServiceFee(originChain),
-    getServiceFee(targetChain)
+    targetChain === ChainName.BERA ? 0 : getServiceFee(targetChain)
   ])
 
   // convert USD fee amounts into the origin chain token amounts

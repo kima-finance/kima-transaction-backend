@@ -32,25 +32,25 @@ async function isValidChain(
     return 'target chain ${targetChain} not found'
   }
 
-  const currencies = await chainsService.getAvailableCurrencies({
-    originChain,
-    targetChain
-  })
+  // const currencies = await chainsService.getAvailableCurrencies({
+  //   originChain,
+  //   targetChain
+  // })
 
-  if (
-    !currencies.find(
-      (item: string) => item.toLowerCase() === originSymbol.toLowerCase()
-    )
-  ) {
-    return `origin symbol ${originSymbol} not found`
-  }
-  if (
-    !currencies.find(
-      (item: string) => item.toLowerCase() === targetSymbol.toLowerCase()
-    )
-  ) {
-    return `target symbol ${targetSymbol} not found`
-  }
+  // if (
+  //   !currencies.find(
+  //     (item: string) => item.toLowerCase() === originSymbol.toLowerCase()
+  //   )
+  // ) {
+  //   return `origin symbol ${originSymbol} not found`
+  // }
+  // if (
+  //   !currencies.find(
+  //     (item: string) => item.toLowerCase() === targetSymbol.toLowerCase()
+  //   )
+  // ) {
+  //   return `target symbol ${targetSymbol} not found`
+  // }
 
   return ''
 }

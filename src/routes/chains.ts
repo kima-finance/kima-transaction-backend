@@ -95,9 +95,14 @@ chainsRouter.get('/chain', async (_, res: Response) => {
  *                   enum:
  *                     - mainnet
  *                     - testnet
+ *                 kimaExplorer:
+ *                   type: string
  */
 chainsRouter.get('/env', async (_, res: Response) => {
-  return res.json({ env: process.env.KIMA_ENVIRONMENT as ChainEnv })
+  return res.json({
+    env: process.env.KIMA_ENVIRONMENT as ChainEnv,
+    kimaExplorer: process.env.KIMA_EXPLORER as string
+  })
 })
 
 /**
