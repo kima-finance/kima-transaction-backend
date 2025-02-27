@@ -35,8 +35,7 @@ export const CHAINS: Chain[] = [
         address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
         decimals: 6
       }
-    ],
-    testnet: false
+    ]
   },
   {
     ...arbitrumSepolia,
@@ -65,8 +64,7 @@ export const CHAINS: Chain[] = [
         address: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
         decimals: 6
       }
-    ],
-    testnet: false
+    ]
   },
   {
     ...avalancheFuji,
@@ -144,8 +142,7 @@ export const CHAINS: Chain[] = [
         address: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
         decimals: 6
       }
-    ],
-    testnet: false
+    ]
   },
   {
     ...bscTestnet,
@@ -226,8 +223,7 @@ export const CHAINS: Chain[] = [
         address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         decimals: 6
       }
-    ],
-    testnet: false
+    ]
   },
   {
     ...sepolia,
@@ -262,8 +258,7 @@ export const CHAINS: Chain[] = [
         address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
         decimals: 6
       }
-    ],
-    testnet: false
+    ]
   },
   {
     ...optimismSepolia,
@@ -292,8 +287,7 @@ export const CHAINS: Chain[] = [
         address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
         decimals: 6
       }
-    ],
-    testnet: false
+    ]
   },
   {
     ...polygonAmoy,
@@ -343,8 +337,7 @@ export const CHAINS: Chain[] = [
         name: 'solscan',
         url: 'https://solscan.io'
       }
-    },
-    testnet: false
+    }
   },
   {
     id: 102,
@@ -385,8 +378,7 @@ export const CHAINS: Chain[] = [
         address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
         decimals: 6
       }
-    ],
-    testnet: false
+    ]
   },
   {
     id: 3448148188,
