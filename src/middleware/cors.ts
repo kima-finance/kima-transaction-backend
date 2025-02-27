@@ -15,7 +15,6 @@ export const corsConfig = cors({
       return
     }
 
-    console.log('origin', origin)
     const originHostname = new URL(origin as string).hostname
     const domains = (process.env.DOMAIN as string).split(',')
 

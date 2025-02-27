@@ -5,6 +5,7 @@ import {
   avalancheFuji,
   // base,
   baseSepolia,
+  berachain,
   berachainTestnetbArtio,
   bsc,
   bscTestnet,
@@ -98,6 +99,18 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'KIMAUSD',
         address: '0x2cF79df2879902A2Fc06329B1760E0f2aD9a3a47',
+        decimals: 18
+      }
+    ]
+  },
+  {
+    ...berachain,
+    shortName: 'BERA',
+    compatibility: ChainCompatibility.EVM,
+    supportedTokens: [
+      {
+        symbol: 'HONEY',
+        address: '0xFCBD14DC51f0A4d49d5E53C2E0950e0bC26d0Dce',
         decimals: 18
       }
     ]
