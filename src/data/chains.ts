@@ -5,7 +5,7 @@ import {
   avalancheFuji,
   // base,
   baseSepolia,
-  berachain,
+  // berachain,
   berachainTestnetbArtio,
   bsc,
   bscTestnet,
@@ -103,18 +103,18 @@ export const CHAINS: Chain[] = [
       }
     ]
   },
-  {
-    ...berachain,
-    shortName: 'BERA',
-    compatibility: ChainCompatibility.EVM,
-    supportedTokens: [
-      {
-        symbol: 'HONEY',
-        address: '0xFCBD14DC51f0A4d49d5E53C2E0950e0bC26d0Dce',
-        decimals: 18
-      }
-    ]
-  },
+  // {
+  //   ...berachain,
+  //   shortName: 'BERA',
+  //   compatibility: ChainCompatibility.EVM,
+  //   supportedTokens: [
+  //     {
+  //       symbol: 'HONEY',
+  //       address: '0xFCBD14DC51f0A4d49d5E53C2E0950e0bC26d0Dce',
+  //       decimals: 18
+  //     }
+  //   ]
+  // },
   {
     ...berachainTestnetbArtio,
     shortName: 'BERA',
