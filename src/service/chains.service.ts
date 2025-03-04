@@ -14,6 +14,7 @@ import { PoolBalanceResponseDto } from '../types/pool-balance-response.dto'
 import { TokenDto } from '../types/token.dto'
 import { TokenAmount } from '../types/token-amount.dto'
 import { parseUnits } from 'viem'
+import { ENV } from '../env-validate'
 
 export class ChainsService {
   /**
@@ -54,7 +55,7 @@ export class ChainsService {
    */
   getChainNames = async () => {
     const result = await fetchWrapper.get<AvailableChainsResponseDto>(
-      `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_chains`
+      `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_chains`
     )
     return typeof result === 'string' ? [] : result.Chains
   }
@@ -75,7 +76,7 @@ export class ChainsService {
   }) => {
     const { originChain, targetChain } = args
     const result = await fetchWrapper.get<AvailableCurrenciesResponseDto>(
-      `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_currencies/${originChain}/${targetChain}`
+      `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/get_currencies/${originChain}/${targetChain}`
     )
     return typeof result === 'string' ? [] : result.Currencies
   }
@@ -95,7 +96,7 @@ export class ChainsService {
     const [pubKeys] = pubKeyResult.tssPubkey
 
     const [chains, poolBalances] = await Promise.all([
-      this.getChains(process.env.KIMA_ENVIRONMENT as ChainEnv),
+      this.getChains(ENV.KIMA_ENVIRONMENT as ChainEnv),
       this.getPoolBalances()
     ])
 
@@ -142,7 +143,7 @@ export class ChainsService {
    */
   getPoolBalances = async (): Promise<PoolBalanceDto[]> => {
     const result = await fetchWrapper.get<PoolBalanceResponseDto>(
-      `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/pool_balance`
+      `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/pool_balance`
     )
     return typeof result === 'string' ? [] : result.poolBalance
   }
@@ -156,7 +157,7 @@ export class ChainsService {
    */
   getToken = (chainName: string, tokenSymbol: string): TokenDto | undefined => {
     const chain = this.getChain(
-      process.env.KIMA_ENVIRONMENT as ChainEnv,
+      ENV.KIMA_ENVIRONMENT as ChainEnv,
       chainName as ChainName
     )
     if (!chain) {
@@ -173,7 +174,7 @@ export class ChainsService {
    */
   getTssPubkeys = async (): Promise<TssPubkeyResponseDto | string> => {
     const result = await fetchWrapper.get<TssPubkeyResponseDto>(
-      `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/kima/tss_pubkey`
+      `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/kima/tss_pubkey`
     )
     return result
   }

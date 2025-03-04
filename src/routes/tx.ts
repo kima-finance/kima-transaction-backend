@@ -3,6 +3,7 @@ import { fetchWrapper } from '../fetch-wrapper'
 import { param } from 'express-validator'
 import { validateRequest } from '../middleware/validation'
 import { TransactionStatus } from '../types/transaction-status'
+import { ENV } from '../env-validate'
 
 const txRouter = Router()
 
@@ -89,7 +90,7 @@ txRouter.get(
 
     try {
       const result = await fetchWrapper.post(
-        process.env.KIMA_BACKEND_NODE_PROVIDER_GRAPHQL as string,
+        ENV.KIMA_BACKEND_NODE_PROVIDER_GRAPHQL as string,
         {
           query: `
             query TransactionDetailsKima($txId: bigint) {
@@ -205,7 +206,7 @@ txRouter.get(
 
     try {
       const result = await fetchWrapper.post(
-        process.env.KIMA_BACKEND_NODE_PROVIDER_GRAPHQL as string,
+        ENV.KIMA_BACKEND_NODE_PROVIDER_GRAPHQL as string,
         {
           query: `
             query TransactionDetailsKima($txId: bigint) {

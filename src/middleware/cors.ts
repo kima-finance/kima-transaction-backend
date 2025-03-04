@@ -1,22 +1,16 @@
 import cors from 'cors'
+import { ENV } from '../env-validate'
+import { isDev, isTest } from '../constants'
 
 export const corsConfig = cors({
   origin: (origin, callback) => {
-    if (
-      process.env.NODE_ENV === 'test' ||
-      (process.env.NODE_ENV === 'development' && !origin)
-    ) {
-      callback(null, true)
-      return
-    }
-
-    if (!origin) {
+    if (isTest || isDev || !origin) {
       callback(null, true)
       return
     }
 
     const originHostname = new URL(origin as string).hostname
-    const domains = (process.env.DOMAIN as string).split(',')
+    const domains = (ENV.DOMAIN as string).split(',')
 
     for (const domain of domains.filter((domain) => !!domain)) {
       const domainHostname = new URL(domain).hostname

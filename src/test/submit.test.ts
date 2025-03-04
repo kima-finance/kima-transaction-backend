@@ -6,6 +6,7 @@ import { testServer } from './config'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
 import { CHAINS } from '../data/chains'
 import chainsService from '../service/chains.service'
+import { ENV } from '../env-validate'
 
 jest.mock('../service/chains.service')
 jest.mock('../compliance')
@@ -92,16 +93,18 @@ describe('POST /submit', () => {
   })
 
   describe('when compliance is not enabled', () => {
+    let replacedEnv: jest.ReplaceProperty<string>
     beforeEach(() => {
-      jest.resetModules()
+      replacedEnv = jest.replaceProperty(ENV, 'COMPLIANCE_URL', '')
       process.env = {
         ...originalEnv,
         COMPLIANCE_URL: ''
       }
+      expect(ENV.COMPLIANCE_URL).toBe('')
     })
 
     afterEach(() => {
-      process.env = originalEnv
+      replacedEnv.restore()
     })
 
     it('should return status 200 for a risky address', async () => {
