@@ -5,7 +5,6 @@ import helmet from 'helmet'
 import morgan from 'morgan'
 import './bigint-shim'
 
-import { sameOriginOnly } from './middleware/same-origin'
 import { corsConfig } from './middleware/cors'
 import { unhandledError } from './middleware/error'
 import router from './routes'
@@ -14,7 +13,6 @@ import { isDev } from './constants'
 const app: Express = express()
 
 // middleware
-app.use(sameOriginOnly)
 app.use(corsConfig)
 app.use(helmet())
 app.use(CookieParser())

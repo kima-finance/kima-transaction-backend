@@ -35,13 +35,6 @@ const envSchema = z.object({
     })
     .url(),
 
-  // Kima GraphQL API url
-  KIMA_BACKEND_NODE_PROVIDER_GRAPHQL: z
-    .string({
-      required_error: 'KIMA_BACKEND_NODE_PROVIDER_GRAPHQL ENV var is required'
-    })
-    .url(),
-
   // Kima API url
   KIMA_BACKEND_NODE_PROVIDER_QUERY: z
     .string({
