@@ -4,31 +4,36 @@ import { testServer } from './config'
 import { mockGetRisk, setRisk } from './mocks/compliance.mock'
 import { ComplianceService } from '../check-compliance'
 import { ComplianceCheckResult } from '../types/compliance'
+import { ENV } from '../env-validate'
 
 jest.mock('../compliance')
-const originalEnv = process.env
 
 describe('Compliance Service', () => {
   let service: ComplianceService
+  let replacedEnv: jest.ReplaceProperty<string>
   const addresses = ['0x76d031825134aaf073436Aba2087a3B589babd9F']
+  const expectedComplianceUrl = 'https://compliance.com'
 
   beforeEach(() => {
     jest.resetAllMocks()
     setRisk({ risk_score: RiskScore.LOW })
+    replacedEnv = jest.replaceProperty(
+      ENV,
+      'COMPLIANCE_URL',
+      expectedComplianceUrl
+    )
+    expect(ENV.COMPLIANCE_URL).toBe(expectedComplianceUrl)
     service = new ComplianceService()
+  })
+
+  afterEach(() => {
+    replacedEnv.restore()
   })
 
   describe('when COMPLIANCE_URL is not set', () => {
     beforeEach(() => {
-      jest.resetModules()
-      process.env = {
-        ...originalEnv,
-        COMPLIANCE_URL: ''
-      }
-    })
-
-    afterEach(() => {
-      process.env = originalEnv
+      jest.replaceProperty(ENV, 'COMPLIANCE_URL', '')
+      expect(ENV.COMPLIANCE_URL).toBe('')
     })
 
     describe('Compliance enabled', () => {
@@ -158,16 +163,8 @@ describe('POST /compliant', () => {
 
   describe('when COMPLIANCE_URL is not set', () => {
     beforeEach(() => {
-      jest.resetModules()
-      process.env = {
-        ...originalEnv,
-        COMPLIANCE_URL: ''
-      }
+      jest.replaceProperty(ENV, 'COMPLIANCE_URL', '')
       setRisk({ risk_score: RiskScore.LOW })
-    })
-
-    afterEach(() => {
-      process.env = originalEnv
     })
 
     it('should return 501 with a not supported error', async () => {

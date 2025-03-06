@@ -29,3 +29,17 @@ export function bigintToFixedNumber(
 ): number {
   return toFixedNumber(bigintToNumber(BigInt(value), decimals), decimals)
 }
+
+/**
+ * Will convert a full url or a domain name to a URL object
+ * @param urlOrDomain a full url or a domain name
+ * @returns {URL} the URL object
+ */
+export function toUrl(urlOrDomain: string): URL {
+  if (!urlOrDomain) {
+    throw new Error('urlOrDomain must not be empty')
+  }
+  return urlOrDomain.startsWith('http')
+    ? new URL(urlOrDomain)
+    : new URL(`http://${urlOrDomain}`)
+}

@@ -5,6 +5,7 @@ import { fetchWrapper } from '../fetch-wrapper'
 import { validateRequest } from '../middleware/validation'
 import { checkCompliance } from '../middleware/compliance'
 import { HtlcTransactionResponseDto } from '../types/htlc-transaction.dto'
+import { ENV } from '../env-validate'
 
 const htlcRouter = Router()
 
@@ -222,7 +223,7 @@ htlcRouter.get('/:senderAddress', async (req: Request, res: Response) => {
   const { senderAddress } = req.params
   try {
     const result = await fetchWrapper.get<HtlcTransactionResponseDto>(
-      `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/transaction/get_htlc_transaction/${senderAddress}`
+      `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/transaction/get_htlc_transaction/${senderAddress}`
     )
     res.json(result)
   } catch (e) {
