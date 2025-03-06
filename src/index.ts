@@ -9,6 +9,22 @@ const port = process.env.PORT || 3001
   return this.toString()
 }
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
 })
+
+process.on('uncaughtException', function (err) {
+  console.log('Caught exception by catch all: ' + err)
+})
+
+// // graceful shutdown
+// const onShutdown = () => {
+//   console.log('Shutting down')
+//   server.close(() => {
+//     console.log('Server closed. Exiting process')
+//     process.exit(0)
+//   })
+// }
+
+// process.on('SIGTERM', onShutdown)
+// process.on('SIGINT', onShutdown)

@@ -80,6 +80,26 @@ export class ChainsService {
     return typeof result === 'string' ? [] : result.Currencies
   }
 
+  async getPoolAddresses(): Promise<
+    Pick<PoolDto, 'chainName' | 'poolAddress'>[]
+  > {
+    const pubKeyResult = await this.getTssPubkeys()
+    if (typeof pubKeyResult === 'string') {
+      throw new Error('Failed to get TSS public keys')
+    }
+    const [pubKeys] = pubKeyResult.tssPubkey
+    const chains = this.getChains(process.env.KIMA_ENVIRONMENT as ChainEnv)
+
+    return chains.map((chain) => {
+      const poolAddress = this.getPoolAddress({ data: pubKeys, chain })
+
+      return {
+        chainName: chain.shortName,
+        poolAddress
+      }
+    })
+  }
+
   /**
    * Get a list of Kima pool addresses
    * TODO: replace with the Kima API endpoint when implemented
@@ -88,36 +108,51 @@ export class ChainsService {
    * @returns {Promise<PoolDto[]>}
    */
   getPools = async (): Promise<PoolDto[]> => {
-    const pubKeyResult = await this.getTssPubkeys()
-    if (typeof pubKeyResult === 'string') {
-      throw new Error('Failed to get TSS public keys')
-    }
-    const [pubKeys] = pubKeyResult.tssPubkey
-
-    const [chains, poolBalances] = await Promise.all([
-      this.getChains(process.env.KIMA_ENVIRONMENT as ChainEnv),
+    const [poolAddresses, poolBalances] = await Promise.all([
+      this.getPoolAddresses(),
       this.getPoolBalances()
     ])
 
-    const pools = chains.map((chain) => {
-      const poolAddress = this.getPoolAddress({ data: pubKeys, chain })
-      const poolInfo = poolBalances.find((b) => b.chainName === chain.shortName)
-
+    return poolAddresses.map((poolAddress) => {
+      const poolInfo = poolBalances.find(
+        (b) => b.chainName === poolAddress.chainName
+      )
       return {
-        chainName: chain.shortName,
-        poolAddress,
+        ...poolAddress,
         balance: poolInfo?.balance ?? [],
         nativeGasAmount: poolInfo?.nativeGasAmount ?? ''
       } satisfies PoolDto
     })
+    // const pubKeyResult = await this.getTssPubkeys()
+    // if (typeof pubKeyResult === 'string') {
+    //   throw new Error('Failed to get TSS public keys')
+    // }
+    // const [pubKeys] = pubKeyResult.tssPubkey
 
-    return pools
+    // const [chains, poolBalances] = await Promise.all([
+    //   this.getChains(process.env.KIMA_ENVIRONMENT as ChainEnv),
+    //   this.getPoolBalances()
+    // ])
+
+    // const pools = chains.map((chain) => {
+    //   const poolAddress = this.getPoolAddress({ data: pubKeys, chain })
+    //   const poolInfo = poolBalances.find((b) => b.chainName === chain.shortName)
+
+    //   return {
+    //     chainName: chain.shortName,
+    //     poolAddress,
+    //     balance: poolInfo?.balance ?? [],
+    //     nativeGasAmount: poolInfo?.nativeGasAmount ?? ''
+    //   } satisfies PoolDto
+    // })
+
+    // return pools
   }
 
   /**
    * Extract the pool address for a chain from the TSS public keys
    */
-  private getPoolAddress = (args: { data: TssPubkeyDto; chain: Chain }) => {
+  getPoolAddress = (args: { data: TssPubkeyDto; chain: Chain }) => {
     const { chain, data } = args
 
     let poolAddress = ''

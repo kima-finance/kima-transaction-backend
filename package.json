@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@kimafinance/kima-transaction-api": "^1.0.31-beta.1",
-    "@solana/web3.js": "^1.95.5",
+    "@solana/web3.js": "^1.98.0",
     "@types/morgan": "^1.9.9",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.7",
@@ -53,6 +53,7 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "tron-format-address": "^0.1.12",
+    "tronweb": "^6.0.1",
     "uuid": "^9.0.1",
     "viem": "^2.23.5"
   }
