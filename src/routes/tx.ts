@@ -8,6 +8,7 @@ import {
   GraphqlLiquidityTxStatusResponse,
   GraphqlTxStatusResponse
 } from '../types/transaction-status'
+import { ENV } from '../env-validate'
 
 const txRouter = Router()
 
@@ -94,7 +95,7 @@ txRouter.get(
 
     try {
       const response = await fetchWrapper.get<ApiLiquidityTxStatusResponse>(
-        `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/transaction/liquidity_transaction_data/${txId}`
+        `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/transaction/liquidity_transaction_data/${txId}`
       )
       if (typeof response === 'string') {
         const message = `failed to get status for transaction ${txId}`
@@ -219,7 +220,7 @@ txRouter.get(
 
     try {
       const response = await fetchWrapper.get<ApiTxStatusResponse>(
-        `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/transaction/transaction_data/${txId}`
+        `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/transaction/transaction_data/${txId}`
       )
       if (typeof response === 'string') {
         const message = `failed to get status for transaction ${txId}`

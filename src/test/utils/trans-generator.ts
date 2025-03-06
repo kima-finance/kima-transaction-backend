@@ -2,8 +2,9 @@ import { TransactionDetails } from '../../types/transaction-details'
 
 export const generateTransDetails = (data?: Partial<TransactionDetails>) => {
   return {
-    amount: 100,
-    fee: 0.5,
+    amount: 100000000,
+    fee: 500000,
+    decimals: 6,
     originAddress: '0xDD4c48C0B24039969fC16D1cdF626eaB821d3384',
     originChain: 'ETH',
     originSymbol: 'USDK',

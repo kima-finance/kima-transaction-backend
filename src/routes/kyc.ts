@@ -3,6 +3,7 @@ import { fetchWrapper } from '../fetch-wrapper'
 import { validateRequest } from '../middleware/validation'
 import { query } from 'express-validator'
 import { KYCResponseDto } from '../types/kyc-response.dto'
+import { ENV } from '../env-validate'
 
 const kycRouter = Router()
 
@@ -59,12 +60,15 @@ kycRouter.get(
     validateRequest
   ],
   async (req: Request, res: Response) => {
+    if (!ENV.DEPASIFY_API_KEY) {
+      return res.status(403).json({ message: 'KYC is not enabled' })
+    }
     const { uuid } = req.body
 
     try {
       const kycResult = await fetchWrapper.get<KYCResponseDto>(
         `http://sandbox.depasify.com/api/v1/identifications?filter[external_uuid]=${uuid}`,
-        process.env.DEPASIFY_API_KEY as string
+        ENV.DEPASIFY_API_KEY as string
       )
 
       res.send(kycResult)
