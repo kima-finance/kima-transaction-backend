@@ -7,4 +7,5 @@ export interface SubmitRequestDto extends TransactionDetails {
   htlcExpirationTimestamp?: string
   htlcVersion?: string
   senderPubKey?: string
+  options?: string
 }

@@ -172,7 +172,8 @@ submitRouter.post(
       htlcCreationVout = 0,
       htlcExpirationTimestamp = '',
       htlcVersion = '',
-      senderPubKey = ''
+      senderPubKey = '',
+      options = ''
     } = req.body satisfies SubmitRequestDto
 
     const fixedAmount = bigintToFixedNumber(amount, decimals)
@@ -194,7 +195,8 @@ submitRouter.post(
         htlcCreationVout,
         htlcExpirationTimestamp,
         htlcVersion,
-        senderPubKey: hexStringToUint8Array(senderPubKey)
+        senderPubKey: hexStringToUint8Array(senderPubKey),
+        options
       })
       console.log(result)
       res.send(result)
