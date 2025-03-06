@@ -352,7 +352,7 @@ export const CHAINS: Chain[] = [
       }
     ],
     rpcUrls: {
-      default: { http: ['https://api.testnet.solana.com'] }
+      default: { http: ['https://api.devnet.solana.com'] }
     },
     faucets: [],
     nativeCurrency: {
