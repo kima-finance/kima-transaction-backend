@@ -22,9 +22,6 @@ export class TronChainClient extends ChainClientBase {
   async simulateTransferFrom(
     inputs: ITransferFromInput
   ): Promise<SimulationResult> {
-    return {
-      success: false,
-      message: 'Not implemented'
-    }
+    throw new Error('Method not implemented.')
   }
 }

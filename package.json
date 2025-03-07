@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@kimafinance/kima-transaction-api": "^1.0.31-beta.1",
+    "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.98.0",
     "@types/morgan": "^1.9.9",
     "@types/swagger-jsdoc": "^6.0.4",

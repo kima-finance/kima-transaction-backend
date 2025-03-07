@@ -177,13 +177,13 @@ submitRouter.post(
     } = req.body satisfies SubmitRequestDto
 
     const client = getChainClient(originChain)
-    const { success, message } = await client.simulateTransferFrom({
+    const result = await client.simulateTransferFrom({
       amount,
       originAddress,
       originSymbol
     })
-    if (!success) {
-      res.status(400).json({ message })
+    if (!result.success) {
+      res.status(400).json(result)
       return
     }
 
@@ -191,29 +191,31 @@ submitRouter.post(
     const fixedFee = bigintToFixedNumber(fee, decimals)
 
     console.log(req.body, { fixedAmount, fixedFee })
+    console.log('would have submitted')
+    res.status(200).json(req.body)
 
-    try {
-      const result = await submitKimaTransaction({
-        originAddress,
-        originChain,
-        targetAddress,
-        targetChain,
-        originSymbol,
-        targetSymbol,
-        amount: fixedAmount,
-        fee: fixedFee,
-        htlcCreationHash,
-        htlcCreationVout,
-        htlcExpirationTimestamp,
-        htlcVersion,
-        senderPubKey: hexStringToUint8Array(senderPubKey)
-      })
-      console.log(result)
-      res.send(result)
-    } catch (e) {
-      console.error(e)
-      res.status(500).send('failed to submit transaction')
-    }
+    // try {
+    //   const result = await submitKimaTransaction({
+    //     originAddress,
+    //     originChain,
+    //     targetAddress,
+    //     targetChain,
+    //     originSymbol,
+    //     targetSymbol,
+    //     amount: fixedAmount,
+    //     fee: fixedFee,
+    //     htlcCreationHash,
+    //     htlcCreationVout,
+    //     htlcExpirationTimestamp,
+    //     htlcVersion,
+    //     senderPubKey: hexStringToUint8Array(senderPubKey)
+    //   })
+    //   console.log(result)
+    //   res.send(result)
+    // } catch (e) {
+    //   console.error(e)
+    //   res.status(500).send('failed to submit transaction')
+    // }
   }
 )
 

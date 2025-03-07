@@ -4,7 +4,7 @@ import { ChainName } from '../../types/chain-name'
 import { ChainsService } from '../chains.service'
 
 export interface ITransferFromInput {
-  amount: number
+  amount: bigint
   originAddress: string
   originSymbol: string
 }
@@ -19,8 +19,19 @@ export interface ChainClient {
 }
 
 export interface SimulationResult {
-    success: boolean
-    message: string
+  success: boolean
+  message: string
+  chain: string
+  originAddress: string
+  token: {
+    address: string
+    allowanceAmount: bigint
+    allowanceSpender: string
+    balance: bigint
+    decimals: number
+    kimaPoolAddress: string
+    symbol: string
+  }
 }
 
 export abstract class ChainClientBase implements ChainClient {
@@ -62,5 +73,26 @@ export abstract class ChainClientBase implements ChainClient {
     return this._poolAddress
   }
 
-  abstract simulateTransferFrom(inputs: ITransferFromInput): Promise<SimulationResult>
+  async getTokenInfo(tokenSymbol: string) {
+    const poolAddress = await this.getPoolAddress()
+    if (!poolAddress) {
+      throw new Error('Pool address not found')
+    }
+
+    const token = this.chain!.supportedTokens.find(
+      (t) => (t.symbol = tokenSymbol)
+    )
+    if (!token) {
+      throw new Error(`Token ${tokenSymbol} not found`)
+    }
+
+    return {
+      poolAddress,
+      token
+    }
+  }
+
+  abstract simulateTransferFrom(
+    inputs: ITransferFromInput
+  ): Promise<SimulationResult>
 }
