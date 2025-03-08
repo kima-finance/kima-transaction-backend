@@ -397,7 +397,7 @@ export const CHAINS: Chain[] = [
       symbol: 'TRX',
       decimals: 10
     },
-    rpcUrls: { default: { http: ['https://api.nileex.io/jsonrpc'] } },
+    rpcUrls: { default: { http: ['https://api.nileex.io'] } },
     faucets: ['http://nileex.io/join/getJoinPage'],
     blockExplorers: {
       default: {

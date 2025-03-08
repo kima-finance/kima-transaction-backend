@@ -11,7 +11,8 @@ import {
 import {
   ChainClientBase,
   ITransferFromInput,
-  SimulationResult
+  SimulationResult,
+  TokenBalance
 } from './ChainClient'
 import { ChainsService } from '../chains.service'
 import { ChainName } from '../../types/chain-name'
@@ -30,26 +31,11 @@ export class EvmChainClient extends ChainClientBase {
     })
   }
 
-  async simulateTransferFrom({
-    amount,
+  async getTokenBalance({
     originAddress,
     originSymbol
-  }: ITransferFromInput): Promise<SimulationResult> {
-    console.log('EvmChainClient::simulateTransferFrom', {
-      amount,
-      originAddress,
-      originSymbol
-    })
+  }: ITransferFromInput): Promise<TokenBalance> {
     const { poolAddress, token } = await this.getTokenInfo(originSymbol)
-    // const poolAddress = await this.getPoolAddress()
-    // const token = this.chain!.supportedTokens.find(
-    //   (t) => (t.symbol = originSymbol)
-    // )
-    // if (!token) {
-    //   throw new Error(`Token ${originSymbol} not found`)
-    // }
-
-    // read allowance, balance, and decimals
     const erc20Contract = getContract({
       address: token.address as `0x${string}`,
       abi: erc20Abi,
@@ -67,18 +53,34 @@ export class EvmChainClient extends ChainClientBase {
       erc20Contract.read.decimals() as Promise<number>
     ])
 
+    return {
+      ...token,
+      decimals,
+      kimaPoolAddress: poolAddress,
+      allowanceAmount: allowance,
+      allowanceSpender: poolAddress,
+      balance
+    }
+  }
+
+  async simulateTransferFrom(
+    inputs: ITransferFromInput
+  ): Promise<SimulationResult> {
+    const { amount, originAddress, originSymbol } = inputs
+    console.log('EvmChainClient::simulateTransferFrom', inputs)
+    const token = await this.getTokenBalance(inputs)
+    const { kimaPoolAddress } = token
+
+    const validationMsg = this.validateTokenBalance(inputs, token)
     const output: SimulationResult = {
       success: false,
-      message: 'Tranaction simulation pending',
+      amount,
+      messages: validationMsg.length
+        ? validationMsg
+        : ['Fetched token balance and allowance'],
       chain: this.chain.name,
       originAddress,
-      token: {
-        ...token,
-        kimaPoolAddress: poolAddress,
-        allowanceAmount: allowance,
-        allowanceSpender: poolAddress,
-        balance
-      }
+      token
     } satisfies SimulationResult
 
     console.log('EvmChainClient::simulateTransferFrom', output)
@@ -86,14 +88,14 @@ export class EvmChainClient extends ChainClientBase {
     try {
       // const amountInWei = parseUnits(amount.toString(), token.decimals)
       const args = {
-        account: poolAddress as Address,
+        account: kimaPoolAddress as Address,
         address: token.address as Address,
         chain: this.chain,
         abi: erc20Abi,
         functionName: 'transferFrom' as const,
         args: [
           originAddress as Address,
-          poolAddress as Address,
+          kimaPoolAddress as Address,
           amount
         ] as const
       }
@@ -105,9 +107,11 @@ export class EvmChainClient extends ChainClientBase {
         JSON.stringify(response, null, 2)
       )
       output.success = response.result
-      output.message = response.result
-        ? 'Tranaction simulation successful.'
-        : 'Tranaction simulation failed.'
+      output.messages.push(
+        response.result
+          ? 'Tranaction simulation successful'
+          : 'Tranaction simulation failed'
+      )
 
       return output
     } catch (e) {
@@ -115,8 +119,9 @@ export class EvmChainClient extends ChainClientBase {
         `EvmChainClient:simulateTransferFrom: error ${this.chain.name} ${originAddress} ${originSymbol} ${amount}`,
         e
       )
-      output.message =
-        e instanceof Error ? e.message : 'Tranaction simulation failed.'
+      output.messages.push(
+        e instanceof Error ? e.message : 'Tranaction simulation failed'
+      )
 
       return output
     }

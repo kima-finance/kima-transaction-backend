@@ -15,23 +15,31 @@ export interface ITransferFromInput {
 export interface ChainClient {
   chain: Chain
   getPoolAddress(): Promise<string>
+  getTokenBalance(inputs: ITransferFromInput): Promise<TokenBalance>
   simulateTransferFrom(inputs: ITransferFromInput): Promise<SimulationResult>
+  validateTokenBalance(
+    input: ITransferFromInput,
+    tokenBalance: TokenBalance
+  ): string[]
 }
 
 export interface SimulationResult {
   success: boolean
-  message: string
+  messages: string[]
+  amount: bigint
   chain: string
   originAddress: string
-  token: {
-    address: string
-    allowanceAmount: bigint
-    allowanceSpender: string
-    balance: bigint
-    decimals: number
-    kimaPoolAddress: string
-    symbol: string
-  }
+  token: TokenBalance
+}
+
+export interface TokenBalance {
+  address: string
+  allowanceAmount: bigint
+  allowanceSpender: string
+  balance: bigint
+  decimals: number
+  kimaPoolAddress: string
+  symbol: string
 }
 
 export abstract class ChainClientBase implements ChainClient {
@@ -91,6 +99,40 @@ export abstract class ChainClientBase implements ChainClient {
       token
     }
   }
+
+  /**
+   *
+   * @param input transfer from input
+   * @param tokenBalance token balance and allowance info
+   * @returns error message if validation fails
+   */
+  validateTokenBalance(
+    { amount }: ITransferFromInput,
+    {
+      allowanceAmount,
+      allowanceSpender,
+      balance,
+      kimaPoolAddress
+    }: TokenBalance
+  ): string[] {
+    let msg = []
+    if (balance < amount) {
+      msg.push(`Insufficient balance. Balance: ${balance}, Amount: ${amount}`)
+    }
+    if (allowanceSpender !== kimaPoolAddress) {
+      msg.push(
+        `Allowance not granted. Allowance Spender: ${allowanceSpender}, Kima Pool Address: ${kimaPoolAddress}`
+      )
+    }
+    if (allowanceAmount < amount) {
+      msg.push(
+        `Insufficient allowance. Allowance: ${allowanceAmount}, Amount: ${amount}`
+      )
+    }
+    return msg
+  }
+
+  abstract getTokenBalance(inputs: ITransferFromInput): Promise<TokenBalance>
 
   abstract simulateTransferFrom(
     inputs: ITransferFromInput
