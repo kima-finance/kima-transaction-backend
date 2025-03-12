@@ -1,5 +1,6 @@
 import { ComplianceCheckResult } from './types/compliance'
 import { getRisk, RiskResult, RiskScore, RiskScore2String } from './compliance'
+import { ENV } from './env-validate'
 
 export class ComplianceService {
   readonly riskScoreToCompliance: Record<RiskScore, boolean> = {
@@ -10,7 +11,7 @@ export class ComplianceService {
   }
 
   get enabled() {
-    return !!process.env.COMPLIANCE_URL
+    return !!ENV.COMPLIANCE_URL
   }
 
   private requireEnabled = () => {

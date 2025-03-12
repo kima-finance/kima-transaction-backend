@@ -3,6 +3,7 @@ import { fetchWrapper } from './fetch-wrapper'
 import { parseUnits } from 'viem'
 import { bigintToNumber } from './utils'
 import chainsService from './service/chains.service'
+import { ENV } from './env-validate'
 
 export interface GetFeeInput {
   amount: string
@@ -124,7 +125,7 @@ export async function calcServiceFee({
  */
 async function getServiceFee(chain: ChainName): Promise<string> {
   const result = (await fetchWrapper.get(
-    `${process.env.KIMA_BACKEND_FEE_URL as string}/fee/${chain}`
+    `${ENV.KIMA_BACKEND_FEE_URL as string}/fee/${chain}`
   )) as unknown as { fee: string }
 
   // parse the dash separated fee

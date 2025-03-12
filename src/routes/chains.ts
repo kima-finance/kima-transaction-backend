@@ -8,9 +8,10 @@ import { AvailableChainsResponseDto } from '../types/available-chains-response.d
 import { AvailableCurrenciesResponseDto } from '../types/available-currencies-response.dto'
 import { ChainEnv } from '../types/chain-env'
 import chainsService from '../service/chains.service'
+import { ENV } from '../env-validate'
 
 const chainsRouter = Router()
-const baseUrl = `${process.env.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain`
+const baseUrl = `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain`
 
 /**
  * @openapi
@@ -100,8 +101,8 @@ chainsRouter.get('/chain', async (_, res: Response) => {
  */
 chainsRouter.get('/env', async (_, res: Response) => {
   return res.json({
-    env: process.env.KIMA_ENVIRONMENT as ChainEnv,
-    kimaExplorer: process.env.KIMA_EXPLORER as string
+    env: ENV.KIMA_ENVIRONMENT as ChainEnv,
+    kimaExplorer: ENV.KIMA_EXPLORER as string
   })
 })
 
@@ -587,7 +588,7 @@ chainsRouter.get(
       .optional()
   ],
   async (req: Request, res: Response) => {
-    const { env = process.env.KIMA_ENVIRONMENT, symbol } = req.query
+    const { env = ENV.KIMA_ENVIRONMENT, symbol } = req.query
     const chains = chainsService.getChains(env as ChainEnv, symbol as ChainName)
     res.status(200).json(chains)
   }

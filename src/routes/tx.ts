@@ -2,7 +2,13 @@ import { Request, Response, Router } from 'express'
 import { fetchWrapper } from '../fetch-wrapper'
 import { param } from 'express-validator'
 import { validateRequest } from '../middleware/validation'
-import { TransactionStatus } from '../types/transaction-status'
+import {
+  ApiLiquidityTxStatusResponse,
+  ApiTxStatusResponse,
+  GraphqlLiquidityTxStatusResponse,
+  GraphqlTxStatusResponse
+} from '../types/transaction-status'
+import { ENV } from '../env-validate'
 
 const txRouter = Router()
 
@@ -88,33 +94,42 @@ txRouter.get(
     const { txId } = req.params
 
     try {
-      const result = await fetchWrapper.post(
-        process.env.KIMA_BACKEND_NODE_PROVIDER_GRAPHQL as string,
-        {
-          query: `
-            query TransactionDetailsKima($txId: bigint) {
-              liquidity_transaction_data(where: { tx_id: { _eq: $txId } }, limit: 1) {
-                failreason
-                pullfailcount
-                pullhash
-                releasefailcount
-                releasehash
-                txstatus
-                amount
-                creator
-                chain
-                providerchainaddress
-                symbol
-                tx_id
-                kimahash
-              }
-            }`,
-          variables: {
-            txId: BigInt(txId)
+      const response = await fetchWrapper.get<ApiLiquidityTxStatusResponse>(
+        `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/transaction/liquidity_transaction_data/${txId}`
+      )
+      if (typeof response === 'string') {
+        const message = `failed to get status for transaction ${txId}`
+        console.error(message, response)
+        res.status(500).json({ message })
+        return
+      }
+
+      // convert to GraphQL response for backwards compatibility
+      const data = response.LiquidityTransactionData
+      const output = {
+        data: {
+          liquidity_transaction_data: {
+            failreason: data.failReason,
+            pullfailcount: Number(data.pullFailCount),
+            pullhash: data.tssPullHash,
+            releasefailcount: Number(data.releaseFailCount),
+            releasehash: data.tssReleaseHash,
+            txstatus: data.status,
+            amount: Number(data.amount),
+            creator: data.creator,
+            originaddress: data.providerChainAddress,
+            originchain: data.chain,
+            originsymbol: data.symbol,
+            targetsymbol: data.symbol,
+            targetaddress: data.providerKimaAddress,
+            targetchain: data.chain,
+            tx_id: data.index,
+            kimahash: data.kimaTxHash
           }
         }
-      )
-      res.status(200).send(result as TransactionStatus)
+      } satisfies GraphqlLiquidityTxStatusResponse
+
+      res.status(200).json(output)
     } catch (e) {
       console.error(e)
       res.status(500).send(`failed to get status for transaction ${txId}`)
@@ -204,36 +219,42 @@ txRouter.get(
     const { txId } = req.params
 
     try {
-      const result = await fetchWrapper.post(
-        process.env.KIMA_BACKEND_NODE_PROVIDER_GRAPHQL as string,
-        {
-          query: `
-            query TransactionDetailsKima($txId: bigint) {
-              transaction_data(where: { tx_id: { _eq: $txId } }, limit: 1) {
-                failreason
-                pullfailcount
-                pullhash
-                releasefailcount
-                releasehash
-                txstatus
-                amount
-                creator
-                originaddress
-                originchain
-                originsymbol
-                targetsymbol
-                targetaddress
-                targetchain
-                tx_id
-                kimahash
-              }
-            }`,
-          variables: {
-            txId: BigInt(txId)
+      const response = await fetchWrapper.get<ApiTxStatusResponse>(
+        `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/transaction/transaction_data/${txId}`
+      )
+      if (typeof response === 'string') {
+        const message = `failed to get status for transaction ${txId}`
+        console.error(message, response)
+        res.status(500).json({ message })
+        return
+      }
+
+      // convert to GraphQL response for backwards compatibility
+      const data = response.transactionData
+      const output = {
+        data: {
+          transaction_data: {
+            failreason: data.failReason,
+            pullfailcount: Number(data.pullFailCount),
+            pullhash: data.tssPullHash,
+            releasefailcount: Number(data.releaseFailCount),
+            releasehash: data.tssReleaseHash,
+            txstatus: data.status,
+            amount: Number(data.amount),
+            creator: data.creator,
+            originaddress: data.originAddress,
+            originchain: data.originChain,
+            originsymbol: data.originSymbol,
+            targetsymbol: data.targetSymbol,
+            targetaddress: data.targetAddress,
+            targetchain: data.targetChain,
+            tx_id: data.index,
+            kimahash: data.kimaTxHash
           }
         }
-      )
-      res.status(200).send(result)
+      } satisfies GraphqlTxStatusResponse
+
+      res.status(200).json(output)
     } catch (e) {
       console.error(e)
       res.status(500).send(`failed to get status for transaction ${txId}`)
