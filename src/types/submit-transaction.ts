@@ -6,4 +6,5 @@ export interface SubmitTransaction extends TransactionDetails {
   htlcExpirationTimestamp?: number
   htlcVersion?: string
   senderPubKey?: string
+  options?: string
 }

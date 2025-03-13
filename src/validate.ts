@@ -7,6 +7,7 @@ import { fetchWrapper } from './fetch-wrapper'
 import { ChainName } from './types/chain-name'
 import chainsService from './service/chains.service'
 import { ChainEnv } from './types/chain-env'
+import { ENV } from './env-validate'
 
 dotenv.config()
 
@@ -28,7 +29,7 @@ async function isValidChain(inputs: {
 }): Promise<string> {
   const { decimals, originChain, targetChain, originSymbol, targetSymbol } =
     inputs
-  const chainEnv = process.env.KIMA_ENVIRONMENT as ChainEnv
+  const chainEnv = ENV.KIMA_ENVIRONMENT as ChainEnv
   if (!chainsService.getChain(chainEnv, originChain as ChainName)) {
     return `Origin chain ${originChain} not supported`
   }

@@ -15,10 +15,7 @@ export class TronChainClient extends ChainClientBase {
   constructor(chainService: ChainsService) {
     super(chainService, ChainName.TRON)
     const rpcUrl = this.chain.rpcUrls.default.http[0].replace('/jsonrpc', '')
-    this.tronWeb = new TronWeb({
-      fullHost: rpcUrl,
-      privateKey: process.env.POOL_PRIVATE_KEY?.slice(2) as string
-    })
+    this.tronWeb = new TronWeb({ fullHost: rpcUrl })
   }
 
   async getTokenBalance({
@@ -27,7 +24,7 @@ export class TronChainClient extends ChainClientBase {
   }: ITransferFromInput): Promise<TokenBalance> {
     const { poolAddress, token } = await this.getTokenInfo(originSymbol)
     const tokenContract = this.tronWeb.contract(erc20Abi, token.address)
-    
+
     const balance = await tokenContract
       .balanceOf(originAddress)
       .call({ from: poolAddress })

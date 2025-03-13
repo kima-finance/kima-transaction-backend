@@ -173,7 +173,8 @@ submitRouter.post(
       htlcCreationVout = 0,
       htlcExpirationTimestamp = '',
       htlcVersion = '',
-      senderPubKey = ''
+      senderPubKey = '',
+      options = ''
     } = req.body satisfies SubmitRequestDto
 
     const client = getChainClient(originChain)
@@ -191,31 +192,30 @@ submitRouter.post(
     const fixedFee = bigintToFixedNumber(fee, decimals)
 
     console.log(req.body, { fixedAmount, fixedFee })
-    console.log('would have submitted')
-    res.status(200).json(req.body)
 
-    // try {
-    //   const result = await submitKimaTransaction({
-    //     originAddress,
-    //     originChain,
-    //     targetAddress,
-    //     targetChain,
-    //     originSymbol,
-    //     targetSymbol,
-    //     amount: fixedAmount,
-    //     fee: fixedFee,
-    //     htlcCreationHash,
-    //     htlcCreationVout,
-    //     htlcExpirationTimestamp,
-    //     htlcVersion,
-    //     senderPubKey: hexStringToUint8Array(senderPubKey)
-    //   })
-    //   console.log(result)
-    //   res.send(result)
-    // } catch (e) {
-    //   console.error(e)
-    //   res.status(500).send('failed to submit transaction')
-    // }
+    try {
+      const result = await submitKimaTransaction({
+        originAddress,
+        originChain,
+        targetAddress,
+        targetChain,
+        originSymbol,
+        targetSymbol,
+        amount: fixedAmount,
+        fee: fixedFee,
+        htlcCreationHash,
+        htlcCreationVout,
+        htlcExpirationTimestamp,
+        htlcVersion,
+        senderPubKey: hexStringToUint8Array(senderPubKey),
+        options
+      })
+      console.log(result)
+      res.send(result)
+    } catch (e) {
+      console.error(e)
+      res.status(500).send('failed to submit transaction')
+    }
   }
 )
 

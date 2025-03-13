@@ -1,3 +1,4 @@
+import { ENV } from '../../env-validate'
 import { Chain } from '../../types/chain'
 import { ChainEnv } from '../../types/chain-env'
 import { ChainName } from '../../types/chain-name'
@@ -52,7 +53,7 @@ export abstract class ChainClientBase implements ChainClient {
   constructor(
     chainService: ChainsService,
     chainName: ChainName,
-    chainEnv = process.env.KIMA_ENVIRONMENT as ChainEnv
+    chainEnv = ENV.KIMA_ENVIRONMENT as ChainEnv
   ) {
     this._chainService = chainService
     this.chainEnv = chainEnv
