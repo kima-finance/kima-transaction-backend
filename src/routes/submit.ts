@@ -8,6 +8,7 @@ import { calcServiceFee } from '../fees'
 import { SubmitRequestDto } from '../types/submit-request.dto'
 import { checkCompliance } from '../middleware/compliance'
 import { transValidation } from '../middleware/trans-validation'
+import { getChainClient } from '../service/chain/chainClients'
 
 const submitRouter = Router()
 
@@ -175,6 +176,17 @@ submitRouter.post(
       senderPubKey = '',
       options = ''
     } = req.body satisfies SubmitRequestDto
+
+    const client = getChainClient(originChain)
+    const result = await client.simulateTransferFrom({
+      amount,
+      originAddress,
+      originSymbol
+    })
+    if (!result.success) {
+      res.status(400).json(result)
+      return
+    }
 
     const fixedAmount = bigintToFixedNumber(amount, decimals)
     const fixedFee = bigintToFixedNumber(fee, decimals)

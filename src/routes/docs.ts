@@ -1,10 +1,11 @@
 import { Router } from 'express'
 import { serve, setup } from 'swagger-ui-express'
 import swaggerJSDoc from 'swagger-jsdoc'
+import { ENV } from '../env-validate'
 
 const docsRouter = Router()
 
-if (process.env.NODE_ENV === 'development') {
+if (ENV.NODE_ENV === 'development') {
   // serve OpenAPI docs
   docsRouter.use('/', serve)
 

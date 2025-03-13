@@ -3,8 +3,7 @@
  * Compliance API
  */
 
-import * as dotenv from 'dotenv'
-dotenv.config()
+import { ENV } from './env-validate'
 
 export enum RiskScore {
   LOW = 'low',
@@ -42,7 +41,7 @@ export const getRisk = async (
   if (!addresses.length) {
     throw new Error('Must provide at least one address to check')
   }
-  const response: Response = await fetch(process.env.COMPLIANCE_URL as string, {
+  const response: Response = await fetch(ENV.COMPLIANCE_URL as string, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

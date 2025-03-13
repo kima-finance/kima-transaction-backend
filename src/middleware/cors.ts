@@ -20,7 +20,7 @@ export const corsConfig = cors({
 
     try {
     const originHostname = new URL(origin as string).hostname
-    const domains = (process.env.DOMAIN as string).split(',')
+    const domains = (ENV.DOMAIN as string).split(',')
 
       for (const domain of domains.filter((domain) => !!domain)) {
         const domainHostname = toUrl(domain).hostname
