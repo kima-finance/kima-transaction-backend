@@ -26,22 +26,33 @@ export class SolanaChainClient extends ChainClientBase {
     originSymbol
   }: ITransferFromInput): Promise<TokenBalance> {
     const { poolAddress, token } = await this.getTokenInfo(originSymbol)
-    const sourceAssociatedTokenAccount = await getAssociatedTokenAddress(
-      new PublicKey(token.address),
-      new PublicKey(originAddress)
-    )
-    const sourceAccountInfo = await getAccount(
-      this.connection,
-      sourceAssociatedTokenAccount
-    )
-
-    return {
-      ...token,
+    const output: TokenBalance = {
+      address: token.address,
+      allowanceAmount: BigInt(0),
+      allowanceSpender: '',
+      balance: BigInt(0),
+      decimals: token.decimals,
       kimaPoolAddress: poolAddress,
-      allowanceAmount: sourceAccountInfo.delegatedAmount,
-      allowanceSpender: sourceAccountInfo.delegate?.toBase58() ?? '',
-      balance: sourceAccountInfo.amount
+      symbol: token.symbol
     }
+    
+    try {
+      const sourceAssociatedTokenAccount = await getAssociatedTokenAddress(
+        new PublicKey(token.address),
+        new PublicKey(originAddress)
+      )
+      const sourceAccountInfo = await getAccount(
+        this.connection,
+        sourceAssociatedTokenAccount
+      )
+      output.allowanceAmount = sourceAccountInfo.delegatedAmount
+      output.allowanceSpender = sourceAccountInfo.delegate?.toBase58() ?? ''
+      output.balance = sourceAccountInfo.amount
+    } catch {
+      // associated token account does not exist- zero balance
+    }
+
+    return output
   }
 
   async simulateTransferFrom(
@@ -53,14 +64,6 @@ export class SolanaChainClient extends ChainClientBase {
     const destinationPubKey = new PublicKey(kimaPoolAddress)
     const sourcePubKey = new PublicKey(originAddress)
     const mintPubKey = new PublicKey(token.address)
-    const sourceAssociatedTokenAccount = await getAssociatedTokenAddress(
-      mintPubKey,
-      sourcePubKey
-    )
-    const destAssociatedTokenAccount = await getAssociatedTokenAddress(
-      mintPubKey,
-      destinationPubKey
-    )
 
     const validationMsg = this.validateTokenBalance(inputs, token)
     const output = {
@@ -70,13 +73,21 @@ export class SolanaChainClient extends ChainClientBase {
         : ['Fetched token balance and allowance'],
       amount,
       chain: this.chain.name,
+      network: this.chainEnv,
       originAddress,
       token
     } satisfies SimulationResult
 
-    console.log('SolanaClient::simulateTransferFrom', output)
-
     try {
+      const sourceAssociatedTokenAccount = await getAssociatedTokenAddress(
+        mintPubKey,
+        sourcePubKey
+      )
+      const destAssociatedTokenAccount = await getAssociatedTokenAddress(
+        mintPubKey,
+        destinationPubKey
+      )
+
       const instruction = createTransferCheckedInstruction(
         sourceAssociatedTokenAccount,
         mintPubKey,
@@ -95,11 +106,11 @@ export class SolanaChainClient extends ChainClientBase {
       }).add(instruction)
 
       const response = await this.connection.simulateTransaction(transaction)
-      console.log(
-        `SolanaChainClient:simulateTransferFrom: ${this.chain.name} ${originAddress} ${originSymbol} ${amount}`,
-        response.value.err ? 'fail' : 'success',
-        JSON.stringify(response, null, 2)
-      )
+      // console.log(
+      //   `SolanaChainClient:simulateTransferFrom: ${this.chain.name} ${originAddress} ${originSymbol} ${amount}`,
+      //   response.value.err ? 'fail' : 'success',
+      //   JSON.stringify(response, null, 2)
+      // )
 
       if (response.value.err) {
         const message = response.value.logs?.find((log) =>

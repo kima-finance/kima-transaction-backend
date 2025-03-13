@@ -6,51 +6,49 @@ import { fetchWrapper } from './fetch-wrapper'
 // import { Network, validate as validateBTC } from 'bitcoin-address-validation'
 import { ChainName } from './types/chain-name'
 import chainsService from './service/chains.service'
+import { ChainEnv } from './types/chain-env'
 
 dotenv.config()
 
 /**
  * Returns empty string if the tokens are supported on the given chains
- * @param {string} originChain sending chain
- * @param {string} targetChain receiving chain
- * @param {string} originSymbol sending token symbol
- * @param {string} targetSymbol receiving token symbol
+ * @param {number} inputs.decimals
+ * @param {string} inputs.originChain sending chain
+ * @param {string} inputs.targetChain receiving chain
+ * @param {string} inputs.originSymbol sending token symbol
+ * @param {string} inputs.targetSymbol receiving token symbol
  * @returns {Promise<string>}
  */
-async function isValidChain(
-  originChain: string,
-  targetChain: string,
-  originSymbol: string,
+async function isValidChain(inputs: {
+  decimals: number
+  originChain: string
+  targetChain: string
+  originSymbol: string
   targetSymbol: string
-): Promise<string> {
-  const chainNames = await chainsService.getChainNames()
-
-  if (!chainNames.find((item: string) => item === originChain)) {
-    return 'origin chain ${originChain} not found'
+}): Promise<string> {
+  const { decimals, originChain, targetChain, originSymbol, targetSymbol } =
+    inputs
+  const chainEnv = process.env.KIMA_ENVIRONMENT as ChainEnv
+  if (!chainsService.getChain(chainEnv, originChain as ChainName)) {
+    return `Origin chain ${originChain} not supported`
   }
-  if (!chainNames.find((item: string) => item === targetChain)) {
-    return 'target chain ${targetChain} not found'
+  if (!chainsService.getChain(chainEnv, targetChain as ChainName)) {
+    return `Target chain ${targetChain} not supported`
   }
 
-  // const currencies = await chainsService.getAvailableCurrencies({
-  //   originChain,
-  //   targetChain
-  // })
+  const originToken = chainsService.getToken(originChain, originSymbol)
+  if (!originToken) {
+    return `Origin token ${originSymbol} not supported`
+  }
 
-  // if (
-  //   !currencies.find(
-  //     (item: string) => item.toLowerCase() === originSymbol.toLowerCase()
-  //   )
-  // ) {
-  //   return `origin symbol ${originSymbol} not found`
-  // }
-  // if (
-  //   !currencies.find(
-  //     (item: string) => item.toLowerCase() === targetSymbol.toLowerCase()
-  //   )
-  // ) {
-  //   return `target symbol ${targetSymbol} not found`
-  // }
+  if (originToken.decimals !== decimals) {
+    return `Invalid decimals for token ${originToken.symbol}. Expected ${originToken.decimals}, got ${decimals}`
+  }
+
+  const targetToken = chainsService.getToken(targetChain, targetSymbol)
+  if (!targetToken) {
+    return `Target token ${targetSymbol} not supported`
+  }
 
   return ''
 }
@@ -109,23 +107,23 @@ async function isValidAddress(
  */
 export async function validate(req: Request): Promise<string> {
   const {
+    decimals,
     originAddress,
     originChain,
+    originSymbol,
     targetAddress,
     targetChain,
-    amount,
-    fee,
-    originSymbol,
     targetSymbol
   } = req.body
 
   try {
-    let error = await isValidChain(
+    let error = await isValidChain({
+      decimals: Number(decimals),
       originChain,
-      targetChain,
       originSymbol,
+      targetChain,
       targetSymbol
-    )
+    })
     if (error) {
       return error
     }

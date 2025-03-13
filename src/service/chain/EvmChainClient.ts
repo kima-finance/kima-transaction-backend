@@ -67,7 +67,6 @@ export class EvmChainClient extends ChainClientBase {
     inputs: ITransferFromInput
   ): Promise<SimulationResult> {
     const { amount, originAddress, originSymbol } = inputs
-    console.log('EvmChainClient::simulateTransferFrom', inputs)
     const token = await this.getTokenBalance(inputs)
     const { kimaPoolAddress } = token
 
@@ -79,14 +78,12 @@ export class EvmChainClient extends ChainClientBase {
         ? validationMsg
         : ['Fetched token balance and allowance'],
       chain: this.chain.name,
+      network: this.chainEnv,
       originAddress,
       token
     } satisfies SimulationResult
 
-    console.log('EvmChainClient::simulateTransferFrom', output)
-
     try {
-      // const amountInWei = parseUnits(amount.toString(), token.decimals)
       const args = {
         account: kimaPoolAddress as Address,
         address: token.address as Address,
@@ -101,11 +98,11 @@ export class EvmChainClient extends ChainClientBase {
       }
 
       const response = await this.publicClient.simulateContract(args)
-      console.log(
-        `EvmChainClient:simulateTransferFrom: ${this.chain.name} ${originAddress} ${originSymbol} ${amount}`,
-        response.result ? 'success' : 'fail',
-        JSON.stringify(response, null, 2)
-      )
+      // console.log(
+      //   `EvmChainClient:simulateTransferFrom: ${this.chain.name} ${originAddress} ${originSymbol} ${amount}`,
+      //   response.result ? 'success' : 'fail',
+      //   JSON.stringify(response, null, 2)
+      // )
       output.success = response.result
       output.messages.push(
         response.result

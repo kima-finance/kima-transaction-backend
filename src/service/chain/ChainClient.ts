@@ -28,6 +28,7 @@ export interface SimulationResult {
   messages: string[]
   amount: bigint
   chain: string
+  network: ChainEnv
   originAddress: string
   token: TokenBalance
 }
@@ -88,7 +89,7 @@ export abstract class ChainClientBase implements ChainClient {
     }
 
     const token = this.chain!.supportedTokens.find(
-      (t) => (t.symbol = tokenSymbol)
+      (t) => t.symbol === tokenSymbol
     )
     if (!token) {
       throw new Error(`Token ${tokenSymbol} not found`)
@@ -121,7 +122,7 @@ export abstract class ChainClientBase implements ChainClient {
     }
     if (allowanceSpender !== kimaPoolAddress) {
       msg.push(
-        `Allowance not granted. Allowance Spender: ${allowanceSpender}, Kima Pool Address: ${kimaPoolAddress}`
+        `Allowance not granted. Allowance Spender: ${allowanceSpender || 'none'}, Kima Pool Address: ${kimaPoolAddress}`
       )
     }
     if (allowanceAmount < amount) {

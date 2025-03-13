@@ -14,9 +14,9 @@ export class TronChainClient extends ChainClientBase {
 
   constructor(chainService: ChainsService) {
     super(chainService, ChainName.TRON)
+    const rpcUrl = this.chain.rpcUrls.default.http[0].replace('/jsonrpc', '')
     this.tronWeb = new TronWeb({
-      fullHost: this.chain.rpcUrls.default.http[0],
-      // fullHost: chainEnv === ChainEnv.MAINNET ? 'https://api.trongrid.io' : 'https://api.nileex.io',
+      fullHost: rpcUrl,
       privateKey: process.env.POOL_PRIVATE_KEY?.slice(2) as string
     })
   }
@@ -27,8 +27,9 @@ export class TronChainClient extends ChainClientBase {
   }: ITransferFromInput): Promise<TokenBalance> {
     const { poolAddress, token } = await this.getTokenInfo(originSymbol)
     const tokenContract = this.tronWeb.contract(erc20Abi, token.address)
+    
     const balance = await tokenContract
-      .balanceOf(poolAddress)
+      .balanceOf(originAddress)
       .call({ from: poolAddress })
     const allowance = await tokenContract
       .allowance(originAddress, poolAddress)
@@ -58,10 +59,10 @@ export class TronChainClient extends ChainClientBase {
         : ['Fetched token balance and allowance'],
       amount,
       chain: this.chain.name,
+      network: this.chainEnv,
       originAddress,
       token
     } satisfies SimulationResult
-    console.log('TronClient::simulateTransferFrom', output)
 
     try {
       // Call the transferFrom method in constant (simulation) mode.
@@ -80,7 +81,7 @@ export class TronChainClient extends ChainClientBase {
           kimaPoolAddress
         )
 
-      console.log('Simulation result:', JSON.stringify(result, null, 2))
+      // console.log('Simulation result:', JSON.stringify(result, null, 2))
       if (result.result.result) {
         output.success = true
         output.messages.push('Tranaction simulation successful.')
@@ -93,10 +94,11 @@ export class TronChainClient extends ChainClientBase {
       }
       return output
     } catch (error) {
-      console.error('Simulation error:', error)
-      if (error instanceof Error) {
-        output.messages.push(`Simulation error: ${error.message}`)
-      }
+      output.messages.push(
+        error instanceof Error
+          ? `Simulation error: ${error.message}`
+          : 'Transaction simulation error'
+      )
       return output
     }
   }
