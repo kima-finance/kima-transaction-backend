@@ -63,7 +63,7 @@ const envSchema = z.object({
     .optional(),
 
   // Port the server will listen on
-  PORT: z.coerce.number().default(3001)
+  PORT: z.coerce.number().default(3000)
 })
 
 export type Environment = z.infer<typeof envSchema>
