@@ -92,11 +92,12 @@ jobs:
       - name: deploy docker stack
         run: |
           cat swarm-docker-compose-template.yml | envsubst > swarm-docker-compose.yml
-          docker stack deploy -c swarm-docker-compose.yml --with-registry-auth --prune -d ${{ secrets.STACK_NAME }}
+          docker stack deploy -c swarm-docker-compose.yml --with-registry-auth --prune -d ${{ env.STACK_NAME }}
         env:
           PORT: ${{ vars.PORT }}
           SERVICE_NAME: ${{ vars.SERVICE_NAME }}
           ENVIRONMENT_NAME: ${{ vars.ENVIRONMENT_NAME }}
+          STACK_NAME: ${{ vars.STACK_NAME }}
 
       - name: restore docker context
         run: docker context use default 
