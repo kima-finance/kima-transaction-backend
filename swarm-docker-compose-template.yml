@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  $SERVICE_NAME:
+    image: ghcr.io/kima-finance/kima-transaction-backend:latest-$ENVIRONMENT_NAME
+    ports:
+      - "$PORT:3000"
+    env_file:
+      - .env
+
