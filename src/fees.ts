@@ -1,28 +1,41 @@
 import { ChainName } from './types/chain-name'
 import { fetchWrapper } from './fetch-wrapper'
-import { parseUnits } from 'viem'
-import { bigintToNumber } from './utils'
-import chainsService from './service/chains.service'
 import { ENV } from './env-validate'
+import { getCreatorAddress } from '@kimafinance/kima-transaction-api'
+import chainsService from './service/chains.service'
 
 export interface GetFeeInput {
   amount: string
   deductFee: boolean
   originChain: ChainName
+  originAddress: string
   originSymbol: string
   targetChain: ChainName
+  targetAddress: string
+  targetSymbol: string
+}
+
+export interface FeeResponse {
+  feeId: string
+  feeOriginGas: string
+  feeKimaProcessing: string
+  feeTargetGas: string
+  feeTotal: string
+  peggedTo: string
+  expiration: string
 }
 
 // amounts in USD expressed as bigint strings
 // do NOT use javascript numbers in web3 calls as they will have rounding errors
 export interface FeeResult {
   allowanceAmount: string
-  breakdown: FeeBreakdown[]
-  decimals: number
-  deductFee: boolean
   submitAmount: string
   totalFee: string
-  totalFeeUsd: number // total fee in USD expressed as a number for display only
+  sourceFee: string
+  targetFee: string
+  kimaFee: string
+  decimals: number
+  feeId: string
 }
 
 // Fees by chain (for display only)
@@ -45,8 +58,11 @@ export async function calcServiceFee({
   amount: amountStr,
   deductFee,
   originChain,
+  originAddress,
   originSymbol,
-  targetChain
+  targetChain,
+  targetAddress,
+  targetSymbol
 }: GetFeeInput): Promise<FeeResult> {
   // TODO: add FIAT fees once supported in mainnet
   // if (originChain === ChainName.FIAT || targetChain === ChainName.FIAT) {
@@ -61,77 +77,46 @@ export async function calcServiceFee({
   //   return 0
   // }
 
-  const [originFee, targetFee] = await Promise.all([
-    getServiceFee(originChain),
-    targetChain === ChainName.BERA ? 0 : getServiceFee(targetChain)
-  ])
+  const kimaAddress = await getCreatorAddress()
 
-  // convert USD fee amounts into the origin chain token amounts
+  console.log(ENV.KIMA_BACKEND_FEE_URL)
+  const result = (await fetchWrapper.post(
+    `${ENV.KIMA_BACKEND_FEE_URL as string}/v1/fees/calculate`,
+    {
+      creator: kimaAddress.address,
+      originChain,
+      originAddress,
+      originSymbol,
+      targetChain,
+      targetAddress,
+      targetSymbol,
+      amount: amountStr
+    }
+  )) as unknown as FeeResponse
+
   const originFeeTokenAmount = chainsService.toTokenDecimals(
     originChain,
     originSymbol,
-    originFee
-  )
-  const targetFeeTokenAmount = chainsService.toTokenDecimals(
-    originChain,
-    originSymbol,
-    targetFee
+    +result.feeOriginGas
   )
 
-  // calculate amounts with integer math to avoid rounding errors
-  const decimals = originFeeTokenAmount.decimals
-  const amount = parseUnits(amountStr, decimals)
-
-  // TODO: add 0.05% Kima service fee when implemented on chain
-  const fee = originFeeTokenAmount.amount + targetFeeTokenAmount.amount
+  console.log(result.feeId)
+  const fee = +result.feeTotal
+  const amount = +amountStr
 
   // the amount sent to the Kima transaction should reflect
   // what the target address will receive
   const allowanceAmount = deductFee ? amount : amount + fee
   const submitAmount = deductFee ? amount - fee : amount
 
-  // TODO: convert amount into origin token amount
-  // using USD price of origin token
-  // Note even stable coins are often not exactly 1:1
-
   return {
-    totalFee: fee.toString(),
-    totalFeeUsd: bigintToNumber(fee, decimals),
+    totalFee: result.feeTotal,
     allowanceAmount: allowanceAmount.toString(),
-    decimals,
-    deductFee,
     submitAmount: submitAmount.toString(),
-    breakdown: [
-      {
-        amount: bigintToNumber(originFeeTokenAmount.amount, decimals),
-        feeType: 'gas',
-        chain: originChain
-      },
-      {
-        amount: bigintToNumber(targetFeeTokenAmount.amount, decimals),
-        feeType: 'gas',
-        chain: targetChain
-      }
-    ]
+    sourceFee: result.feeOriginGas,
+    targetFee: result.feeTargetGas,
+    kimaFee: result.feeKimaProcessing,
+    decimals: originFeeTokenAmount.decimals,
+    feeId: result.feeId
   }
-}
-
-/**
- * Query the Kima API for the gas fees in USD on the given chain
- *
- * @async
- * @param {ChainName} chain
- * @returns {Promise<string>} the estimated gas fee in USD
- */
-async function getServiceFee(chain: ChainName): Promise<string> {
-  const result = (await fetchWrapper.get(
-    `${ENV.KIMA_BACKEND_FEE_URL as string}/fee/${chain}`
-  )) as unknown as { fee: string }
-
-  // parse the dash separated fee
-  // <Amount USD>-<Timestamp>-<Amount Crypto>
-  // we want the USD amount
-  const { fee } = result
-  const [amount] = fee.split('-')
-  return amount
 }
