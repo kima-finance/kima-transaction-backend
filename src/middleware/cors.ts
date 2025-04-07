@@ -19,8 +19,8 @@ export const corsConfig = cors({
     }
 
     try {
-    const originHostname = new URL(origin as string).hostname
-    const domains = (process.env.DOMAIN as string).split(',')
+      const originHostname = new URL(origin as string).hostname
+      const domains = ENV.DOMAIN.split(',')
 
       for (const domain of domains.filter((domain) => !!domain)) {
         const domainHostname = toUrl(domain).hostname
@@ -34,6 +34,5 @@ export const corsConfig = cors({
     }
 
     callback(new Error('Not allowed by CORS'))
-  },
-  credentials: true
+  }
 })
