@@ -25,11 +25,13 @@ async function isValidChain(
 ): Promise<string> {
   const chainNames = await chainsService.getChainNames()
 
+  if (originChain == 'CC') return ''
+
   if (!chainNames.find((item: string) => item === originChain)) {
-    return 'origin chain ${originChain} not found'
+    return `origin chain ${originChain} not found`
   }
   if (!chainNames.find((item: string) => item === targetChain)) {
-    return 'target chain ${targetChain} not found'
+    return `target chain ${targetChain} not found`
   }
 
   // const currencies = await chainsService.getAvailableCurrencies({

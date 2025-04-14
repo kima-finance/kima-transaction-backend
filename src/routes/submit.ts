@@ -8,6 +8,8 @@ import { calcServiceFee } from '../fees'
 import { SubmitRequestDto } from '../types/submit-request.dto'
 import { checkCompliance } from '../middleware/compliance'
 import { transValidation } from '../middleware/trans-validation'
+import { generateCreditCardOptions } from '../creditcard'
+import defaultResponse from '../data/defaultResponse.json'
 
 const submitRouter = Router()
 
@@ -158,7 +160,7 @@ submitRouter.post(
     checkCompliance
   ],
   async (req: Request, res: Response) => {
-    const {
+    let {
       originAddress,
       originChain,
       originSymbol,
@@ -176,15 +178,46 @@ submitRouter.post(
       options = ''
     } = req.body satisfies SubmitRequestDto
 
+    let ccTransactionId
     const fixedAmount = bigintToFixedNumber(amount, decimals)
     const fixedFee = bigintToFixedNumber(fee, decimals)
 
     console.log(req.body, { fixedAmount, fixedFee })
 
+    // generate transaction id and signature for CC
+    if (originChain === 'CC') {
+      const { options: creditCardOptions, transactionId: ccTxId } =
+        await generateCreditCardOptions()
+
+      options = JSON.stringify({ ...JSON.parse(options), ...creditCardOptions })
+      ccTransactionId = ccTxId
+    }
+
+    console.log({
+      originAddress,
+      originChain,
+      targetAddress,
+      targetChain,
+      originSymbol,
+      targetSymbol,
+      amount: fixedAmount,
+      fee: fixedFee,
+      htlcCreationHash,
+      htlcCreationVout,
+      htlcExpirationTimestamp,
+      htlcVersion,
+      senderPubKey: hexStringToUint8Array(senderPubKey),
+      options,
+      ccTransactionId
+    })
+
+    if (originChain === 'CC')
+      return res.send({ result: defaultResponse, ccTransactionId })
+
     try {
       const result = await submitKimaTransaction({
         originAddress,
-        originChain,
+        originChain: originChain === 'CC' ? 'FIAT' : originChain,
         targetAddress,
         targetChain,
         originSymbol,
@@ -198,9 +231,12 @@ submitRouter.post(
         senderPubKey: hexStringToUint8Array(senderPubKey),
         options
       })
-      console.log(result)
+      // console.log('kima submit result', result)
+      // if (originChain === 'CC') return res.send({ result, ccTransactionId })
+
       res.send(result)
     } catch (e) {
+      console.error('error submitting transaction')
       console.error(e)
       res.status(500).send('failed to submit transaction')
     }

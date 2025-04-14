@@ -6,7 +6,8 @@ export enum ChainCompatibility {
   EVM = 'EVM',
   FIAT = 'FIAT',
   COSMOS = 'COSMOS',
-  SELF = 'SELF'
+  SELF = 'SELF',
+  CC = 'CC'
 }
 
 export interface Chain extends ViemChain {

@@ -11,5 +11,6 @@ export enum ChainName {
   OPTIMISM = 'OPT',
   POLYGON = 'POL',
   SOLANA = 'SOL',
-  TRON = 'TRX'
+  TRON = 'TRX',
+  CREDITCARD = 'CC'
 }

@@ -406,30 +406,64 @@ export const CHAINS: Chain[] = [
       }
     },
     testnet: true
+  },
+  {
+    id: 0,
+    name: 'Credit Card',
+    shortName: 'CC',
+    compatibility: ChainCompatibility.CC,
+    supportedTokens: [
+      {
+        symbol: 'USD',
+        decimals: 6,
+        address: ''
+      }
+    ],
+    nativeCurrency: {
+      name: 'USD',
+      symbol: 'USD',
+      decimals: 6
+    },
+    rpcUrls: {
+      default: { http: [] }
+    },
+    faucets: [],
+    blockExplorers: {
+      default: {
+        name: '',
+        url: ''
+      }
+    },
+    testnet: true
+  },
+  {
+    id: 0,
+    name: 'Credit Card',
+    shortName: 'CC',
+    compatibility: ChainCompatibility.CC,
+    supportedTokens: [
+      {
+        symbol: 'USD',
+        decimals: 6,
+        address: ''
+      }
+    ],
+    nativeCurrency: {
+      name: 'USD',
+      symbol: 'USD',
+      decimals: 6
+    },
+    rpcUrls: {
+      default: { http: [] }
+    },
+    faucets: [],
+    blockExplorers: {
+      default: {
+        name: '',
+        url: ''
+      }
+    }
   }
-  // {
-  //   id: 0,
-  //   name: 'Fiat',
-  //   shortName: 'FIAT',
-  //   compatibility: ChainCompatibility.FIAT,
-  //   supportedTokens: [],
-  //   nativeCurrency: {
-  //     name: 'USD',
-  //     symbol: 'USD',
-  //     decimals: 6
-  //   },
-  //   rpcUrls: {
-  //     default: { http: [] }
-  //   },
-  //   faucets: [],
-  //   blockExplorers: {
-  //     default: {
-  //       name: '',
-  //       url: ''
-  //     }
-  //   },
-  //   testnet: true
-  // }
   // Tron Shasta not supported yet
   // {
   //   id: 2494104990,
