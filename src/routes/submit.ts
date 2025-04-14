@@ -379,15 +379,26 @@ submitRouter.get(
     validateRequest
   ],
   async (req: Request, res: Response) => {
-    const { amount, deductFee, originChain, originSymbol, targetChain } =
-      req.query
+    const {
+      amount,
+      deductFee,
+      originChain,
+      originAddress,
+      originSymbol,
+      targetChain,
+      targetAddress,
+      targetSymbol
+    } = req.query
     try {
       const result = await calcServiceFee({
         amount: amount as string,
         deductFee: deductFee === 'true',
         originChain: originChain as ChainName,
+        originAddress: originAddress as string,
         originSymbol: originSymbol as string,
-        targetChain: targetChain as ChainName
+        targetChain: targetChain as ChainName,
+        targetAddress: targetAddress as string,
+        targetSymbol: targetSymbol as string
       })
       res.status(200).send(result)
     } catch (e) {

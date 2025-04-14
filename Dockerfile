@@ -1,4 +1,4 @@
-FROM node:20
+FROM node:22
 
 ARG NPM_ACCESS_TOKEN
 ENV NPM_ACCESS_TOKEN=$NPM_ACCESS_TOKEN
@@ -9,4 +9,5 @@ ADD . /usr/src/app/
 WORKDIR /usr/src/app
 RUN npm install
 RUN rm -f .npmrc
+EXPOSE 3000
 CMD npm run dev
