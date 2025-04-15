@@ -228,9 +228,9 @@ submitRouter.post(
         senderPubKey: hexStringToUint8Array(senderPubKey),
         options
       })
-      
+
       console.log('kima submit result', result)
-      // if (originChain === 'CC') return res.send({ result, ccTransactionId })
+      if (originChain === 'CC') return res.send({ result, ccTransactionId })
 
       res.send(result)
     } catch (e) {
