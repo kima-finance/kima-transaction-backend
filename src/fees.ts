@@ -1,8 +1,8 @@
 import { ChainName } from './types/chain-name'
 import { fetchWrapper } from './fetch-wrapper'
 import { ENV } from './env-validate'
-import { getCreatorAddress } from '@kimafinance/kima-transaction-api'
 import chainsService from './service/chains.service'
+import { getCreatorAddress } from '@kimafinance/kima-transaction-api'
 
 export interface GetFeeInput {
   amount: string

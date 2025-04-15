@@ -211,9 +211,6 @@ submitRouter.post(
       ccTransactionId
     })
 
-    if (originChain === 'CC')
-      return res.send({ result: defaultResponse, ccTransactionId })
-
     try {
       const result = await submitKimaTransaction({
         originAddress,
@@ -231,7 +228,8 @@ submitRouter.post(
         senderPubKey: hexStringToUint8Array(senderPubKey),
         options
       })
-      // console.log('kima submit result', result)
+      
+      console.log('kima submit result', result)
       // if (originChain === 'CC') return res.send({ result, ccTransactionId })
 
       res.send(result)
