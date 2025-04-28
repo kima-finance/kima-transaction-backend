@@ -5,7 +5,10 @@ import { body, query } from 'express-validator'
 import { bigintToFixedNumber, hexStringToUint8Array } from '../utils'
 import { ChainName } from '../types/chain-name'
 import { calcServiceFee } from '../fees'
-import { SubmitRequestDto } from '../types/submit-request.dto'
+import {
+  SubmitRequestDto,
+  SubmitRequestSchema
+} from '../types/submit-request.dto'
 import { checkCompliance } from '../middleware/compliance'
 import { transValidation } from '../middleware/trans-validation'
 import { generateCreditCardOptions } from '../creditcard'
@@ -130,72 +133,77 @@ const submitRouter = Router()
  *             schema:
  *               type: string
  */
-submitRouter.post(
-  '/',
-  [
-    body('amount')
-      .isInt({ gt: 0 })
-      .withMessage('amount must be greater than 0'),
-    body('fee').isInt({ min: 0 }).withMessage('fee must be positive'),
-    body('decimals')
-      .isInt({ gt: 0 })
-      .withMessage('decimals must be greater than 0'),
-    body('originAddress').notEmpty(),
-    body('originChain')
-      .isIn(Object.values(ChainName))
-      .withMessage('originChain must be a valid chain name'),
-    body('originSymbol').notEmpty(),
-    body('targetAddress').notEmpty(),
-    body('targetChain')
-      .isIn(Object.values(ChainName))
-      .withMessage('targetChain must be a valid chain name'),
-    body('targetSymbol').notEmpty(),
-    body('htlcCreationHash').optional().isString(),
-    body('htlcCreationVout').optional().isInt(),
-    body('htlcExpirationTimestamp').optional().isString(),
-    body('htlcVersion').optional().isString(),
-    body('senderPubKey').optional().isString(),
-    validateRequest,
-    transValidation,
-    checkCompliance
-  ],
-  async (req: Request, res: Response) => {
-    let {
+submitRouter.post('/', async (req: Request, res: Response) => {
+  const result = SubmitRequestSchema.safeParse(req.body)
+
+  console.log('req.body: ', req.body)
+
+  console.log('result: ', result)
+
+  if (!result.success) {
+    console.error('❌ Validation Error:', result.error.format())
+
+    return res.status(400).json({
+      error: 'Validation failed',
+      details: result.error.flatten()
+    })
+  }
+
+  let {
+    originAddress,
+    originChain,
+    originSymbol,
+    targetAddress,
+    targetChain,
+    targetSymbol,
+    amount,
+    fee,
+    decimals,
+    htlcCreationHash = '',
+    htlcCreationVout = 0,
+    htlcExpirationTimestamp = '',
+    htlcVersion = '',
+    senderPubKey = '',
+    options = ''
+  } = req.body satisfies SubmitRequestDto
+
+  let ccTransactionId
+  const fixedAmount = bigintToFixedNumber(amount, decimals)
+  const fixedFee = bigintToFixedNumber(fee, decimals)
+
+  console.log(req.body, { fixedAmount, fixedFee })
+
+  // generate transaction id and signature for CC
+  if (originChain === 'CC') {
+    const { options: creditCardOptions, transactionId: ccTxId } =
+      await generateCreditCardOptions()
+
+    options = JSON.stringify({ ...JSON.parse(options), ...creditCardOptions })
+    ccTransactionId = ccTxId
+  }
+
+  console.log({
+    originAddress,
+    originChain,
+    targetAddress,
+    targetChain,
+    originSymbol,
+    targetSymbol,
+    amount: fixedAmount,
+    fee: fixedFee,
+    htlcCreationHash,
+    htlcCreationVout,
+    htlcExpirationTimestamp,
+    htlcVersion,
+    senderPubKey: hexStringToUint8Array(senderPubKey),
+    options,
+    ccTransactionId
+  })
+
+  try {
+    const result = await submitKimaTransaction({
       originAddress,
-      originChain,
-      originSymbol,
-      targetAddress,
-      targetChain,
-      targetSymbol,
-      amount,
-      fee,
-      decimals,
-      htlcCreationHash = '',
-      htlcCreationVout = 0,
-      htlcExpirationTimestamp = '',
-      htlcVersion = '',
-      senderPubKey = '',
-      options = ''
-    } = req.body satisfies SubmitRequestDto
-
-    let ccTransactionId
-    const fixedAmount = bigintToFixedNumber(amount, decimals)
-    const fixedFee = bigintToFixedNumber(fee, decimals)
-
-    console.log(req.body, { fixedAmount, fixedFee })
-
-    // generate transaction id and signature for CC
-    if (originChain === 'CC') {
-      const { options: creditCardOptions, transactionId: ccTxId } =
-        await generateCreditCardOptions()
-
-      options = JSON.stringify({ ...JSON.parse(options), ...creditCardOptions })
-      ccTransactionId = ccTxId
-    }
-
-    console.log({
-      originAddress,
-      originChain,
+      originChain: originChain === 'CC' ? 'FIAT' : originChain,
       targetAddress,
       targetChain,
       originSymbol,
@@ -207,39 +215,19 @@ submitRouter.post(
       htlcExpirationTimestamp,
       htlcVersion,
       senderPubKey: hexStringToUint8Array(senderPubKey),
-      options,
-      ccTransactionId
+      options
     })
 
-    try {
-      const result = await submitKimaTransaction({
-        originAddress,
-        originChain: originChain === 'CC' ? 'FIAT' : originChain,
-        targetAddress,
-        targetChain,
-        originSymbol,
-        targetSymbol,
-        amount: fixedAmount,
-        fee: fixedFee,
-        htlcCreationHash,
-        htlcCreationVout,
-        htlcExpirationTimestamp,
-        htlcVersion,
-        senderPubKey: hexStringToUint8Array(senderPubKey),
-        options
-      })
+    console.log('kima submit result', result)
+    if (originChain === 'CC') return res.send({ result, ccTransactionId })
 
-      console.log('kima submit result', result)
-      if (originChain === 'CC') return res.send({ result, ccTransactionId })
-
-      res.send(result)
-    } catch (e) {
-      console.error('error submitting transaction')
-      console.error(e)
-      res.status(500).send('failed to submit transaction')
-    }
+    res.send(result)
+  } catch (e) {
+    console.error('error submitting transaction')
+    console.error(e)
+    res.status(500).send('failed to submit transaction')
   }
-)
+})
 
 /**
  * @openapi
@@ -392,7 +380,7 @@ submitRouter.get(
         amount: amount as string,
         deductFee: deductFee === 'true',
         originChain: originChain as ChainName,
-        originAddress: originAddress as string,
+        originAddress: originChain === 'FIAT' ? '' : (originAddress as string),
         originSymbol: originSymbol as string,
         targetChain: targetChain as ChainName,
         targetAddress: targetAddress as string,

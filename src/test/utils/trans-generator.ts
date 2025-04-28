@@ -1,6 +1,9 @@
+import { z } from 'zod'
 import { TransactionDetails } from '../../types/transaction-details'
 
-export const generateTransDetails = (data?: Partial<TransactionDetails>) => {
+type TransactionDetailsType = z.infer<typeof TransactionDetails>
+
+export const generateTransDetails = (data?: Partial<TransactionDetailsType>) => {
   return {
     amount: 100000000,
     fee: 500000,
