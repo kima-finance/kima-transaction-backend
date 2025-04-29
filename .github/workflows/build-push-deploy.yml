@@ -65,9 +65,13 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-${{ github.action.environment.name }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-${{ env.ENVIRONMENT_NAME }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
+        env:
+          PORT: ${{ vars.PORT }}
+          SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+          ENVIRONMENT_NAME: ${{ vars.ENVIRONMENT_NAME }}
 
       # This step generates an artifact attestation for the image, which is an unforgeable statement about where and how it was built. It increases supply chain security for people who consume the image. For more information, see [AUTOTITLE](/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds).
       - name: Generate artifact attestation
@@ -87,10 +91,13 @@ jobs:
 
       - name: deploy docker stack
         run: |
-          export PORT=${{ secrets.PORT }}
-          export SERVICE_NAME=${{ secrets.SERVICE_NAME }}
           cat swarm-docker-compose-template.yml | envsubst > swarm-docker-compose.yml
-          docker stack deploy -c swarm-docker-compose.yml --with-registry-auth --prune -d ${{ secrets.STACK_NAME }}
+          docker stack deploy -c swarm-docker-compose.yml --with-registry-auth --prune -d ${{ env.STACK_NAME }}
+        env:
+          PORT: ${{ vars.PORT }}
+          SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+          ENVIRONMENT_NAME: ${{ vars.ENVIRONMENT_NAME }}
+          STACK_NAME: ${{ vars.STACK_NAME }}
 
       - name: restore docker context
-        run: docker context use default 
+        run: docker context use default
