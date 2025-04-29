@@ -4,6 +4,7 @@ export interface TransactionStatus {
   pullhash: string
   releasefailcount: number
   releasehash: string
+  refundhash: string
   txstatus: string
   amount: number
   creator: string
@@ -45,6 +46,7 @@ export interface ApiLiquidityTxStatusResponse {
     signedKey: string
     tssPullHash: string
     tssReleaseHash: string
+    tssRefundHash: string
     kimaTxHash: string
     failReason: string
     pullFailCount: string
@@ -80,6 +82,7 @@ export interface ApiTxStatusResponse {
     fee: string
     tssPullHash: string
     tssReleaseHash: string
+    tssRefundHash: string
     kimaTxHash: string
     failReason: string
     pullFailCount: string
