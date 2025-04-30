@@ -81,7 +81,6 @@ export interface FeeBreakdown {
  */
 export async function calcServiceFee({
   amount: amountStr,
-  // deductFee,
   originChain,
   originAddress,
   originSymbol,
@@ -91,7 +90,6 @@ export async function calcServiceFee({
 }: GetFeeInput): Promise<FeeResponse> {
   console.debug('calcServiceFee:', {
     amount: amountStr,
-    // deductFee,
     originChain,
     originAddress,
     originSymbol,
@@ -99,18 +97,6 @@ export async function calcServiceFee({
     targetAddress,
     targetSymbol
   })
-  // TODO: add FIAT fees once supported in mainnet
-  // if (originChain === ChainName.FIAT || targetChain === ChainName.FIAT) {
-  //   return 0
-  // }
-
-  // TODO: add BTC fees once supported in mainnet
-  // if (originChain === ChainName.BTC) {
-  //   return 0.0004
-  // }
-  // if (targetChain === ChainName.BTC) {
-  //   return 0
-  // }
 
   const kimaAddress = await getCreatorAddress()
 
@@ -128,44 +114,7 @@ export async function calcServiceFee({
       amount: amountStr
     }
   )) as unknown as FeeResponse
-  console.debug('fee result:', result)
+  // console.debug('fee result:', JSON.stringify(result, null, 2))
 
   return result
-
-  // const originFeeTokenAmount = chainsService.toTokenDecimals(
-  //   originChain,
-  //   originSymbol,
-  //   +result.feeOriginGas
-  // )
-
-  // // use integer math with the source decimals to avoid rounding errors
-  // console.info('feeId:', result.feeId)
-  // const decimals = originFeeTokenAmount.decimals
-  // const fee = parseUnits(result.feeTotal, decimals)
-  // const amount = parseUnits(amountStr, decimals)
-
-  // // the amount sent to the Kima transaction should reflect
-  // // what the target address will receive
-  // const allowanceAmount = deductFee ? amount : amount + fee
-  // const submitAmount = deductFee ? amount - fee : amount
-
-  // // round output values to a standard number of fixed decimals (currently 6)
-  // // this is to produce consistent output for the signed transaction data message
-  // const outputAllowanceAmount = formatterFloat.format(
-  //   bigintToNumber(allowanceAmount, decimals)
-  // )
-  // const outputSubmitAmount = formatterFloat.format(
-  //   bigintToNumber(submitAmount, decimals)
-  // )
-
-  // return {
-  //   totalFee: result.feeTotal,
-  //   allowanceAmount: outputAllowanceAmount,
-  //   submitAmount: outputSubmitAmount,
-  //   sourceFee: result.feeOriginGas,
-  //   targetFee: result.feeTargetGas,
-  //   kimaFee: result.feeKimaProcessing,
-  //   decimals: originFeeTokenAmount.decimals,
-  //   feeId: result.feeId
-  // }
 }

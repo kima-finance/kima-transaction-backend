@@ -178,10 +178,12 @@ submitRouter.post(
       options = ''
     } = req.body satisfies SubmitRequestDto
 
-    const fixedAmount = bigintToFixedNumber(amount, decimals)
-    const fixedFee = bigintToFixedNumber(fee, decimals)
-
-    console.log(req.body, { fixedAmount, fixedFee })
+    const amountStr = formatUnits(amount, decimals)
+    const feeStr = formatUnits(fee, decimals)
+    console.log(req.body, { amountStr, feeStr })
+    // const fixedAmount = bigintToFixedNumber(amount, decimals)
+    // const fixedFee = bigintToFixedNumber(fee, decimals)
+    // console.log(req.body, { fixedAmount, fixedFee })
 
     try {
       const result = await submitKimaTransaction({
@@ -191,8 +193,13 @@ submitRouter.post(
         targetChain,
         originSymbol,
         targetSymbol,
-        amount: fixedAmount,
-        fee: fixedFee,
+        // spoof the amount and fee to be a number so that small values don't get
+        // turned into exponential notation when converted to a string
+        // TODO: change the kima-transaction-api function to accept strings
+        amount: amountStr as unknown as number,
+        fee: feeStr as unknown as number,
+        // amount: fixedAmount,
+        // fee: fixedFee,
         htlcCreationHash,
         htlcCreationVout,
         htlcExpirationTimestamp,
