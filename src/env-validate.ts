@@ -61,7 +61,7 @@ const envSchema = z.object({
   // Chain filtering (Optional)
   // Determines which chains are returned by the /chains endpoints
   // Effects chain validation and fee calculation
-  KIMA_CHAIN_FILTER: jsonStringToObject.pipe(filterConfigSchema),
+  KIMA_CHAIN_FILTER: jsonStringToObject.pipe(filterConfigSchema).optional(),
 
   // Node environment
   NODE_ENV: z
