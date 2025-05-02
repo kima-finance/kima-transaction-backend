@@ -1,7 +1,7 @@
 import app from './app'
 import { ENV } from './env-validate'
 
-const port = ENV.PORT || 3001
+const port = ENV.PORT || 3000
 
 // shim for bigint
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
