@@ -6,7 +6,7 @@ import {
   // base,
   baseSepolia,
   berachain,
-  berachainTestnetbArtio,
+  berachainBepolia,
   bsc,
   bscTestnet,
   mainnet,
@@ -97,8 +97,8 @@ export const CHAINS: Chain[] = [
     shortName: 'BASE',
     supportedTokens: [
       {
-        symbol: 'KIMAUSD',
-        address: '0x2cF79df2879902A2Fc06329B1760E0f2aD9a3a47',
+        symbol: 'USDK',
+        address: '0x2B0F2060d358a2DF51dBc4147a09445b11EF5D41',
         decimals: 18
       }
     ]
@@ -116,13 +116,13 @@ export const CHAINS: Chain[] = [
     ]
   },
   {
-    ...berachainTestnetbArtio,
+    ...berachainBepolia,
     shortName: 'BERA',
     compatibility: ChainCompatibility.EVM,
     supportedTokens: [
       {
         symbol: 'USDK',
-        address: '0xB16de57a9c4D28CFe7Ce2ab87EE4A4deBD643cD1',
+        address: '0xe5dB851969B4d8EE8A023F4b991CbED6e39dca80',
         decimals: 18
       }
     ]

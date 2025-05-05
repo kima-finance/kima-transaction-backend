@@ -54,7 +54,7 @@
     "swagger-ui-express": "^5.0.1",
     "tron-format-address": "^0.1.12",
     "uuid": "^9.0.1",
-    "viem": "^2.23.5",
+    "viem": "^2.28.4",
     "zod": "^3.24.2"
   }
 }
