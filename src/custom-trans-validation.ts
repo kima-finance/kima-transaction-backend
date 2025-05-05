@@ -1,8 +1,12 @@
 import { Request } from 'express'
 import { TransactionDetails } from './types/transaction-details'
+import { z } from 'zod'
+
+type TransactionDetailsType = z.infer<typeof TransactionDetails>
+
 
 interface SubmitTransRequest extends Request {
-  body: TransactionDetails
+  body: TransactionDetailsType
 }
 
 /**

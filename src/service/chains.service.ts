@@ -245,7 +245,10 @@ export class ChainsService {
     tokenSymbol: string,
     amount: number | string
   ): TokenAmount => {
-    const token = this.getToken(chainName, tokenSymbol)
+    const token = this.getToken(
+      chainName === 'FIAT' ? 'CC' : chainName,
+      tokenSymbol
+    )
     if (!token) {
       throw new Error(`Token ${tokenSymbol} not found`)
     }
