@@ -138,12 +138,8 @@ const submitRouter = Router()
 submitRouter.post('/', async (req: Request, res: Response) => {
   const result = SubmitRequestSchema.safeParse(req.body)
 
-  console.log('req.body: ', req.body)
-
-  console.log('result: ', result)
-
   if (!result.success) {
-    console.error('❌ Validation Error:', result.error.format())
+    console.error('Validation Error:', result.error.format())
 
     return res.status(400).json({
       error: 'Validation failed',
@@ -166,26 +162,27 @@ submitRouter.post('/', async (req: Request, res: Response) => {
     htlcExpirationTimestamp = '',
     htlcVersion = '',
     senderPubKey = '',
-    options = ''
+    options = '',
+    ccTransactionIdSeed = ''
   } = req.body satisfies SubmitRequestDto
 
-  let ccTransactionId
-  const fixedAmount = bigintToFixedNumber(amount, decimals)
-  const fixedFee = bigintToFixedNumber(fee, decimals)
+  // const fixedAmount = bigintToFixedNumber(amount, decimals)
+  // const fixedFee = bigintToFixedNumber(fee, decimals)
+  // console.log(req.body, { fixedAmount, fixedFee })
 
-  console.log(req.body, { fixedAmount, fixedFee })
-    const amountStr = formatUnits(amount, decimals)
-    const feeStr = formatUnits(fee, decimals)
-    console.log(req.body, { amountStr, feeStr })
+  const amountStr = formatUnits(amount, decimals)
+  const feeStr = formatUnits(fee, decimals)
+  console.log(req.body, { amountStr, feeStr })
 
-
-  // generate transaction id and signature for CC
+  // signature for CC
   if (originChain === 'CC') {
-    const { options: creditCardOptions, transactionId: ccTxId } =
-      await generateCreditCardOptions()
+    const { options: creditCardOptions, transactionId } =
+      await generateCreditCardOptions(ccTransactionIdSeed)
 
-    options = JSON.stringify({ ...JSON.parse(options), ...creditCardOptions })
-    ccTransactionId = ccTxId
+    options = JSON.stringify({
+      ...JSON.parse(options),
+      ...creditCardOptions,
+    })
   }
 
   console.log({
@@ -195,27 +192,27 @@ submitRouter.post('/', async (req: Request, res: Response) => {
     targetChain,
     originSymbol,
     targetSymbol,
-    amount: fixedAmount,
-    fee: fixedFee,
+    amount: amountStr,
+    fee: feeStr,
     htlcCreationHash,
     htlcCreationVout,
     htlcExpirationTimestamp,
     htlcVersion,
     senderPubKey: hexStringToUint8Array(senderPubKey),
     options,
-    ccTransactionId
+    ccTransactionIdSeed,
   })
 
   try {
     const result = await submitKimaTransaction({
-      originAddress,
+      originAddress: originChain === 'CC' ? '' : originAddress,
       originChain: originChain === 'CC' ? 'FIAT' : originChain,
       targetAddress,
       targetChain,
       originSymbol,
       targetSymbol,
-      amount: fixedAmount,
-      fee: fixedFee,
+      amount: amountStr,
+      fee: feeStr,
       htlcCreationHash,
       htlcCreationVout,
       htlcExpirationTimestamp,
@@ -225,8 +222,6 @@ submitRouter.post('/', async (req: Request, res: Response) => {
     })
 
     console.log('kima submit result', result)
-    if (originChain === 'CC') return res.send({ result, ccTransactionId })
-
     res.send(result)
   } catch (e) {
     console.error('error submitting transaction')
@@ -389,8 +384,9 @@ submitRouter.get(
       const result = await calcServiceFee({
         amount: amount as string,
         // deductFee: deductFee === 'true',
-        originChain: originChain as ChainName,
-        originAddress: originChain === 'FIAT' ? '' : (originAddress as string),
+        originChain:
+          originChain === 'CC' ? ChainName.FIAT : (originChain as ChainName),
+        originAddress: originChain === 'CC' ? '' : (originAddress as string),
         originSymbol: originSymbol as string,
         targetChain: targetChain as ChainName,
         targetAddress: targetAddress as string,
@@ -412,6 +408,57 @@ submitRouter.get(
     } catch (e) {
       console.log(e)
       res.status(500).send('failed to get fee')
+    }
+  }
+)
+
+/**
+ * @openapi
+ * /submit/transactionId:
+ *   get:
+ *     summary: Get CC transactionId
+ *     description: Get the transactionId for a credit card transaction
+ *     tags:
+ *       - Submit
+ *     parameters:
+ *       - in: query
+ *         name: transactionIdSeed
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: uuid seed for the encoded transationId
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 transactionId:
+ *                   type: string
+ *                   description: encoded transaction id generated from seed
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ */
+submitRouter.get(
+  '/transactionId',
+  [query('transactionIdSeed').notEmpty(), validateRequest],
+  async (req: Request, res: Response) => {
+    const { transactionIdSeed } = req.query
+    try {
+      const { transactionId } = await generateCreditCardOptions(
+        transactionIdSeed as string
+      )
+
+      res.status(200).json({ transactionId })
+    } catch (e) {
+      console.log(e)
+      res.status(500).send('failed to generate transactionId')
     }
   }
 )

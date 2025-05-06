@@ -8,7 +8,8 @@ export const SubmitRequestSchema = TransactionDetails.extend({
   htlcExpirationTimestamp: z.string().optional(),
   htlcVersion: z.string().optional(),
   senderPubKey: z.string().optional(),
-  options: z.string().optional()
+  options: z.string().optional(),
+  ccTransactionIdSeed: z.string().optional()
 }).superRefine((data, ctx) => {
   // Custom rule: originAddress is required unless originChain === 'FIAT'
   if (

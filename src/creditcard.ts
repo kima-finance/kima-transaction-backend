@@ -8,16 +8,13 @@ import {
   stringToPath
 } from '@cosmjs/crypto'
 import { toUtf8 } from '@cosmjs/encoding'
-import { v4 as uuidv4 } from 'uuid'
 import { toHex } from '@cosmjs/encoding'
 
 const mnemonic = process.env.KIMA_BACKEND_MNEMONIC as string
 const path = stringToPath("m/44'/118'/0'/0/0")
 
 // generate a transaction id and signature for credit card options
-export const generateCreditCardOptions = async () => {
-  const transactionIdSeed = uuidv4()
-
+export const generateCreditCardOptions = async (transactionIdSeed: string) => {
   const { fixedLengthSig, hexSignature } = await signMessage(transactionIdSeed)
 
   const transactionId = toHex(sha256(new TextEncoder().encode(hexSignature)))
