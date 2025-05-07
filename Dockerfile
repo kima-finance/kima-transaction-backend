@@ -10,4 +10,4 @@ WORKDIR /usr/src/app
 RUN npm install
 RUN rm -f .npmrc
 EXPOSE 3000
-CMD npm run dev
+CMD npm run start
