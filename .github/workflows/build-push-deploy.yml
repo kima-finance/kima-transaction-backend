@@ -100,4 +100,4 @@ jobs:
           STACK_NAME: ${{ vars.STACK_NAME }}
 
       - name: restore docker context
-        run: docker context use default 
+        run: docker context use default

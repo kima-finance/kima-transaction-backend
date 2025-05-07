@@ -2,7 +2,11 @@ import { Request, Response, Router } from 'express'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
 import { validateRequest } from '../middleware/validation'
 import { body, query } from 'express-validator'
-import { bigintToFixedNumber, hexStringToUint8Array } from '../utils'
+import {
+  bigintToFixedNumber,
+  hexStringToUint8Array,
+  signApprovalMessage
+} from '../utils'
 import { ChainName } from '../types/chain-name'
 import { calcServiceFee } from '../fees'
 import { SubmitRequestDto } from '../types/submit-request.dto'
@@ -158,7 +162,7 @@ submitRouter.post(
     checkCompliance
   ],
   async (req: Request, res: Response) => {
-    const {
+    let {
       originAddress,
       originChain,
       originSymbol,
@@ -173,13 +177,52 @@ submitRouter.post(
       htlcExpirationTimestamp = '',
       htlcVersion = '',
       senderPubKey = '',
-      options = ''
+      options = '',
+      mode,
+      feeDeduct
     } = req.body satisfies SubmitRequestDto
 
     const fixedAmount = bigintToFixedNumber(amount, decimals)
     const fixedFee = bigintToFixedNumber(fee, decimals)
 
+    // set the proper amount to sign message and send to blockchain
+    const allowanceAmount = feeDeduct ? fixedAmount : fixedAmount + fixedFee
+
     console.log(req.body, { fixedAmount, fixedFee })
+
+    // generate signature from backend
+    if (mode === 'light') {
+      options = JSON.parse(options)
+      options.signature = await signApprovalMessage({
+        originSymbol,
+        originChain,
+        targetAddress,
+        targetChain,
+        allowanceAmount
+      })
+
+      options = JSON.stringify(options)
+    }
+
+    console.log({
+      originAddress,
+      originChain,
+      originSymbol,
+      targetAddress,
+      targetChain,
+      targetSymbol,
+      fixedAmount,
+      fixedFee,
+      decimals,
+      htlcCreationHash,
+      htlcCreationVout,
+      htlcExpirationTimestamp,
+      htlcVersion,
+      senderPubKey,
+      options,
+      mode,
+      feeDeduct
+    })
 
     try {
       const result = await submitKimaTransaction({

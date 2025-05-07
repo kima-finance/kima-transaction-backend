@@ -63,6 +63,7 @@ const envSchema = z.object({
     .optional(),
 
   // Port the server will listen on
+  // FIXME: this should be optional as the value is read conditionally. remove this once workaround fixed 
   PORT: z.coerce.number().default(3000)
 })
 
