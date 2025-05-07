@@ -135,78 +135,62 @@ const submitRouter = Router()
  *             schema:
  *               type: string
  */
-submitRouter.post('/', async (req: Request, res: Response) => {
-  const result = SubmitRequestSchema.safeParse(req.body)
+submitRouter.post(
+  '/',
+  [transValidation, checkCompliance],
+  async (req: Request, res: Response) => {
+    const result = SubmitRequestSchema.safeParse(req.body)
 
-  if (!result.success) {
-    console.error('Validation Error:', result.error.format())
+    if (!result.success) {
+      console.error('Validation Error:', result.error.format())
 
-    return res.status(400).json({
-      error: 'Validation failed',
-      details: result.error.flatten()
-    })
-  }
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: result.error.flatten()
+      })
+    }
 
-  let {
-    originAddress,
-    originChain,
-    originSymbol,
-    targetAddress,
-    targetChain,
-    targetSymbol,
-    amount,
-    fee,
-    decimals,
-    htlcCreationHash = '',
-    htlcCreationVout = 0,
-    htlcExpirationTimestamp = '',
-    htlcVersion = '',
-    senderPubKey = '',
-    options = '',
-    ccTransactionIdSeed = ''
-  } = req.body satisfies SubmitRequestDto
+    let {
+      originAddress,
+      originChain,
+      originSymbol,
+      targetAddress,
+      targetChain,
+      targetSymbol,
+      amount,
+      fee,
+      decimals,
+      htlcCreationHash = '',
+      htlcCreationVout = 0,
+      htlcExpirationTimestamp = '',
+      htlcVersion = '',
+      senderPubKey = '',
+      options = '',
+      ccTransactionIdSeed = ''
+    } = req.body satisfies SubmitRequestDto
 
-  // const fixedAmount = bigintToFixedNumber(amount, decimals)
-  // const fixedFee = bigintToFixedNumber(fee, decimals)
-  // console.log(req.body, { fixedAmount, fixedFee })
+    // const fixedAmount = bigintToFixedNumber(amount, decimals)
+    // const fixedFee = bigintToFixedNumber(fee, decimals)
+    // console.log(req.body, { fixedAmount, fixedFee })
 
-  const amountStr = formatUnits(amount, decimals)
-  const feeStr = formatUnits(fee, decimals)
-  console.log(req.body, { amountStr, feeStr })
+    const amountStr = formatUnits(amount, decimals)
+    const feeStr = formatUnits(fee, decimals)
+    console.log(req.body, { amountStr, feeStr })
 
-  // signature for CC
-  if (originChain === 'CC') {
-    const { options: creditCardOptions, transactionId } =
-      await generateCreditCardOptions(ccTransactionIdSeed)
+    // signature for CC
+    if (originChain === 'CC') {
+      const { options: creditCardOptions, transactionId } =
+        await generateCreditCardOptions(ccTransactionIdSeed)
 
-    options = JSON.stringify({
-      ...JSON.parse(options),
-      ...creditCardOptions,
-    })
-  }
+      options = JSON.stringify({
+        ...JSON.parse(options),
+        ...creditCardOptions
+      })
+    }
 
-  console.log({
-    originAddress,
-    originChain,
-    targetAddress,
-    targetChain,
-    originSymbol,
-    targetSymbol,
-    amount: amountStr,
-    fee: feeStr,
-    htlcCreationHash,
-    htlcCreationVout,
-    htlcExpirationTimestamp,
-    htlcVersion,
-    senderPubKey: hexStringToUint8Array(senderPubKey),
-    options,
-    ccTransactionIdSeed,
-  })
-
-  try {
-    const result = await submitKimaTransaction({
-      originAddress: originChain === 'CC' ? '' : originAddress,
-      originChain: originChain === 'CC' ? 'FIAT' : originChain,
+    console.log({
+      originAddress,
+      originChain,
       targetAddress,
       targetChain,
       originSymbol,
@@ -218,17 +202,37 @@ submitRouter.post('/', async (req: Request, res: Response) => {
       htlcExpirationTimestamp,
       htlcVersion,
       senderPubKey: hexStringToUint8Array(senderPubKey),
-      options
+      options,
+      ccTransactionIdSeed
     })
 
-    console.log('kima submit result', result)
-    res.send(result)
-  } catch (e) {
-    console.error('error submitting transaction')
-    console.error(e)
-    res.status(500).send('failed to submit transaction')
+    try {
+      const result = await submitKimaTransaction({
+        originAddress: originChain === 'CC' ? '' : originAddress,
+        originChain: originChain === 'CC' ? 'FIAT' : originChain,
+        targetAddress,
+        targetChain,
+        originSymbol,
+        targetSymbol,
+        amount: amountStr,
+        fee: feeStr,
+        htlcCreationHash,
+        htlcCreationVout,
+        htlcExpirationTimestamp,
+        htlcVersion,
+        senderPubKey: hexStringToUint8Array(senderPubKey),
+        options
+      })
+
+      console.log('kima submit result', result)
+      res.send(result)
+    } catch (e) {
+      console.error('error submitting transaction')
+      console.error(e)
+      res.status(500).send('failed to submit transaction')
+    }
   }
-})
+)
 
 /**
  * @openapi
