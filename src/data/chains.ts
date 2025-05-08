@@ -24,6 +24,7 @@ export const CHAINS: Chain[] = [
     ...arbitrum,
     compatibility: ChainCompatibility.EVM,
     shortName: 'ARB',
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -41,6 +42,7 @@ export const CHAINS: Chain[] = [
     ...arbitrumSepolia,
     compatibility: ChainCompatibility.EVM,
     shortName: 'ARB',
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -53,6 +55,7 @@ export const CHAINS: Chain[] = [
     ...avalanche,
     compatibility: ChainCompatibility.EVM,
     shortName: 'AVX',
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -70,6 +73,7 @@ export const CHAINS: Chain[] = [
     ...avalancheFuji,
     compatibility: ChainCompatibility.EVM,
     shortName: 'AVX',
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -83,6 +87,7 @@ export const CHAINS: Chain[] = [
   //   ...base,
   //   compatibility: ChainCompatibility.EVM,
   //   shortName: 'BASE',
+  //   supportedLocations: ['origin', 'target'],
   //   supportedTokens: [
   //     {
   //       symbol: 'USDC',
@@ -95,6 +100,7 @@ export const CHAINS: Chain[] = [
     ...baseSepolia,
     compatibility: ChainCompatibility.EVM,
     shortName: 'BASE',
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'KIMAUSD',
@@ -107,6 +113,7 @@ export const CHAINS: Chain[] = [
     ...berachain,
     shortName: 'BERA',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin'],
     supportedTokens: [
       {
         symbol: 'HONEY',
@@ -119,6 +126,7 @@ export const CHAINS: Chain[] = [
     ...berachainTestnetbArtio,
     shortName: 'BERA',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -131,6 +139,7 @@ export const CHAINS: Chain[] = [
     ...bsc,
     compatibility: ChainCompatibility.EVM,
     shortName: 'BSC',
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -148,6 +157,7 @@ export const CHAINS: Chain[] = [
     ...bscTestnet,
     compatibility: ChainCompatibility.EVM,
     shortName: 'BSC',
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -161,6 +171,7 @@ export const CHAINS: Chain[] = [
   //   id: 0,
   //   shortName: 'BTC',
   //   name: 'Bitcoin',
+  //   supportedLocations: ['origin', 'target'],
   //   supportedTokens: [],
   //   compatibility: ChainCompatibility.BTC,
   //   rpcUrls: {
@@ -191,6 +202,7 @@ export const CHAINS: Chain[] = [
   //     }
   //   ],
   //   compatibility: ChainCompatibility.BTC,
+  //   supportedLocations: ['origin', 'target'],
   //   rpcUrls: {
   //     default: { http: [] }
   //   },
@@ -212,6 +224,7 @@ export const CHAINS: Chain[] = [
     ...mainnet,
     shortName: 'ETH',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -230,6 +243,7 @@ export const CHAINS: Chain[] = [
     name: 'Ethereum Sepolia',
     shortName: 'ETH',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -247,6 +261,7 @@ export const CHAINS: Chain[] = [
     ...optimism,
     shortName: 'OPT',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -264,6 +279,7 @@ export const CHAINS: Chain[] = [
     ...optimismSepolia,
     shortName: 'OPT',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -276,6 +292,7 @@ export const CHAINS: Chain[] = [
     ...polygon,
     shortName: 'POL',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -293,6 +310,7 @@ export const CHAINS: Chain[] = [
     ...polygonAmoy,
     shortName: 'POL',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -311,6 +329,7 @@ export const CHAINS: Chain[] = [
     name: 'Solana',
     shortName: 'SOL',
     compatibility: ChainCompatibility.SELF,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -344,6 +363,7 @@ export const CHAINS: Chain[] = [
     name: 'Solana Devnet',
     shortName: 'SOL',
     compatibility: ChainCompatibility.SELF,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -372,6 +392,7 @@ export const CHAINS: Chain[] = [
     ...tron,
     shortName: 'TRX',
     compatibility: ChainCompatibility.SELF,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -385,6 +406,7 @@ export const CHAINS: Chain[] = [
     name: 'Tron Nile',
     shortName: 'TRX',
     compatibility: ChainCompatibility.SELF,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -412,6 +434,7 @@ export const CHAINS: Chain[] = [
     name: 'Credit Card',
     shortName: 'CC',
     compatibility: ChainCompatibility.CC,
+    supportedLocations: ['origin'],
     supportedTokens: [
       {
         symbol: 'USD',
@@ -441,6 +464,7 @@ export const CHAINS: Chain[] = [
     name: 'Credit Card',
     shortName: 'CC',
     compatibility: ChainCompatibility.CC,
+    supportedLocations: ['origin'],
     supportedTokens: [
       {
         symbol: 'USD',
@@ -470,6 +494,7 @@ export const CHAINS: Chain[] = [
   //   name: 'Tron Shasta',
   //   shortName: 'TRX',
   //   compatibility: ChainCompatibility.EVM,
+  //   supportedLocations: ['origin', 'target'],
   //   supportedTokens: [],
   //   nativeCurrency: {
   //     name: 'TRON',
