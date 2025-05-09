@@ -4,9 +4,9 @@ import {
   avalanche,
   avalancheFuji,
   base,
-  // base,
   baseSepolia,
   berachain,
+  berachainBepolia,
   berachainTestnetbArtio,
   bsc,
   bscTestnet,
@@ -124,14 +124,14 @@ export const CHAINS: Chain[] = [
     ]
   },
   {
-    ...berachainTestnetbArtio,
+    ...berachainBepolia,
     shortName: 'BERA',
     compatibility: ChainCompatibility.EVM,
     supportedLocations: ['origin'],
     supportedTokens: [
       {
         symbol: 'USDK',
-        address: '0xB16de57a9c4D28CFe7Ce2ab87EE4A4deBD643cD1',
+        address: '0xe5dB851969B4d8EE8A023F4b991CbED6e39dca80',
         decimals: 18
       }
     ]
