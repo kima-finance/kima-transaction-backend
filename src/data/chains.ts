@@ -3,6 +3,7 @@ import {
   arbitrumSepolia,
   avalanche,
   avalancheFuji,
+  base,
   // base,
   baseSepolia,
   berachain,
@@ -83,19 +84,19 @@ export const CHAINS: Chain[] = [
     ]
   },
   // TODO: enable once BASE supported in mainnet
-  // {
-  //   ...base,
-  //   compatibility: ChainCompatibility.EVM,
-  //   shortName: 'BASE',
-  //   supportedLocations: ['origin', 'target'],
-  //   supportedTokens: [
-  //     {
-  //       symbol: 'USDC',
-  //       address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-  //       decimals: 6
-  //     }
-  //   ]
-  // },
+  {
+    ...base,
+    compatibility: ChainCompatibility.EVM,
+    shortName: 'BASE',
+    supportedLocations: ['origin', 'target'],
+    supportedTokens: [
+      {
+        symbol: 'USDC',
+        address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        decimals: 6
+      }
+    ]
+  },
   {
     ...baseSepolia,
     compatibility: ChainCompatibility.EVM,
