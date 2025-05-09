@@ -104,8 +104,8 @@ export const CHAINS: Chain[] = [
     supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
-        symbol: 'KIMAUSD',
-        address: '0x2cF79df2879902A2Fc06329B1760E0f2aD9a3a47',
+        symbol: 'USDK',
+        address: '0x2B0F2060d358a2DF51dBc4147a09445b11EF5D41',
         decimals: 18
       }
     ]
