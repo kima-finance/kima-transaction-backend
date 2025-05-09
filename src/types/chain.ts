@@ -16,12 +16,9 @@ export interface Chain extends ViemChain {
   shortName: string
   compatibility: ChainCompatibility
   faucets?: string[]
+  supportedLocations: ChainLocation[]
   supportedTokens: TokenDto[]
   disabled?: boolean
-}
-
-export interface SupportedChain extends Chain {
-  supportedLocations: ChainLocation[]
 }
 
 const filterMode = z.enum(['whitelist', 'blacklist'])

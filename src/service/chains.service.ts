@@ -5,8 +5,7 @@ import {
   ChainCompatibility,
   ChainLocation,
   chainLocationSchema,
-  FilterConfig,
-  SupportedChain
+  FilterConfig
 } from '../types/chain'
 import { ChainEnv } from '../types/chain-env'
 import { ChainName } from '../types/chain-name'
@@ -25,26 +24,20 @@ import { ENV } from '../env-validate'
 import { ChainFilter } from './chain-fiter'
 
 export class ChainsService {
-  readonly filters: Record<ChainLocation, ChainFilter | undefined> | undefined
-  readonly allChainsSet: Set<ChainName>
+  readonly filters: Record<ChainLocation, ChainFilter>
+  readonly allChainsMap: Map<ChainName, Chain>
 
   constructor(
     private readonly env: ChainEnv,
     chainFilter: FilterConfig | undefined
   ) {
-    this.allChainsSet = new Set(
-      this.getChains().map((c) => c.shortName as ChainName)
+    this.allChainsMap = new Map(
+      this.getChains().map((c) => [c.shortName as ChainName, c])
     )
-    this.filters = chainFilter
-      ? {
-          origin: chainFilter.origin
-            ? new ChainFilter(env, this.allChainsSet, chainFilter.origin)
-            : undefined,
-          target: chainFilter.target
-            ? new ChainFilter(env, this.allChainsSet, chainFilter.target)
-            : undefined
-        }
-      : undefined
+    this.filters = {
+      origin: new ChainFilter(this.allChainsMap, 'origin', chainFilter?.origin),
+      target: new ChainFilter(this.allChainsMap, 'target', chainFilter?.target)
+    }
   }
 
   /**
@@ -212,14 +205,10 @@ export class ChainsService {
     chainShortName: string,
     location: ChainLocation
   ): boolean => {
-    const filter = this.filters?.[location]
-    if (!filter) {
-      return this.allChainsSet.has(chainShortName as ChainName)
-    }
-    return filter.isSupportedChain(chainShortName)
+    return this.filters[location].isSupportedChain(chainShortName)
   }
 
-  supportedChains = (): SupportedChain[] => {
+  supportedChains = (): Chain[] => {
     const chainLocations = chainLocationSchema.options
     return this.getChains()
       .map((chain) => {
