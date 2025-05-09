@@ -114,7 +114,7 @@ export const CHAINS: Chain[] = [
     ...berachain,
     shortName: 'BERA',
     compatibility: ChainCompatibility.EVM,
-    supportedLocations: ['origin'],
+    supportedLocations: ['target'],
     supportedTokens: [
       {
         symbol: 'HONEY',
@@ -127,7 +127,7 @@ export const CHAINS: Chain[] = [
     ...berachainBepolia,
     shortName: 'BERA',
     compatibility: ChainCompatibility.EVM,
-    supportedLocations: ['origin'],
+    supportedLocations: ['target'],
     supportedTokens: [
       {
         symbol: 'USDK',
