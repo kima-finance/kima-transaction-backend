@@ -43,3 +43,13 @@ export function toUrl(urlOrDomain: string): URL {
     ? new URL(urlOrDomain)
     : new URL(`http://${urlOrDomain}`)
 }
+
+export const formatterInt = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 0,
+  useGrouping: false
+})
+
+export const formatterFloat = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: DECIMALS,
+  useGrouping: false
+})

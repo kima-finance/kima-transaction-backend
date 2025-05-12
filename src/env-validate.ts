@@ -1,6 +1,8 @@
 import 'dotenv/config'
 import { z } from 'zod'
 import { ChainEnv } from './types/chain-env'
+import { jsonStringToObject } from './types/utils'
+import { filterConfigSchema } from './types/chain'
 
 const envSchema = z.object({
   // (Optional) Enables address compliance checks for blacklisted addresses
@@ -55,6 +57,11 @@ const envSchema = z.object({
       required_error: 'KIMA_EXPLORER ENV var is required'
     })
     .url(),
+
+  // Chain filtering (Optional)
+  // Determines which chains are returned by the /chains endpoints
+  // Effects chain validation and fee calculation
+  KIMA_CHAIN_FILTER: jsonStringToObject.pipe(filterConfigSchema).optional(),
 
   // Node environment
   NODE_ENV: z

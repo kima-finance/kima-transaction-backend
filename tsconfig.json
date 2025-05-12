@@ -10,13 +10,9 @@
     "noImplicitAny": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "isolatedModules": true
   },
   "include": ["src"],
-  "exclude": [
-    "./jest.config.js",
-    "**/*.test.*",
-    "**/*.spec.*",
-    "kima-transaction-api"
-  ]
+  "exclude": ["./jest.config.js", "kima-transaction-api"]
 }

@@ -578,18 +578,17 @@ chainsRouter.get('/tss_pubkey', async (_, res: Response) => {
 chainsRouter.get(
   '/',
   [
-    query('env')
-      .isIn(Object.values(ChainEnv))
-      .withMessage('env must be a valid chain environment')
-      .optional(),
-    query('symbol')
-      .isIn(Object.values(ChainName))
-      .withMessage('symbol must be a valid chain name')
-      .optional()
+    // query('env')
+    //   .isIn(Object.values(ChainEnv))
+    //   .withMessage('env must be a valid chain environment')
+    //   .optional(),
+    // query('symbol')
+    //   .isIn(Object.values(ChainName))
+    //   .withMessage('symbol must be a valid chain name')
+    //   .optional()
   ],
   async (req: Request, res: Response) => {
-    const { env = ENV.KIMA_ENVIRONMENT, symbol } = req.query
-    const chains = chainsService.getChains(env as ChainEnv, symbol as ChainName)
+    const chains = chainsService.supportedChains()
     res.status(200).json(chains)
   }
 )
