@@ -1,15 +1,13 @@
+import { CHAINS } from '../data/chains'
 import { ChainsService } from '../service/chains.service'
 import { ChainList, ChainLocation, FilterConfig } from '../types/chain'
 import { ChainEnv } from '../types/chain-env'
-import { ChainName } from '../types/chain-name'
 
 jest.mock('../fetch-wrapper')
 
 describe('Chain Service', () => {
   let chainFilter: FilterConfig
   let service: ChainsService
-  const chains = Object.values(ChainName)
-  const numChains = chains.length
   let chainEnv: ChainEnv
 
   beforeEach(() => {
@@ -39,10 +37,23 @@ describe('Chain Service', () => {
           service = new ChainsService(chainEnv, undefined)
         })
 
-        it.each(chains.map((chain) => ({ chain, expected: true })))(
-          'should return true for all chains: case $chain',
-          ({ chain, expected }) => {
-            const result = service.isSupportedChain(chain, 'origin')
+        it.each(
+          CHAINS.flatMap((chain) =>
+            ['origin', 'target'].map((location) => ({
+              chain: chain.shortName,
+              location,
+              expected: chain.supportedLocations.includes(
+                location as ChainLocation
+              )
+            }))
+          )
+        )(
+          'should return the chain value: case $chain $location $expected',
+          ({ chain, location, expected }) => {
+            const result = service.isSupportedChain(
+              chain,
+              location as ChainLocation
+            )
             expect(result).toEqual(expected)
           }
         )
@@ -56,36 +67,149 @@ describe('Chain Service', () => {
 
         it.each([
           // whitelist from origin
-          { case: 'whitelist', chain: 'ARB', location: 'origin', expected: true },
-          { case: 'whitelist', chain: 'AVX', location: 'origin', expected: false },
-          { case: 'whitelist', chain: 'BASE', location: 'origin', expected: false },
-          { case: 'whitelist', chain: 'BERA', location: 'origin', expected: false },
-          { case: 'whitelist', chain: 'BSC', location: 'origin', expected: false },
-          { case: 'whitelist', chain: 'ETH', location: 'origin', expected: false },
-          { case: 'whitelist', chain: 'OPT', location: 'origin', expected: true },
-          { case: 'whitelist', chain: 'POL', location: 'origin', expected: false },
-          { case: 'whitelist', chain: 'SOL', location: 'origin', expected: false },
-          { case: 'whitelist', chain: 'TRX', location: 'origin', expected: false },
+          {
+            case: 'whitelist',
+            chain: 'ARB',
+            location: 'origin',
+            expected: true
+          },
+          {
+            case: 'whitelist',
+            chain: 'AVX',
+            location: 'origin',
+            expected: false
+          },
+          {
+            case: 'whitelist',
+            chain: 'BASE',
+            location: 'origin',
+            expected: false
+          },
+          {
+            case: 'whitelist',
+            chain: 'BERA',
+            location: 'origin',
+            expected: false
+          },
+          {
+            case: 'whitelist',
+            chain: 'BSC',
+            location: 'origin',
+            expected: false
+          },
+          {
+            case: 'whitelist',
+            chain: 'ETH',
+            location: 'origin',
+            expected: false
+          },
+          {
+            case: 'whitelist',
+            chain: 'OPT',
+            location: 'origin',
+            expected: true
+          },
+          {
+            case: 'whitelist',
+            chain: 'POL',
+            location: 'origin',
+            expected: false
+          },
+          {
+            case: 'whitelist',
+            chain: 'SOL',
+            location: 'origin',
+            expected: false
+          },
+          {
+            case: 'whitelist',
+            chain: 'TRX',
+            location: 'origin',
+            expected: false
+          },
 
           // blacklist from target
-          { case: 'blacklist', chain: 'ARB', location: 'target', expected: true },
-          { case: 'blacklist', chain: 'AVX', location: 'target', expected: true },
-          { case: 'blacklist', chain: 'BASE', location: 'target', expected: true },
-          { case: 'blacklist', chain: 'BERA', location: 'target', expected: true },
-          { case: 'blacklist', chain: 'BSC', location: 'target', expected: false },
-          { case: 'blacklist', chain: 'ETH', location: 'target', expected: true },
-          { case: 'blacklist', chain: 'OPT', location: 'target', expected: true },
-          { case: 'blacklist', chain: 'POL', location: 'target', expected: true },
-          { case: 'blacklist', chain: 'SOL', location: 'target', expected: true },
-          { case: 'blacklist', chain: 'TRX', location: 'target', expected: false },
+          {
+            case: 'blacklist',
+            chain: 'ARB',
+            location: 'target',
+            expected: true
+          },
+          {
+            case: 'blacklist',
+            chain: 'AVX',
+            location: 'target',
+            expected: true
+          },
+          {
+            case: 'blacklist',
+            chain: 'BASE',
+            location: 'target',
+            expected: true
+          },
+          {
+            case: 'blacklist',
+            chain: 'BERA',
+            location: 'target',
+            expected: false
+          },
+          {
+            case: 'blacklist',
+            chain: 'BSC',
+            location: 'target',
+            expected: false
+          },
+          {
+            case: 'blacklist',
+            chain: 'ETH',
+            location: 'target',
+            expected: true
+          },
+          {
+            case: 'blacklist',
+            chain: 'OPT',
+            location: 'target',
+            expected: true
+          },
+          {
+            case: 'blacklist',
+            chain: 'POL',
+            location: 'target',
+            expected: true
+          },
+          {
+            case: 'blacklist',
+            chain: 'SOL',
+            location: 'target',
+            expected: true
+          },
+          {
+            case: 'blacklist',
+            chain: 'TRX',
+            location: 'target',
+            expected: false
+          },
 
           // invalid chain shortname
-          { case: 'invalid', chain: 'INVALID', location: 'origin', expected: false },
-          { case: 'invalid', chain: 'INVALID', location: 'target', expected: false }
+          {
+            case: 'invalid',
+            chain: 'INVALID',
+            location: 'origin',
+            expected: false
+          },
+          {
+            case: 'invalid',
+            chain: 'INVALID',
+            location: 'target',
+            expected: false
+          }
         ])(
           'case: $case $location filter should return $expected for $chain',
           ({ chain, location, expected }) => {
-            const result = service.isSupportedChain(chain, location as ChainLocation )
+            const result = service.isSupportedChain(
+              chain,
+              location as ChainLocation
+            )
             expect(result).toEqual(expected)
           }
         )

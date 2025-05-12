@@ -1,6 +1,9 @@
 import { NextFunction, Request, Response } from 'express'
 import { TransactionDetails } from '../types/transaction-details'
 import { complianceService } from '../check-compliance'
+import { z } from 'zod'
+
+type TransactionDetailsType = z.infer<typeof TransactionDetails>
 
 /**
  * Check if the address is compliant. Only enabled if COMPLIANCE_URL is set.
@@ -20,7 +23,7 @@ export const checkCompliance = async (
     return next()
   }
 
-  const { originAddress, targetAddress } = req.body as TransactionDetails
+  const { originAddress, targetAddress } = req.body as TransactionDetailsType
 
   const {
     isCompliant,

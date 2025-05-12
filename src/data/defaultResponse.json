@@ -1,0 +1,159 @@
+{
+  "code": 0,
+  "height": 4982918,
+  "txIndex": 4,
+  "events": [
+    {
+      "type": "coin_spent",
+      "attributes": [
+        {
+          "key": "spender",
+          "value": "kima1pvtdn0zx6nflf37a7y7utcu4ygwdeeeyax3xn4"
+        },
+        {
+          "key": "amount",
+          "value": "200uKIMA"
+        }
+      ]
+    },
+    {
+      "type": "coin_received",
+      "attributes": [
+        {
+          "key": "receiver",
+          "value": "kima17xpfvakm2amg962yls6f84z3kell8c5l72vas8"
+        },
+        {
+          "key": "amount",
+          "value": "200uKIMA"
+        }
+      ]
+    },
+    {
+      "type": "transfer",
+      "attributes": [
+        {
+          "key": "recipient",
+          "value": "kima17xpfvakm2amg962yls6f84z3kell8c5l72vas8"
+        },
+        {
+          "key": "sender",
+          "value": "kima1pvtdn0zx6nflf37a7y7utcu4ygwdeeeyax3xn4"
+        },
+        {
+          "key": "amount",
+          "value": "200uKIMA"
+        }
+      ]
+    },
+    {
+      "type": "message",
+      "attributes": [
+        {
+          "key": "sender",
+          "value": "kima1pvtdn0zx6nflf37a7y7utcu4ygwdeeeyax3xn4"
+        }
+      ]
+    },
+    {
+      "type": "tx",
+      "attributes": [
+        {
+          "key": "fee",
+          "value": "200uKIMA"
+        },
+        {
+          "key": "fee_payer",
+          "value": "kima1pvtdn0zx6nflf37a7y7utcu4ygwdeeeyax3xn4"
+        }
+      ]
+    },
+    {
+      "type": "tx",
+      "attributes": [
+        {
+          "key": "acc_seq",
+          "value": "kima1pvtdn0zx6nflf37a7y7utcu4ygwdeeeyax3xn4/268"
+        }
+      ]
+    },
+    {
+      "type": "tx",
+      "attributes": [
+        {
+          "key": "signature",
+          "value": "a2z8RudpT8DuWkpn6vRJUNj7p1xUnlG+RjrzHAkL+6Jr0fPdrh1LS8lGFhJr87l00dHeYp0H3+vJvTvz//ry4g=="
+        }
+      ]
+    },
+    {
+      "type": "message",
+      "attributes": [
+        {
+          "key": "action",
+          "value": "/kimablockchain.transaction.MsgRequestTransaction"
+        },
+        {
+          "key": "sender",
+          "value": "kima1pvtdn0zx6nflf37a7y7utcu4ygwdeeeyax3xn4"
+        },
+        {
+          "key": "module",
+          "value": "transaction"
+        }
+      ]
+    },
+    {
+      "type": "transaction_requested",
+      "attributes": [
+        {
+          "key": "sender",
+          "value": "kima1pvtdn0zx6nflf37a7y7utcu4ygwdeeeyax3xn4"
+        },
+        {
+          "key": "txId",
+          "value": "33178"
+        }
+      ]
+    }
+  ],
+  "rawLog": "[{\"msg_index\":0,\"events\":[{\"type\":\"message\",\"attributes\":[{\"key\":\"action\",\"value\":\"/kimablockchain.transaction.MsgRequestTransaction\"},{\"key\":\"sender\",\"value\":\"kima1pvtdn0zx6nflf37a7y7utcu4ygwdeeeyax3xn4\"},{\"key\":\"module\",\"value\":\"transaction\"}]},{\"type\":\"transaction_requested\",\"attributes\":[{\"key\":\"sender\",\"value\":\"kima1pvtdn0zx6nflf37a7y7utcu4ygwdeeeyax3xn4\"},{\"key\":\"txId\",\"value\":\"33178\"}]}]}]",
+  "transactionHash": "F763218A1AED5329E1271388996D5FDC151567979F9BFBA16339BEBB9DBB60E8",
+  "msgResponses": [
+    {
+      "typeUrl": "/kimablockchain.transaction.MsgRequestTransactionResponse",
+      "value": {
+        "0": 10,
+        "1": 3,
+        "2": 50,
+        "3": 48,
+        "4": 48,
+        "5": 18,
+        "6": 17,
+        "7": 79,
+        "8": 112,
+        "9": 101,
+        "10": 114,
+        "11": 97,
+        "12": 116,
+        "13": 105,
+        "14": 111,
+        "15": 110,
+        "16": 32,
+        "17": 115,
+        "18": 117,
+        "19": 99,
+        "20": 99,
+        "21": 101,
+        "22": 101,
+        "23": 100,
+        "24": 24,
+        "25": 155,
+        "26": 131,
+        "27": 2
+      }
+    }
+  ],
+  "gasUsed": 124588,
+  "gasWanted": 200000
+}

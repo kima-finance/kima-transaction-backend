@@ -62,6 +62,10 @@ async function isValidAddress(
   chain: ChainName
 ): Promise<string> {
   try {
+    if (chain === ChainName.FIAT) {
+      return ''
+    }
+
     if (chain === ChainName.SOLANA) {
       const owner = new PublicKey(address)
       return !PublicKey.isOnCurve(owner)

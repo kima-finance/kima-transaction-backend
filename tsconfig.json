@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2017",
     "module": "commonjs",
     "lib": ["es6", "dom"],
     "allowJs": true,
@@ -11,7 +11,9 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "downlevelIteration": true,
+    
   },
   "include": ["src"],
   "exclude": ["./jest.config.js", "kima-transaction-api"]
