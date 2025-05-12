@@ -13,23 +13,17 @@ dotenv.config()
  * Returns empty string if the tokens are supported on the given chains
  * @param {string} originChain sending chain
  * @param {string} targetChain receiving chain
- * @param {string} originSymbol sending token symbol
- * @param {string} targetSymbol receiving token symbol
  * @returns {Promise<string>}
  */
 async function isValidChain(
   originChain: string,
   targetChain: string,
-  originSymbol: string,
-  targetSymbol: string
 ): Promise<string> {
-  const chainNames = await chainsService.getChainNames()
-
-  if (!chainNames.find((item: string) => item === originChain)) {
-    return 'origin chain ${originChain} not found'
+  if (!chainsService.isSupportedChain(originChain, 'origin')) {
+    return `origin chain ${originChain} not supported`
   }
-  if (!chainNames.find((item: string) => item === targetChain)) {
-    return 'target chain ${targetChain} not found'
+  if (!chainsService.isSupportedChain(targetChain, 'target')) {
+    return `target chain ${targetChain} not supported`
   }
 
   // const currencies = await chainsService.getAvailableCurrencies({
@@ -68,6 +62,10 @@ async function isValidAddress(
   chain: ChainName
 ): Promise<string> {
   try {
+    if (chain === ChainName.FIAT) {
+      return ''
+    }
+
     if (chain === ChainName.SOLANA) {
       const owner = new PublicKey(address)
       return !PublicKey.isOnCurve(owner)
@@ -113,18 +111,12 @@ export async function validate(req: Request): Promise<string> {
     originChain,
     targetAddress,
     targetChain,
-    amount,
-    fee,
-    originSymbol,
-    targetSymbol
   } = req.body
 
   try {
     let error = await isValidChain(
       originChain,
       targetChain,
-      originSymbol,
-      targetSymbol
     )
     if (error) {
       return error

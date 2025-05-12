@@ -5,9 +5,16 @@ import { body, query } from 'express-validator'
 import { bigintToFixedNumber, hexStringToUint8Array } from '../utils'
 import { ChainName } from '../types/chain-name'
 import { calcServiceFee } from '../fees'
-import { SubmitRequestDto } from '../types/submit-request.dto'
+import {
+  SubmitRequestDto,
+  SubmitRequestSchema
+} from '../types/submit-request.dto'
 import { checkCompliance } from '../middleware/compliance'
 import { transValidation } from '../middleware/trans-validation'
+import { txMessage, TxMessageInputs } from '../message'
+import { formatUnits } from 'viem'
+import { generateCreditCardOptions } from '../creditcard'
+import defaultResponse from '../data/defaultResponse.json'
 
 const submitRouter = Router()
 
@@ -130,35 +137,20 @@ const submitRouter = Router()
  */
 submitRouter.post(
   '/',
-  [
-    body('amount')
-      .isInt({ gt: 0 })
-      .withMessage('amount must be greater than 0'),
-    body('fee').isInt({ min: 0 }).withMessage('fee must be positive'),
-    body('decimals')
-      .isInt({ gt: 0 })
-      .withMessage('decimals must be greater than 0'),
-    body('originAddress').notEmpty(),
-    body('originChain')
-      .isIn(Object.values(ChainName))
-      .withMessage('originChain must be a valid chain name'),
-    body('originSymbol').notEmpty(),
-    body('targetAddress').notEmpty(),
-    body('targetChain')
-      .isIn(Object.values(ChainName))
-      .withMessage('targetChain must be a valid chain name'),
-    body('targetSymbol').notEmpty(),
-    body('htlcCreationHash').optional().isString(),
-    body('htlcCreationVout').optional().isInt(),
-    body('htlcExpirationTimestamp').optional().isString(),
-    body('htlcVersion').optional().isString(),
-    body('senderPubKey').optional().isString(),
-    validateRequest,
-    transValidation,
-    checkCompliance
-  ],
+  [transValidation, checkCompliance],
   async (req: Request, res: Response) => {
-    const {
+    const result = SubmitRequestSchema.safeParse(req.body)
+
+    if (!result.success) {
+      console.error('Validation Error:', result.error.format())
+
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: result.error.flatten()
+      })
+    }
+
+    let {
       originAddress,
       originChain,
       originSymbol,
@@ -173,24 +165,57 @@ submitRouter.post(
       htlcExpirationTimestamp = '',
       htlcVersion = '',
       senderPubKey = '',
-      options = ''
+      options = '',
+      ccTransactionIdSeed = ''
     } = req.body satisfies SubmitRequestDto
 
-    const fixedAmount = bigintToFixedNumber(amount, decimals)
-    const fixedFee = bigintToFixedNumber(fee, decimals)
+    // const fixedAmount = bigintToFixedNumber(amount, decimals)
+    // const fixedFee = bigintToFixedNumber(fee, decimals)
+    // console.log(req.body, { fixedAmount, fixedFee })
 
-    console.log(req.body, { fixedAmount, fixedFee })
+    const amountStr = formatUnits(amount, decimals)
+    const feeStr = formatUnits(fee, decimals)
+    console.log(req.body, { amountStr, feeStr })
+
+    // signature for CC
+    if (originChain === 'CC') {
+      const { options: creditCardOptions, transactionId } =
+        await generateCreditCardOptions(ccTransactionIdSeed)
+
+      options = JSON.stringify({
+        ...JSON.parse(options),
+        ...creditCardOptions
+      })
+    }
+
+    console.log({
+      originAddress,
+      originChain,
+      targetAddress,
+      targetChain,
+      originSymbol,
+      targetSymbol,
+      amount: amountStr,
+      fee: feeStr,
+      htlcCreationHash,
+      htlcCreationVout,
+      htlcExpirationTimestamp,
+      htlcVersion,
+      senderPubKey: hexStringToUint8Array(senderPubKey),
+      options,
+      ccTransactionIdSeed
+    })
 
     try {
       const result = await submitKimaTransaction({
-        originAddress,
-        originChain,
+        originAddress: originChain === 'CC' ? '' : originAddress,
+        originChain: originChain === 'CC' ? 'FIAT' : originChain,
         targetAddress,
         targetChain,
         originSymbol,
         targetSymbol,
-        amount: fixedAmount,
-        fee: fixedFee,
+        amount: amountStr,
+        fee: feeStr,
         htlcCreationHash,
         htlcCreationVout,
         htlcExpirationTimestamp,
@@ -198,9 +223,11 @@ submitRouter.post(
         senderPubKey: hexStringToUint8Array(senderPubKey),
         options
       })
-      console.log(result)
+
+      console.log('kima submit result', result)
       res.send(result)
     } catch (e) {
+      console.error('error submitting transaction')
       console.error(e)
       res.status(500).send('failed to submit transaction')
     }
@@ -222,6 +249,12 @@ submitRouter.post(
  *         schema:
  *           type: number
  *           description: Amount to send
+ *       - in: query
+ *         name: originAddress
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: sender address
  *       - in: query
  *         name: originChain
  *         required: true
@@ -245,6 +278,12 @@ submitRouter.post(
  *           type: string
  *           description: Origin token symbol
  *       - in: query
+ *         name: targetAddress
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: receiver address
+ *       - in: query
  *         name: targetChain
  *         required: true
  *         schema:
@@ -260,6 +299,12 @@ submitRouter.post(
  *             - POL
  *             - SOL
  *             - TRX
+ *       - in: query
+ *         name: targetSymbol
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: Receiving token symbol
  *       - in: query
  *         name: deductFee
  *         required: false
@@ -280,45 +325,28 @@ submitRouter.post(
  *                   description: bigint string of amount to approve
  *                 totalFee:
  *                   type: string
- *                   description: bigint string of total fees
- *                 totalFeeUsd:
- *                   type: number
  *                   description: total fee in USD for display
  *                 decimals:
  *                   type: number
  *                   description: number for decimals for the bigint strings
- *                 deductFee:
- *                   type: boolean
- *                   description: whether the allowance and submit amounts reflect fee decduction
  *                 submitAmount:
  *                   type: string
  *                   description: bigint string of amount to submit in the Kima transaction
- *                 breakdown:
- *                   type: array
- *                   description: breakdown of fees by chain
- *                   items:
- *                     type: object
- *                     properties:
- *                       amount:
- *                         type: number
- *                       feeType:
- *                         type: string
- *                         enum:
- *                           - gas
- *                           - service
- *                       chain:
- *                         type: string
- *                         enum:
- *                           - ARB
- *                           - AVX
- *                           - BASE
- *                           - BSC
- *                           - ETH
- *                           - OPT
- *                           - POL
- *                           - SOL
- *                           - TRX
- *                           - KIMA
+ *                 feeId:
+ *                   type: string
+ *                   description: id returned from the fee service
+ *                 sourceFee:
+ *                   type: string
+ *                   description: fee for the source chain
+ *                 targetFee:
+ *                   type: string
+ *                   description: fee for the target chain
+ *                 kimaFee:
+ *                   type: string
+ *                   description: fee for the kima chain
+ *                 message:
+ *                   type: string
+ *                   description: transaction data messge to be signed by the user
  *       500:
  *         description: Internal server error
  *         content:
@@ -332,20 +360,23 @@ submitRouter.get(
     query('amount')
       .isFloat({ gt: 0 })
       .withMessage('amount must be greater than 0'),
+    // query('deductFee').optional().isBoolean().default(false),
+    query('originAddress').notEmpty(),
     query('originChain')
       .isIn(Object.values(ChainName))
       .withMessage('sourceChain must be a valid chain name'),
     query('originSymbol').notEmpty(),
+    query('targetAddress').notEmpty(),
     query('targetChain')
       .isIn(Object.values(ChainName))
       .withMessage('targetChain must be a valid chain name'),
-    query('deductFee').optional().isBoolean().default(false),
+    query('targetSymbol').notEmpty(),
     validateRequest
   ],
   async (req: Request, res: Response) => {
     const {
       amount,
-      deductFee,
+      // deductFee,
       originChain,
       originAddress,
       originSymbol,
@@ -356,19 +387,121 @@ submitRouter.get(
     try {
       const result = await calcServiceFee({
         amount: amount as string,
-        deductFee: deductFee === 'true',
-        originChain: originChain as ChainName,
-        originAddress: originAddress as string,
+        // deductFee: deductFee === 'true',
+        originChain:
+          originChain === 'CC' ? ChainName.FIAT : (originChain as ChainName),
+        originAddress: originChain === 'CC' ? '' : (originAddress as string),
         originSymbol: originSymbol as string,
         targetChain: targetChain as ChainName,
         targetAddress: targetAddress as string,
         targetSymbol: targetSymbol as string
       })
-      res.status(200).send(result)
+      res.status(200).json(result)
+      // const message = txMessage({
+      //   allowanceAmount: result.allowanceAmount,
+      //   decimals: result.decimals.toString(),
+      //   originChain: originChain as string,
+      //   originSymbol: originSymbol as string,
+      //   targetAddress: targetAddress as string,
+      //   targetChain: targetChain as ChainName
+      // })
+      // res.status(200).json({
+      //   ...result,
+      //   message
+      // })
     } catch (e) {
       console.log(e)
       res.status(500).send('failed to get fee')
     }
+  }
+)
+
+/**
+ * @openapi
+ * /submit/transactionId:
+ *   get:
+ *     summary: Get CC transactionId
+ *     description: Get the transactionId for a credit card transaction
+ *     tags:
+ *       - Submit
+ *     parameters:
+ *       - in: query
+ *         name: transactionIdSeed
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: uuid seed for the encoded transationId
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 transactionId:
+ *                   type: string
+ *                   description: encoded transaction id generated from seed
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ */
+submitRouter.get(
+  '/transactionId',
+  [query('transactionIdSeed').notEmpty(), validateRequest],
+  async (req: Request, res: Response) => {
+    const { transactionIdSeed } = req.query
+    try {
+      const { transactionId } = await generateCreditCardOptions(
+        transactionIdSeed as string
+      )
+
+      res.status(200).json({ transactionId })
+    } catch (e) {
+      console.log(e)
+      res.status(500).send('failed to generate transactionId')
+    }
+  }
+)
+
+// test only TODO: remove
+submitRouter.get<never, { messsage: string }, never, TxMessageInputs>(
+  '/message',
+  [
+    query('allowanceAmount')
+      .isInt({ gt: 0 })
+      .withMessage('allowanceAmount must be an integer greater than 0'),
+    query('originChain')
+      .isString()
+      .isIn(Object.values(ChainName))
+      .withMessage('targetChain must be a valid chain name'),
+    query('originSymbol').isString().notEmpty(),
+    query('targetAddress').isString().notEmpty(),
+    query('targetChain')
+      .isString()
+      .isIn(Object.values(ChainName))
+      .withMessage('targetChain must be a valid chain name'),
+    validateRequest
+  ],
+  async (req: Request, res: Response) => {
+    const {
+      allowanceAmount,
+      originChain,
+      originSymbol,
+      targetAddress,
+      targetChain
+    } = req.query
+    const message = txMessage({
+      allowanceAmount: allowanceAmount as string,
+      originChain: originChain as string,
+      originSymbol: originSymbol as string,
+      targetAddress: targetAddress as string,
+      targetChain: targetChain as string
+    })
+    res.status(200).json({ message })
   }
 )
 

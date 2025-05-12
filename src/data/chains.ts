@@ -3,9 +3,10 @@ import {
   arbitrumSepolia,
   avalanche,
   avalancheFuji,
-  // base,
+  base,
   baseSepolia,
   berachain,
+  berachainBepolia,
   berachainTestnetbArtio,
   bsc,
   bscTestnet,
@@ -24,6 +25,7 @@ export const CHAINS: Chain[] = [
     ...arbitrum,
     compatibility: ChainCompatibility.EVM,
     shortName: 'ARB',
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -41,6 +43,7 @@ export const CHAINS: Chain[] = [
     ...arbitrumSepolia,
     compatibility: ChainCompatibility.EVM,
     shortName: 'ARB',
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -53,6 +56,7 @@ export const CHAINS: Chain[] = [
     ...avalanche,
     compatibility: ChainCompatibility.EVM,
     shortName: 'AVX',
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -70,6 +74,7 @@ export const CHAINS: Chain[] = [
     ...avalancheFuji,
     compatibility: ChainCompatibility.EVM,
     shortName: 'AVX',
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -79,26 +84,28 @@ export const CHAINS: Chain[] = [
     ]
   },
   // TODO: enable once BASE supported in mainnet
-  // {
-  //   ...base,
-  //   compatibility: ChainCompatibility.EVM,
-  //   shortName: 'BASE',
-  //   supportedTokens: [
-  //     {
-  //       symbol: 'USDC',
-  //       address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-  //       decimals: 6
-  //     }
-  //   ]
-  // },
+  {
+    ...base,
+    compatibility: ChainCompatibility.EVM,
+    shortName: 'BASE',
+    supportedLocations: ['origin', 'target'],
+    supportedTokens: [
+      {
+        symbol: 'USDC',
+        address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        decimals: 6
+      }
+    ]
+  },
   {
     ...baseSepolia,
     compatibility: ChainCompatibility.EVM,
     shortName: 'BASE',
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
-        symbol: 'KIMAUSD',
-        address: '0x2cF79df2879902A2Fc06329B1760E0f2aD9a3a47',
+        symbol: 'USDK',
+        address: '0x2B0F2060d358a2DF51dBc4147a09445b11EF5D41',
         decimals: 18
       }
     ]
@@ -107,6 +114,7 @@ export const CHAINS: Chain[] = [
     ...berachain,
     shortName: 'BERA',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['target'],
     supportedTokens: [
       {
         symbol: 'HONEY',
@@ -116,13 +124,14 @@ export const CHAINS: Chain[] = [
     ]
   },
   {
-    ...berachainTestnetbArtio,
+    ...berachainBepolia,
     shortName: 'BERA',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['target'],
     supportedTokens: [
       {
         symbol: 'USDK',
-        address: '0xB16de57a9c4D28CFe7Ce2ab87EE4A4deBD643cD1',
+        address: '0xe5dB851969B4d8EE8A023F4b991CbED6e39dca80',
         decimals: 18
       }
     ]
@@ -131,6 +140,7 @@ export const CHAINS: Chain[] = [
     ...bsc,
     compatibility: ChainCompatibility.EVM,
     shortName: 'BSC',
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -148,6 +158,7 @@ export const CHAINS: Chain[] = [
     ...bscTestnet,
     compatibility: ChainCompatibility.EVM,
     shortName: 'BSC',
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -161,6 +172,7 @@ export const CHAINS: Chain[] = [
   //   id: 0,
   //   shortName: 'BTC',
   //   name: 'Bitcoin',
+  //   supportedLocations: ['origin', 'target'],
   //   supportedTokens: [],
   //   compatibility: ChainCompatibility.BTC,
   //   rpcUrls: {
@@ -191,6 +203,7 @@ export const CHAINS: Chain[] = [
   //     }
   //   ],
   //   compatibility: ChainCompatibility.BTC,
+  //   supportedLocations: ['origin', 'target'],
   //   rpcUrls: {
   //     default: { http: [] }
   //   },
@@ -212,6 +225,7 @@ export const CHAINS: Chain[] = [
     ...mainnet,
     shortName: 'ETH',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -230,6 +244,7 @@ export const CHAINS: Chain[] = [
     name: 'Ethereum Sepolia',
     shortName: 'ETH',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -247,6 +262,7 @@ export const CHAINS: Chain[] = [
     ...optimism,
     shortName: 'OPT',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -264,6 +280,7 @@ export const CHAINS: Chain[] = [
     ...optimismSepolia,
     shortName: 'OPT',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -276,6 +293,7 @@ export const CHAINS: Chain[] = [
     ...polygon,
     shortName: 'POL',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -293,6 +311,7 @@ export const CHAINS: Chain[] = [
     ...polygonAmoy,
     shortName: 'POL',
     compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -311,6 +330,7 @@ export const CHAINS: Chain[] = [
     name: 'Solana',
     shortName: 'SOL',
     compatibility: ChainCompatibility.SELF,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -344,6 +364,7 @@ export const CHAINS: Chain[] = [
     name: 'Solana Devnet',
     shortName: 'SOL',
     compatibility: ChainCompatibility.SELF,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -372,6 +393,14 @@ export const CHAINS: Chain[] = [
     ...tron,
     shortName: 'TRX',
     compatibility: ChainCompatibility.SELF,
+    supportedLocations: ['origin', 'target'],
+    blockExplorers: {
+      default: {
+        name: 'Tronscan',
+        url: 'https://tronscan.org/#',
+        apiUrl: 'https://apilist.tronscanapi.com/api'
+      }
+    },
     supportedTokens: [
       {
         symbol: 'USDT',
@@ -385,6 +414,7 @@ export const CHAINS: Chain[] = [
     name: 'Tron Nile',
     shortName: 'TRX',
     compatibility: ChainCompatibility.SELF,
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -406,36 +436,73 @@ export const CHAINS: Chain[] = [
       }
     },
     testnet: true
+  },
+  {
+    id: 0,
+    name: 'Credit Card',
+    shortName: 'CC',
+    compatibility: ChainCompatibility.CC,
+    supportedLocations: ['origin'],
+    supportedTokens: [
+      {
+        symbol: 'USD',
+        decimals: 6,
+        address: ''
+      }
+    ],
+    nativeCurrency: {
+      name: 'USD',
+      symbol: 'USD',
+      decimals: 6
+    },
+    rpcUrls: {
+      default: { http: [] }
+    },
+    faucets: [],
+    blockExplorers: {
+      default: {
+        name: '',
+        url: ''
+      }
+    },
+    testnet: true
+  },
+  {
+    id: 0,
+    name: 'Credit Card',
+    shortName: 'CC',
+    compatibility: ChainCompatibility.CC,
+    supportedLocations: ['origin'],
+    supportedTokens: [
+      {
+        symbol: 'USD',
+        decimals: 6,
+        address: ''
+      }
+    ],
+    nativeCurrency: {
+      name: 'USD',
+      symbol: 'USD',
+      decimals: 6
+    },
+    rpcUrls: {
+      default: { http: [] }
+    },
+    faucets: [],
+    blockExplorers: {
+      default: {
+        name: '',
+        url: ''
+      }
+    }
   }
-  // {
-  //   id: 0,
-  //   name: 'Fiat',
-  //   shortName: 'FIAT',
-  //   compatibility: ChainCompatibility.FIAT,
-  //   supportedTokens: [],
-  //   nativeCurrency: {
-  //     name: 'USD',
-  //     symbol: 'USD',
-  //     decimals: 6
-  //   },
-  //   rpcUrls: {
-  //     default: { http: [] }
-  //   },
-  //   faucets: [],
-  //   blockExplorers: {
-  //     default: {
-  //       name: '',
-  //       url: ''
-  //     }
-  //   },
-  //   testnet: true
-  // }
   // Tron Shasta not supported yet
   // {
   //   id: 2494104990,
   //   name: 'Tron Shasta',
   //   shortName: 'TRX',
   //   compatibility: ChainCompatibility.EVM,
+  //   supportedLocations: ['origin', 'target'],
   //   supportedTokens: [],
   //   nativeCurrency: {
   //     name: 'TRON',

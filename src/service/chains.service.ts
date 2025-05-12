@@ -1,6 +1,12 @@
 import { CHAINS } from '../data/chains'
 import { fetchWrapper } from '../fetch-wrapper'
-import { Chain, ChainCompatibility } from '../types/chain'
+import {
+  Chain,
+  ChainCompatibility,
+  ChainLocation,
+  chainLocationSchema,
+  FilterConfig
+} from '../types/chain'
 import { ChainEnv } from '../types/chain-env'
 import { ChainName } from '../types/chain-name'
 import { TssPubkeyResponseDto } from '../types/tss-pubkey-response.dto'
@@ -15,8 +21,25 @@ import { TokenDto } from '../types/token.dto'
 import { TokenAmount } from '../types/token-amount.dto'
 import { parseUnits } from 'viem'
 import { ENV } from '../env-validate'
+import { ChainFilter } from './chain-fiter'
 
 export class ChainsService {
+  readonly filters: Record<ChainLocation, ChainFilter>
+  readonly allChainsMap: Map<ChainName, Chain>
+
+  constructor(
+    private readonly env: ChainEnv,
+    chainFilter: FilterConfig | undefined
+  ) {
+    this.allChainsMap = new Map(
+      this.getChains().map((c) => [c.shortName as ChainName, c])
+    )
+    this.filters = {
+      origin: new ChainFilter(this.allChainsMap, 'origin', chainFilter?.origin),
+      target: new ChainFilter(this.allChainsMap, 'target', chainFilter?.target)
+    }
+  }
+
   /**
    * Get the static list of chain data for testnet or mainnet
    *
@@ -24,13 +47,15 @@ export class ChainsService {
    * @param {?ChainName} [symbol]
    * @returns {Chain[]}
    */
-  getChains = (env: ChainEnv, symbol?: ChainName): Chain[] => {
+  getChains = (symbol?: ChainName): Chain[] => {
     // get only testnet or mainnet chains
     // the chain will have the isTestnet property only if it is a testnet chain
     const upperCaseSymbol = symbol?.toUpperCase()
     return CHAINS.filter(
       (chain) =>
-        (env == ChainEnv.MAINNET ? !chain.testnet : chain.testnet === true) &&
+        (this.env == ChainEnv.MAINNET
+          ? !chain.testnet
+          : chain.testnet === true) &&
         (!upperCaseSymbol || chain.shortName === upperCaseSymbol)
     )
   }
@@ -42,8 +67,8 @@ export class ChainsService {
    * @param {ChainName} symbol
    * @returns {(Chain | undefined)}
    */
-  getChain = (env: ChainEnv, symbol: ChainName): Chain | undefined => {
-    const [chain] = this.getChains(env, symbol)
+  getChain = (symbol: ChainName): Chain | undefined => {
+    const [chain] = this.getChains(symbol)
     return chain
   }
 
@@ -96,7 +121,7 @@ export class ChainsService {
     const [pubKeys] = pubKeyResult.tssPubkey
 
     const [chains, poolBalances] = await Promise.all([
-      this.getChains(ENV.KIMA_ENVIRONMENT as ChainEnv),
+      this.getChains(),
       this.getPoolBalances()
     ])
 
@@ -156,10 +181,7 @@ export class ChainsService {
    * @returns {(TokenDto | undefined)}
    */
   getToken = (chainName: string, tokenSymbol: string): TokenDto | undefined => {
-    const chain = this.getChain(
-      ENV.KIMA_ENVIRONMENT as ChainEnv,
-      chainName as ChainName
-    )
+    const chain = this.getChain(chainName as ChainName)
     if (!chain) {
       throw new Error(`Chain ${chainName} not found`)
     }
@@ -179,6 +201,27 @@ export class ChainsService {
     return result
   }
 
+  isSupportedChain = (
+    chainShortName: string,
+    location: ChainLocation
+  ): boolean => {
+    return this.filters[location].isSupportedChain(chainShortName)
+  }
+
+  supportedChains = (): Chain[] => {
+    const chainLocations = chainLocationSchema.options
+    return this.getChains()
+      .map((chain) => {
+        return {
+          ...chain,
+          supportedLocations: chainLocations.filter((location) =>
+            this.isSupportedChain(chain.shortName, location)
+          )
+        }
+      })
+      .filter((chain) => chain.supportedLocations.length > 0)
+  }
+
   /**
    * Convert a numeric amount to a token amount with decimals
    * @param {string} chainName
@@ -191,7 +234,10 @@ export class ChainsService {
     tokenSymbol: string,
     amount: number | string
   ): TokenAmount => {
-    const token = this.getToken(chainName, tokenSymbol)
+    const token = this.getToken(
+      chainName === 'FIAT' ? 'CC' : chainName,
+      tokenSymbol
+    )
     if (!token) {
       throw new Error(`Token ${tokenSymbol} not found`)
     }
@@ -202,5 +248,8 @@ export class ChainsService {
   }
 }
 
-const chainsService = new ChainsService()
+const chainsService = new ChainsService(
+  ENV.KIMA_ENVIRONMENT,
+  ENV.KIMA_CHAIN_FILTER
+)
 export default chainsService

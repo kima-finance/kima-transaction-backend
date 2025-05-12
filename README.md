@@ -33,3 +33,33 @@ Use this in the frontend to notify the user an address is not compliant BEFORE d
 #### `POST /kyc`:
 
 Returns the KYC status for a specific `uuid` verification session. You can use `GET /uuid` to get a new `uuid`.
+
+## Chain Filtering
+
+Chain filtering is an optional feature that can be enabled by setting the `KIMA_CHAIN_FILTER` environment variable. It supports two modes:
+
+- `whitelist`: Only chains in the whitelist will be returned.
+- `blacklist`: Only chains not in the blacklist will be returned.
+
+This is a JSON object with the following structure:
+
+- `origin`: Filter for the origin chain
+  - `mode`: The mode to use. Can be `whitelist` or `blacklist`
+  - `chains`: An array of chain short names to filter
+- `target`: Filter for the target chain
+  - `mode`: The mode to use. Can be `whitelist` or `blacklist`
+  - `chains`: An array of chain short names to filter
+
+Example:
+
+```json
+{
+  "origin": {
+    "mode": "whitelist",
+    "chains": ["ARB", "OPT"]
+  },
+  "target": {
+    "mode": "blacklist",
+    "chains": ["TRX"]
+  }
+}
