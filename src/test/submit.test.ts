@@ -29,7 +29,7 @@ describe('POST /submit', () => {
 
   it('should return status 400 when properties are missing', async () => {
     const payload = generateTransDetails({
-      amount: 101,
+      amount: '101',
       targetSymbol: ''
     })
     expect(payload.targetSymbol).toEqual('')
