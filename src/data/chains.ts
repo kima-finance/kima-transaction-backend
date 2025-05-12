@@ -394,6 +394,13 @@ export const CHAINS: Chain[] = [
     shortName: 'TRX',
     compatibility: ChainCompatibility.SELF,
     supportedLocations: ['origin', 'target'],
+    blockExplorers: {
+      default: {
+        name: 'Tronscan',
+        url: 'https://tronscan.org/#',
+        apiUrl: 'https://apilist.tronscanapi.com/api'
+      }
+    },
     supportedTokens: [
       {
         symbol: 'USDT',
