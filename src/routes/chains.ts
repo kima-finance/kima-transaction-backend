@@ -102,7 +102,8 @@ chainsRouter.get('/chain', async (_, res: Response) => {
 chainsRouter.get('/env', async (_, res: Response) => {
   return res.json({
     env: ENV.KIMA_ENVIRONMENT as ChainEnv,
-    kimaExplorer: ENV.KIMA_EXPLORER as string
+    kimaExplorer: ENV.KIMA_EXPLORER as string,
+    paymentPartnerId: ENV.PAYMENT_PARTNER_ID as string
   })
 })
 

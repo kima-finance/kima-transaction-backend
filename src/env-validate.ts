@@ -70,7 +70,10 @@ const envSchema = z.object({
     .optional(),
 
   // Port the server will listen on
-  PORT: z.coerce.number().default(3000)
+  PORT: z.coerce.number().default(3000),
+
+  // Required for credit card transactions only
+  PAYMENT_PARTNER_ID: z.string().optional()
 })
 
 export type Environment = z.infer<typeof envSchema>
