@@ -232,8 +232,8 @@ submitRouter.post(
         targetChain,
         originSymbol,
         targetSymbol,
-        amount: fixedAmount,
-        fee: fixedFee,
+        amount: fixedAmount.toString(),
+        fee: fixedFee.toString(),
         htlcCreationHash,
         htlcCreationVout,
         htlcExpirationTimestamp,
@@ -396,6 +396,8 @@ submitRouter.get(
         originSymbol: originSymbol as string,
         targetChain: targetChain as ChainName
       })
+
+      console.log("result: ",result)
       res.status(200).send(result)
     } catch (e) {
       console.log(e)

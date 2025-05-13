@@ -402,7 +402,7 @@ export const CHAINS: Chain[] = [
     blockExplorers: {
       default: {
         name: 'Tronscan',
-        url: 'https://nile.tronscan.org/'
+        url: 'https://nile.tronscan.org'
       }
     },
     testnet: true
