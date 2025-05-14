@@ -7,7 +7,6 @@ import {
   baseSepolia,
   berachain,
   berachainBepolia,
-  berachainTestnetbArtio,
   bsc,
   bscTestnet,
   mainnet,
