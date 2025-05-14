@@ -1,5 +1,25 @@
-import { formatUnits } from 'viem'
+import { createWalletClient, http, formatUnits } from 'viem'
 import { DECIMALS } from './constants'
+import { CHAINS } from './data/chains'
+import { Chain, ChainCompatibility } from './types/chain'
+import { privateKeyToAccount, privateKeyToAddress } from 'viem/accounts'
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  sendAndConfirmTransaction,
+  Transaction
+} from '@solana/web3.js'
+import bs58 from 'bs58'
+import nacl from 'tweetnacl'
+import naclUtil from 'tweetnacl-util'
+import {
+  createApproveInstruction,
+  getAssociatedTokenAddress,
+  TOKEN_PROGRAM_ID
+} from '@solana/spl-token'
+import { ecsign, keccak256, privateToAddress, toRpcSig } from 'ethereumjs-util'
+import base58 from 'bs58'
 
 export function bigintToNumber(amount: bigint, decimals: number): number {
   return Number(formatUnits(amount, decimals))
@@ -53,3 +73,4 @@ export const formatterFloat = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: DECIMALS,
   useGrouping: false
 })
+

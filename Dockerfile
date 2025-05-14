@@ -44,6 +44,5 @@ USER appuser
 
 # Expose the application port
 EXPOSE 3000
-
 # Run migrations and start the application in production mode
 CMD npm run start

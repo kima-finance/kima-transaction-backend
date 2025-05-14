@@ -2,7 +2,11 @@ import { Request, Response, Router } from 'express'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
 import { validateRequest } from '../middleware/validation'
 import { body, query } from 'express-validator'
-import { bigintToFixedNumber, hexStringToUint8Array } from '../utils'
+import {
+  bigintToFixedNumber,
+  hexStringToUint8Array,
+  signApprovalMessage
+} from '../utils'
 import { ChainName } from '../types/chain-name'
 import { calcServiceFee } from '../fees'
 import {
@@ -204,6 +208,40 @@ submitRouter.post(
       senderPubKey: hexStringToUint8Array(senderPubKey),
       options,
       ccTransactionIdSeed
+    })
+
+    // generate signature from backend
+    if (mode === 'light') {
+      options = JSON.parse(options)
+      options.signature = await signApprovalMessage({
+        originSymbol,
+        originChain,
+        targetAddress,
+        targetChain,
+        allowanceAmount
+      })
+
+      options = JSON.stringify(options)
+    }
+
+    console.log({
+      originAddress,
+      originChain,
+      originSymbol,
+      targetAddress,
+      targetChain,
+      targetSymbol,
+      fixedAmount,
+      fixedFee,
+      decimals,
+      htlcCreationHash,
+      htlcCreationVout,
+      htlcExpirationTimestamp,
+      htlcVersion,
+      senderPubKey,
+      options,
+      mode,
+      feeDeduct
     })
 
     try {
