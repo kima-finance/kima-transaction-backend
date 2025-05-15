@@ -126,7 +126,7 @@ export const CHAINS: Chain[] = [
     ...berachainBepolia,
     shortName: 'BERA',
     compatibility: ChainCompatibility.EVM,
-    supportedLocations: ['target'],
+    supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
         symbol: 'USDK',
@@ -431,11 +431,41 @@ export const CHAINS: Chain[] = [
     blockExplorers: {
       default: {
         name: 'Tronscan',
-        url: 'https://nile.tronscan.org/'
+        url: 'https://nile.tronscan.org'
       }
     },
     testnet: true
   },
+  // {
+  //   id: 0,
+  //   name: 'Credit Card',
+  //   shortName: 'CC',
+  //   compatibility: ChainCompatibility.CC,
+  //   supportedLocations: ['origin'],
+  //   supportedTokens: [
+  //     {
+  //       symbol: 'USD',
+  //       decimals: 2,
+  //       address: ''
+  //     }
+  //   ],
+  //   nativeCurrency: {
+  //     name: 'USD',
+  //     symbol: 'USD',
+  //     decimals: 2
+  //   },
+  //   rpcUrls: {
+  //     default: { http: [] }
+  //   },
+  //   faucets: [],
+  //   blockExplorers: {
+  //     default: {
+  //       name: '',
+  //       url: ''
+  //     }
+  //   },
+  //   testnet: true
+  // },
   {
     id: 0,
     name: 'Credit Card',
@@ -445,44 +475,14 @@ export const CHAINS: Chain[] = [
     supportedTokens: [
       {
         symbol: 'USD',
-        decimals: 6,
+        decimals: 2,
         address: ''
       }
     ],
     nativeCurrency: {
       name: 'USD',
       symbol: 'USD',
-      decimals: 6
-    },
-    rpcUrls: {
-      default: { http: [] }
-    },
-    faucets: [],
-    blockExplorers: {
-      default: {
-        name: '',
-        url: ''
-      }
-    },
-    testnet: true
-  },
-  {
-    id: 0,
-    name: 'Credit Card',
-    shortName: 'CC',
-    compatibility: ChainCompatibility.CC,
-    supportedLocations: ['origin'],
-    supportedTokens: [
-      {
-        symbol: 'USD',
-        decimals: 6,
-        address: ''
-      }
-    ],
-    nativeCurrency: {
-      name: 'USD',
-      symbol: 'USD',
-      decimals: 6
+      decimals: 2
     },
     rpcUrls: {
       default: { http: [] }
