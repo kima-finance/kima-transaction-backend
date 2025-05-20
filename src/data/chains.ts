@@ -436,36 +436,36 @@ export const CHAINS: Chain[] = [
     },
     testnet: true
   },
-  // {
-  //   id: 0,
-  //   name: 'Credit Card',
-  //   shortName: 'CC',
-  //   compatibility: ChainCompatibility.CC,
-  //   supportedLocations: ['origin'],
-  //   supportedTokens: [
-  //     {
-  //       symbol: 'USD',
-  //       decimals: 2,
-  //       address: ''
-  //     }
-  //   ],
-  //   nativeCurrency: {
-  //     name: 'USD',
-  //     symbol: 'USD',
-  //     decimals: 2
-  //   },
-  //   rpcUrls: {
-  //     default: { http: [] }
-  //   },
-  //   faucets: [],
-  //   blockExplorers: {
-  //     default: {
-  //       name: '',
-  //       url: ''
-  //     }
-  //   },
-  //   testnet: true
-  // },
+  {
+    id: 0,
+    name: 'Credit Card',
+    shortName: 'CC',
+    compatibility: ChainCompatibility.CC,
+    supportedLocations: ['origin'],
+    supportedTokens: [
+      {
+        symbol: 'USD',
+        decimals: 2,
+        address: ''
+      }
+    ],
+    nativeCurrency: {
+      name: 'USD',
+      symbol: 'USD',
+      decimals: 2
+    },
+    rpcUrls: {
+      default: { http: [] }
+    },
+    faucets: [],
+    blockExplorers: {
+      default: {
+        name: '',
+        url: ''
+      }
+    },
+    testnet: true
+  },
   {
     id: 0,
     name: 'Credit Card',
