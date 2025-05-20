@@ -17,7 +17,7 @@ dotenv.config()
  */
 async function isValidChain(
   originChain: string,
-  targetChain: string,
+  targetChain: string
 ): Promise<string> {
   if (!chainsService.isSupportedChain(originChain, 'origin')) {
     return `origin chain ${originChain} not supported`
@@ -62,7 +62,9 @@ async function isValidAddress(
   chain: ChainName
 ): Promise<string> {
   try {
-    if (chain === ChainName.FIAT) {
+    console.log("address and chain: ", address, chain)
+
+    if (chain === ChainName.FIAT || chain === 'CC') {
       return ''
     }
 
@@ -106,25 +108,19 @@ async function isValidAddress(
  * @returns {Promise<string>}
  */
 export async function validate(req: Request): Promise<string> {
-  const {
-    originAddress,
-    originChain,
-    targetAddress,
-    targetChain,
-  } = req.body
+  const { originAddress, originChain, targetAddress, targetChain } = req.body
 
   try {
-    let error = await isValidChain(
-      originChain,
-      targetChain,
-    )
+    let error = await isValidChain(originChain, targetChain)
     if (error) {
       return error
     }
 
+    console.log("will validate origin...")
     error = await isValidAddress(originAddress, originChain)
     if (error) return error
 
+    console.log("will validate target...")
     error = await isValidAddress(targetAddress, targetChain)
     return error
   } catch (e) {
