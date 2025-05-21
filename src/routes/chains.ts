@@ -1,14 +1,14 @@
 import { Request, Response, Router } from 'express'
 import { fetchWrapper } from '../fetch-wrapper'
-import { param, query } from 'express-validator'
+import { param } from 'express-validator'
 import { validateRequest } from '../middleware/validation'
 import { ChainName } from '../types/chain-name'
 import { ChainsResponseDto } from '../types/chains-response.dto'
 import { AvailableChainsResponseDto } from '../types/available-chains-response.dto'
-import { AvailableCurrenciesResponseDto } from '../types/available-currencies-response.dto'
 import { ChainEnv } from '../types/chain-env'
 import chainsService from '../service/chains.service'
 import { ENV } from '../env-validate'
+import { BlockchainParamsResponseDto } from '../types/kima-blockchain-params.dto'
 
 const chainsRouter = Router()
 const baseUrl = `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain`
@@ -100,9 +100,23 @@ chainsRouter.get('/chain', async (_, res: Response) => {
  *                   type: string
  */
 chainsRouter.get('/env', async (_, res: Response) => {
+  // get max tx amount from Kima API
+  let maxAmount: string | null
+  try {
+    const response = await fetchWrapper.get<BlockchainParamsResponseDto>(
+      `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/transaction/params`
+    )
+    maxAmount =
+      typeof response === 'string' ? null : response.params.transferLimitMaxUSDT
+  } catch (e) {
+    console.error('/chains/env: failed to get max tx amount from Kima API', e)
+    maxAmount = null
+  }
+
   return res.json({
     env: ENV.KIMA_ENVIRONMENT as ChainEnv,
     kimaExplorer: ENV.KIMA_EXPLORER as string,
+    transferLimitMaxUSDT: maxAmount,
     paymentPartnerId: ENV.PAYMENT_PARTNER_ID as string
   })
 })
