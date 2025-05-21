@@ -431,7 +431,7 @@ export const CHAINS: Chain[] = [
     blockExplorers: {
       default: {
         name: 'Tronscan',
-        url: 'https://nile.tronscan.org/'
+        url: 'https://nile.tronscan.org'
       }
     },
     testnet: true
@@ -445,14 +445,14 @@ export const CHAINS: Chain[] = [
     supportedTokens: [
       {
         symbol: 'USD',
-        decimals: 6,
+        decimals: 2,
         address: ''
       }
     ],
     nativeCurrency: {
       name: 'USD',
       symbol: 'USD',
-      decimals: 6
+      decimals: 2
     },
     rpcUrls: {
       default: { http: [] }
@@ -475,14 +475,14 @@ export const CHAINS: Chain[] = [
     supportedTokens: [
       {
         symbol: 'USD',
-        decimals: 6,
+        decimals: 2,
         address: ''
       }
     ],
     nativeCurrency: {
       name: 'USD',
       symbol: 'USD',
-      decimals: 6
+      decimals: 2
     },
     rpcUrls: {
       default: { http: [] }
