@@ -2,7 +2,11 @@ import { Request, Response, Router } from 'express'
 import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
 import { validateRequest } from '../middleware/validation'
 import { body, query } from 'express-validator'
-import { bigintToFixedNumber, hexStringToUint8Array } from '../utils'
+import {
+  bigintToFixedNumber,
+  hexStringToUint8Array,
+  signApprovalMessage
+} from '../utils'
 import { ChainName } from '../types/chain-name'
 import { calcServiceFee } from '../fees'
 import {
@@ -14,7 +18,6 @@ import { transValidation } from '../middleware/trans-validation'
 import { txMessage, TxMessageInputs } from '../message'
 import { formatUnits } from 'viem'
 import { generateCreditCardOptions } from '../creditcard'
-import defaultResponse from '../data/defaultResponse.json'
 
 const submitRouter = Router()
 
@@ -139,7 +142,7 @@ submitRouter.post(
   '/',
   [transValidation, checkCompliance],
   async (req: Request, res: Response) => {
-    const result = SubmitRequestSchema.safeParse(req.body)
+    let result = SubmitRequestSchema.safeParse(req.body)
 
     if (!result.success) {
       console.error('Validation Error:', result.error.format())
@@ -166,11 +169,16 @@ submitRouter.post(
       htlcVersion = '',
       senderPubKey = '',
       options = '',
-      ccTransactionIdSeed = ''
+      ccTransactionIdSeed = '',
+      mode,
+      feeDeduct
     } = req.body satisfies SubmitRequestDto
 
-    // const fixedAmount = bigintToFixedNumber(amount, decimals)
-    // const fixedFee = bigintToFixedNumber(fee, decimals)
+    const fixedAmount = bigintToFixedNumber(amount, decimals)
+    const fixedFee = bigintToFixedNumber(fee, decimals)
+
+    // set the proper amount to sign message and send to blockchain
+    const allowanceAmount = feeDeduct ? fixedAmount : fixedAmount + fixedFee
     // console.log(req.body, { fixedAmount, fixedFee })
 
     const amountStr = formatUnits(amount, decimals)
@@ -204,6 +212,39 @@ submitRouter.post(
       senderPubKey: hexStringToUint8Array(senderPubKey),
       options,
       ccTransactionIdSeed
+    })
+
+    // generate signature from backend
+    if (mode === 'light') {
+      options = JSON.parse(options)
+      options.signature = await signApprovalMessage({
+        originSymbol,
+        originChain,
+        targetAddress,
+        targetChain,
+        allowanceAmount
+      })
+
+      options = JSON.stringify(options)
+    }
+
+    console.log({
+      originAddress,
+      originChain,
+      originSymbol,
+      targetAddress,
+      targetChain,
+      targetSymbol,
+      fixedAmount,
+      fixedFee,
+      decimals,
+      htlcCreationHash,
+      htlcCreationVout,
+      htlcExpirationTimestamp,
+      htlcVersion,
+      senderPubKey,
+      options,
+      mode,
     })
 
     try {
@@ -396,6 +437,8 @@ submitRouter.get(
         targetAddress: targetAddress as string,
         targetSymbol: targetSymbol as string
       })
+
+      console.log("result: ",result)
       res.status(200).json(result)
       // const message = txMessage({
       //   allowanceAmount: result.allowanceAmount,
