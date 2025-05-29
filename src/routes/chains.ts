@@ -9,6 +9,7 @@ import { ChainEnv } from '../types/chain-env'
 import chainsService from '../service/chains.service'
 import { ENV } from '../env-validate'
 import { BlockchainParamsResponseDto } from '../types/kima-blockchain-params.dto'
+import { getStaticSentryConfig } from '../instrument'
 
 const chainsRouter = Router()
 const baseUrl = `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain`
@@ -117,7 +118,8 @@ chainsRouter.get('/env', async (_, res: Response) => {
     env: ENV.KIMA_ENVIRONMENT as ChainEnv,
     kimaExplorer: ENV.KIMA_EXPLORER as string,
     transferLimitMaxUSDT: maxAmount,
-    paymentPartnerId: ENV.PAYMENT_PARTNER_ID as string
+    paymentPartnerId: ENV.PAYMENT_PARTNER_ID as string,
+    sentry: getStaticSentryConfig()
   })
 })
 

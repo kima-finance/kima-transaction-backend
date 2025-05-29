@@ -73,7 +73,14 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
 
   // Required for credit card transactions only
-  PAYMENT_PARTNER_ID: z.string().optional()
+  PAYMENT_PARTNER_ID: z.string().optional(),
+
+  // (Optional) enable error monitoring with Sentry
+  SENTRY_DSN: z.string().optional(),
+
+  // (Optional) determines the chance an error captured by Sentry will be sent to Sentry
+  // should be a number between 0 and 1, with 1 being 100%
+  SENTRY_SAMPLE_RATE: z.coerce.number().optional().default(1.0)
 })
 
 export type Environment = z.infer<typeof envSchema>
