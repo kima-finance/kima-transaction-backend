@@ -32,12 +32,6 @@ if (isProd && ENV.SENTRY_DSN) {
     release: '1.3.2',
 
     beforeSend(event) {
-      const host = os.hostname()
-      if (['localhost', '127.0.0.1', '::1', 'internal'].includes(host)) {
-        console.warn('Sentry:beforeSend: dropping event from local host', event)
-        return null
-      }
-
       // explicity remove user data from event to avoid sending PII
       delete event.user
 
@@ -47,7 +41,7 @@ if (isProd && ENV.SENTRY_DSN) {
         // TODO: adding creator would be nice but it makes this async
         // creator: await getCreatorAddress(),
         source: 'kima-transaction-backend',
-        host
+        host: os.hostname()
       }
       return event
     }
