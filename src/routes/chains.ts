@@ -603,7 +603,7 @@ chainsRouter.get(
     //   .optional()
   ],
   async (req: Request, res: Response) => {
-    const chains = chainsService.supportedChains()
+    const chains = await chainsService.supportedChains()
     res.status(200).json(chains)
   }
 )
