@@ -59,6 +59,8 @@
     "js-sha3": "^0.9.3",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "node-cache": "^5.1.2",
+    "safe-stable-stringify": "^2.5.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "tron-format-address": "^0.1.12",
