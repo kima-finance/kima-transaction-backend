@@ -22,43 +22,98 @@ import { TokenAmount } from '../types/token-amount.dto'
 import { parseUnits } from 'viem'
 import { ENV } from '../env-validate'
 import { ChainFilter } from './chain-fiter'
+import { ChainDto } from '../types/chain.dto.'
+import { defineCached } from '../utils/cache'
 
 export class ChainsService {
-  readonly filters: Record<ChainLocation, ChainFilter>
-  readonly allChainsMap: Map<ChainName, Chain>
+  filters: Record<ChainLocation, ChainFilter>
+  allChainsMap: Map<ChainName, Chain>
 
   constructor(
     private readonly env: ChainEnv,
     chainFilter: FilterConfig | undefined
   ) {
     this.allChainsMap = new Map(
-      this.getChains().map((c) => [c.shortName as ChainName, c])
+      this.getLocalChainData().map((c) => [c.shortName as ChainName, c])
     )
     this.filters = {
       origin: new ChainFilter(this.allChainsMap, 'origin', chainFilter?.origin),
       target: new ChainFilter(this.allChainsMap, 'target', chainFilter?.target)
     }
+    void this.initFilters()
+  }
+
+  private initFilters = async () => {
+    const chains = await this.getMergedChainData()
+    await this.updateFilters(chains)
+  }
+
+  private updateFilters = async (chains: Chain[]) => {
+    // sync the chain filters with the updated chain data
+    // a disabled chain is still supported just not right now, handle this case separately in validation
+    this.allChainsMap = new Map(
+      chains.map((c) => [c.shortName as ChainName, c])
+    )
+
+    this.filters['origin'].allChainsMap = this.allChainsMap
+    this.filters['target'].allChainsMap = this.allChainsMap
+  }
+
+  fetchChains = async (): Promise<ChainDto[]> => {
+    const response = await fetchWrapper.get<{ Chain: ChainDto[] }>(
+      `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/chain`
+    )
+    return typeof response === 'string' ? [] : response.Chain
   }
 
   /**
    * Get the static list of chain data for testnet or mainnet
    *
-   * @param {ChainEnv} env
-   * @param {?ChainName} [symbol]
    * @returns {Chain[]}
    */
-  getChains = (symbol?: ChainName): Chain[] => {
+  getLocalChainData = (): Chain[] => {
     // get only testnet or mainnet chains
     // the chain will have the isTestnet property only if it is a testnet chain
-    const upperCaseSymbol = symbol?.toUpperCase()
-    return CHAINS.filter(
-      (chain) =>
-        (this.env == ChainEnv.MAINNET
-          ? !chain.testnet
-          : chain.testnet === true) &&
-        (!upperCaseSymbol || chain.shortName === upperCaseSymbol)
+    return CHAINS.filter((chain) =>
+      this.env == ChainEnv.MAINNET ? !chain.testnet : chain.testnet === true
     )
   }
+
+  mergeChainData = async (): Promise<Chain[]> => {
+    // merge the local chain data with the remote chain data to as chains can be dynamically enabled/disabled
+    const remoteData = await this.fetchChains()
+    const localData = this.getLocalChainData()
+
+    // TODO: it should look for chains in the remote data that are not in the local data
+    // but in order to add the Viem chain data the remote data needs to be updated
+    // to include the chainId or, even better, the remote data should include the Viem chain data
+
+    const mergedChains = localData.map((chain) => {
+      const remoteChain = remoteData.find((c) => c.symbol === chain.shortName)
+      if (!remoteChain) return chain
+
+      return {
+        ...chain,
+        disabled: remoteChain.disabled,
+        derivationAlgorithm: remoteChain.derivationAlgorithm,
+        isEvm: remoteChain.isEvm,
+        supportedTokens: remoteChain.tokens.map((t) => ({
+          ...t,
+          decimals: parseInt(t.decimals)
+        }))
+      }
+    })
+
+    this.updateFilters(mergedChains)
+
+    return mergedChains
+  }
+
+  getMergedChainData = defineCached(
+    'getMergedChainData',
+    this.mergeChainData,
+    300 // cache for 5 minutes
+  )
 
   /**
    * Get the static chain data for the given chain short name
@@ -67,9 +122,9 @@ export class ChainsService {
    * @param {ChainName} symbol
    * @returns {(Chain | undefined)}
    */
-  getChain = (symbol: ChainName): Chain | undefined => {
-    const [chain] = this.getChains(symbol)
-    return chain
+  getChain = async (symbol: ChainName): Promise<Chain | undefined> => {
+    const chains = await this.getMergedChainData()
+    return chains.find((c) => c.shortName === symbol)
   }
 
   /**
@@ -121,7 +176,7 @@ export class ChainsService {
     const [pubKeys] = pubKeyResult.tssPubkey
 
     const [chains, poolBalances] = await Promise.all([
-      this.getChains(),
+      this.getLocalChainData(),
       this.getPoolBalances()
     ])
 
@@ -180,8 +235,11 @@ export class ChainsService {
    * @param {string} tokenSymbol
    * @returns {(TokenDto | undefined)}
    */
-  getToken = (chainName: string, tokenSymbol: string): TokenDto | undefined => {
-    const chain = this.getChain(chainName as ChainName)
+  getToken = async (
+    chainName: string,
+    tokenSymbol: string
+  ): Promise<TokenDto | undefined> => {
+    const chain = await this.getChain(chainName as ChainName)
     if (!chain) {
       throw new Error(`Chain ${chainName} not found`)
     }
@@ -201,6 +259,11 @@ export class ChainsService {
     return result
   }
 
+  isDisabledChain = async (chainShortName: ChainName): Promise<boolean> => {
+    const chain = await this.getChain(chainShortName)
+    return chain?.disabled ?? false
+  }
+
   isSupportedChain = (
     chainShortName: string,
     location: ChainLocation
@@ -208,9 +271,14 @@ export class ChainsService {
     return this.filters[location].isSupportedChain(chainShortName)
   }
 
-  supportedChains = (): Chain[] => {
+  supportedChains = async (): Promise<Chain[]> => {
+    // supported chains are a combination of the chains supported by Kima
+    // and the local chain filters
+    // chains temporarily disabled by Kima are still supported
+    // and should be shown in the UI as greyed out
     const chainLocations = chainLocationSchema.options
-    return this.getChains()
+    const chains = await this.getMergedChainData()
+    return chains
       .map((chain) => {
         return {
           ...chain,
@@ -229,12 +297,12 @@ export class ChainsService {
    * @param {number | string} amount
    * @returns {TokenAmount}
    */
-  toTokenDecimals = (
+  toTokenDecimals = async (
     chainName: string,
     tokenSymbol: string,
     amount: number | string
-  ): TokenAmount => {
-    const token = this.getToken(
+  ): Promise<TokenAmount> => {
+    const token = await this.getToken(
       chainName === 'FIAT' ? 'CC' : chainName,
       tokenSymbol
     )
@@ -242,8 +310,8 @@ export class ChainsService {
       throw new Error(`Token ${tokenSymbol} not found`)
     }
     return {
-      amount: parseUnits(amount.toString(), token.decimals),
-      decimals: token.decimals
+      amount: parseUnits(amount.toString(), Number(token.decimals)),
+      decimals: Number(token.decimals)
     }
   }
 }
