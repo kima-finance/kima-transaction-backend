@@ -1,7 +1,3 @@
-// import * as chains from 'viem/chains'
-// import { Chain as ViemChain } from 'viem'
-import { Chain, ChainCompatibility } from '../types/chain'
-
 import {
   arbitrum,
   arbitrumSepolia,
@@ -21,18 +17,7 @@ import {
   sepolia,
   tron
 } from 'viem/chains'
-
-// const allViemChains: Record<number, ViemChain> = Object.values(chains)
-//   .filter((c) => typeof c === 'object' && 'id' in c && 'rpcUrls' in c)
-//   .reduce((acc, chain) => {
-//     acc[chain.id] = chain as ViemChain
-//     return acc
-//   }, {} as Record<number, ViemChain>)
-
-// this won't work for chains returned from the Kima API as they don't chain chainId
-// export const getChainById = (id: number): ViemChain | undefined => {
-//   return allViemChains[id]
-// }
+import { Chain, ChainCompatibility } from '../types/chain'
 
 export const CHAINS: Chain[] = [
   {
@@ -45,8 +30,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USD',
         decimals: 2,
-        address: '',
-        peggedTo: 'USD'
+        address: ''
       }
     ],
     nativeCurrency: {
@@ -76,8 +60,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USD',
         decimals: 2,
-        address: '',
-        peggedTo: 'USD'
+        address: ''
       }
     ],
     nativeCurrency: {
@@ -105,14 +88,12 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDT',
         address: '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       },
       {
         symbol: 'USDC',
         address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       }
     ]
   },
@@ -125,8 +106,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x2cf79df2879902a2fc06329b1760e0f2ad9a3a47',
-        decimals: 18,
-        peggedTo: 'USD'
+        decimals: 18
       }
     ]
   },
@@ -139,14 +119,12 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDT',
         address: '0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       },
       {
         symbol: 'USDC',
         address: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       }
     ]
   },
@@ -159,8 +137,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x5d8598Ce65f15f14c58aD3a4CD285223c8e76a2E',
-        decimals: 18,
-        peggedTo: 'USD'
+        decimals: 18
       }
     ]
   },
@@ -174,8 +151,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDC',
         address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       }
     ]
   },
@@ -188,8 +164,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x2B0F2060d358a2DF51dBc4147a09445b11EF5D41',
-        decimals: 18,
-        peggedTo: 'USD'
+        decimals: 18
       }
     ]
   },
@@ -202,8 +177,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'HONEY',
         address: '0xFCBD14DC51f0A4d49d5E53C2E0950e0bC26d0Dce',
-        decimals: 18,
-        peggedTo: 'USD'
+        decimals: 18
       }
     ]
   },
@@ -216,8 +190,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0xe5dB851969B4d8EE8A023F4b991CbED6e39dca80',
-        decimals: 18,
-        peggedTo: 'USD'
+        decimals: 18
       }
     ]
   },
@@ -230,14 +203,12 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDT',
         address: '0x55d398326f99059fF775485246999027B3197955',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       },
       {
         symbol: 'USDC',
         address: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       }
     ]
   },
@@ -250,8 +221,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x3eb36be2c3FD244139756F681420637a2a9464e3',
-        decimals: 18,
-        peggedTo: 'USD'
+        decimals: 18
       }
     ],
     faucets: ['https://testnet.bnbchain.org/faucet-smart']
@@ -318,14 +288,12 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDT',
         address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       },
       {
         symbol: 'USDC',
         address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       }
     ]
   },
@@ -339,8 +307,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x5FF59Bf2277A1e6bA9bB8A38Ea3F9ABfd3d9345a',
-        decimals: 18,
-        peggedTo: 'USD'
+        decimals: 18
       }
       // {
       //   symbol: 'WBTC',
@@ -358,14 +325,12 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDT',
         address: '0x94b008aa00579c1307b0ef2c499ad98a8ce58e58',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       },
       {
         symbol: 'USDC',
         address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       }
     ]
   },
@@ -378,8 +343,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x2cf79df2879902a2fc06329b1760e0f2ad9a3a47',
-        decimals: 18,
-        peggedTo: 'USD'
+        decimals: 18
       }
     ]
   },
@@ -392,14 +356,12 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDT',
         address: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       },
       {
         symbol: 'USDC',
         address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       }
     ]
   },
@@ -412,8 +374,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '0x30171cfb10ed578814a22475a190306776bc8392',
-        decimals: 18,
-        peggedTo: 'USD'
+        decimals: 18
       }
       // {
       //   symbol: 'WBTC',
@@ -432,14 +393,12 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDT',
         address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       },
       {
         symbol: 'USDC',
         address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       }
     ],
     rpcUrls: {
@@ -468,8 +427,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: '9YSFWfU9Ram6mAo2QP9zsTnA8yFkkkFGEs3kGgjtQKvp',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       }
     ],
     rpcUrls: {
@@ -505,8 +463,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDT',
         address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
-        decimals: 6,
-        peggedTo: 'USD'
+        decimals: 6
       }
     ]
   },
@@ -520,8 +477,7 @@ export const CHAINS: Chain[] = [
       {
         symbol: 'USDK',
         address: 'TEuRmCALTUY2syY1EE6mMYnyfmNfFfMpYz',
-        decimals: 18,
-        peggedTo: 'USD'
+        decimals: 18
       }
     ],
     nativeCurrency: {
