@@ -7,11 +7,11 @@ import {
 import { ChainName } from '../types/chain-name'
 
 export class ChainFilter {
-  private readonly filterSet: Set<ChainName>
+  private filterSet: Set<ChainName>
   readonly mode: ChainFilterMode
 
   constructor(
-    private readonly allChainsMap: Map<ChainName, Chain>,
+    public allChainsMap: Map<ChainName, Chain>,
     private readonly location: ChainLocation,
     chainFilter?: ChainFilterConfig
   ) {
