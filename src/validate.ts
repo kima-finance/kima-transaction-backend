@@ -25,6 +25,18 @@ async function isValidChain(
   if (!chainsService.isSupportedChain(targetChain, 'target')) {
     return `target chain ${targetChain} not supported`
   }
+  const originChainDisabled = await chainsService.isDisabledChain(
+    originChain as ChainName
+  )
+  if (originChainDisabled) {
+    return `origin chain ${originChain} disabled`
+  }
+  const targetChainDisabled = await chainsService.isDisabledChain(
+    targetChain as ChainName
+  )
+  if (targetChainDisabled) {
+    return `target chain ${targetChain} disabled`
+  }
 
   // const currencies = await chainsService.getAvailableCurrencies({
   //   originChain,
