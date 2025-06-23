@@ -13,6 +13,7 @@ import {
   berachainBepolia,
   bsc,
   bscTestnet,
+  confluxESpaceTestnet,
   mainnet,
   optimism,
   optimismSepolia,
@@ -281,6 +282,25 @@ export const CHAINS: Chain[] = [
       }
     ],
     faucets: ['https://testnet.bnbchain.org/faucet-smart']
+  },
+  {
+    ...confluxESpaceTestnet,
+    shortName: 'CFX',
+    supportedLocations: ['origin', 'target'],
+    supportedTokens: [
+      {
+        symbol: "USDK",
+        address: '0xB16de57a9c4D28CFe7Ce2ab87EE4A4deBD643cD1',
+        decimals: 18,
+        peggedTo: 'USD'
+      }
+    ],
+    compatibility: ChainCompatibility.EVM,
+    rpcUrls: {
+      default: {
+        http: ['https://71.rpc.thirdweb.com']
+      }
+    }
   },
   // {
   //   id: 0,

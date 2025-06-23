@@ -12,6 +12,7 @@ import { BlockchainParamsResponseDto } from '../types/kima-blockchain-params.dto
 
 const chainsRouter = Router()
 const baseUrl = `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain`
+const isSimulator = process.env.SIMULATOR
 
 /**
  * @openapi
@@ -103,11 +104,17 @@ chainsRouter.get('/env', async (_, res: Response) => {
   // get max tx amount from Kima API
   let maxAmount: string | null
   try {
-    const response = await fetchWrapper.get<BlockchainParamsResponseDto>(
-      `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/transaction/params`
-    )
-    maxAmount =
-      typeof response === 'string' ? null : response.params.transferLimitMaxUSDT
+    if (!isSimulator) {
+      const response = await fetchWrapper.get<BlockchainParamsResponseDto>(
+        `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/transaction/params`
+      )
+      maxAmount =
+        typeof response === 'string'
+          ? null
+          : response.params.transferLimitMaxUSDT
+    } else {
+      maxAmount = '100000'
+    }
   } catch (e) {
     console.error('/chains/env: failed to get max tx amount from Kima API', e)
     maxAmount = null

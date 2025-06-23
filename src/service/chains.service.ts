@@ -74,9 +74,12 @@ export class ChainsService {
   getLocalChainData = (): Chain[] => {
     // get only testnet or mainnet chains
     // the chain will have the isTestnet property only if it is a testnet chain
-    return CHAINS.filter((chain) =>
+    console.log('getting local chain data...')
+    const chains = CHAINS.filter((chain) =>
       this.env == ChainEnv.MAINNET ? !chain.testnet : chain.testnet === true
     )
+    // console.log('getlocalchaindata chains: ', chains)
+    return chains
   }
 
   mergeChainData = async (): Promise<Chain[]> => {
@@ -173,14 +176,19 @@ export class ChainsService {
   getPools = async (): Promise<PoolDto[]> => {
     const pubKeyResult = await this.getTssPubkeys()
     if (typeof pubKeyResult === 'string') {
+      console.error('error getting pubkeys')
       throw new Error('Failed to get TSS public keys')
     }
     const [pubKeys] = pubKeyResult.tssPubkey
+    console.log('pubkeys: ', pubKeys)
 
     const [chains, poolBalances] = await Promise.all([
       this.getLocalChainData(),
       this.getPoolBalances()
     ])
+
+    console.log('chains: ', chains)
+    console.log('poolbalances: ', poolBalances)
 
     const pools = chains.map((chain) => {
       const poolAddress = this.getPoolAddress({ data: pubKeys, chain })
@@ -224,10 +232,17 @@ export class ChainsService {
    * @returns {Promise<PoolBalanceDto[]>}
    */
   getPoolBalances = async (): Promise<PoolBalanceDto[]> => {
-    const result = await fetchWrapper.get<PoolBalanceResponseDto>(
-      `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/pool_balance`
-    )
-    return typeof result === 'string' ? [] : result.poolBalance
+    try {
+      console.log("getting pool balances...")
+      const result = await fetchWrapper.get<PoolBalanceResponseDto>(
+        `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/pool_balance`
+      )
+
+      console.log('getpoolbalances result: ', result)
+      return typeof result === 'string' ? [] : result.poolBalance
+    } catch (error) {
+      throw new Error("Error getting pool balances...")
+    }
   }
 
   /**
@@ -262,6 +277,8 @@ export class ChainsService {
     const result = await fetchWrapper.get<TssPubkeyResponseDto>(
       `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/kima/tss_pubkey`
     )
+
+    // console.log("tss pubkeys result: ", result)
     return result
   }
 
