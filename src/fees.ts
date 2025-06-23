@@ -100,6 +100,17 @@ export async function calcServiceFee({
 
   const kimaAddress = await getCreatorAddress()
 
+  if (originChain === 'CFX')
+    return mockServiceFee({
+      amount: amountStr,
+      originChain,
+      originAddress,
+      originSymbol,
+      targetChain,
+      targetAddress,
+      targetSymbol
+    })
+
   console.log(ENV.KIMA_BACKEND_FEE_URL)
   const result = (await fetchWrapper.post(
     `${ENV.KIMA_BACKEND_FEE_URL as string}/v2/fees/calculate`,
@@ -117,4 +128,69 @@ export async function calcServiceFee({
   // console.debug('fee result:', JSON.stringify(result, null, 2))
 
   return result
+}
+
+export function mockServiceFee(input: GetFeeInput): FeeResponse {
+  const amount = parseFloat(input.amount)
+  const value18Submit = BigInt(Math.floor(amount * 10 ** 18)).toString()
+
+  const kimaFeePercent = 0.00005 // 0.005%
+  const kimaFee = amount * kimaFeePercent
+  const kimaFeeStr = kimaFee.toFixed(6)
+  const kimaFeeBigInt = BigInt(Math.floor(kimaFee * 10 ** 6)).toString()
+
+  const totalFiatStr = kimaFeeStr // total fees = only Kima fee
+  const totalFiatBigInt = kimaFeeBigInt
+
+  const allowanceAmount = BigInt(Math.floor((amount + kimaFee) * 10 ** 18)).toString()
+
+  return {
+    feeId: 'mock-zero-fee-id',
+    feeOriginGasFiat: '0.000000',
+    feeOriginGasBigInt: {
+      value: '0',
+      decimals: 18
+    },
+    feeKimaProcessingFiat: kimaFeeStr,
+    feeKimaProcessingBigInt: {
+      value: kimaFeeBigInt,
+      decimals: 6
+    },
+    feeTargetGasFiat: '0.000000',
+    feeTargetGasBigInt: {
+      value: '0',
+      decimals: 18
+    },
+    feeTotalFiat: totalFiatStr,
+    feeTotalBigInt: {
+      value: totalFiatBigInt,
+      decimals: 6
+    },
+    peggedTo: 'USD',
+    expiration: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+    transactionValues: {
+      feeFromOrigin: {
+        allowanceAmount: {
+          value: allowanceAmount,
+          decimals: 18
+        },
+        submitAmount: {
+          value: value18Submit,
+          decimals: 18
+        },
+        message: `I approve the transfer of ${(amount + kimaFee).toFixed(6)} ${input.originSymbol} from ${input.originChain} to ${input.targetAddress} on ${input.targetChain}.`
+      },
+      feeFromTarget: {
+        allowanceAmount: {
+          value: value18Submit,
+          decimals: 18
+        },
+        submitAmount: {
+          value: value18Submit,
+          decimals: 18
+        },
+        message: `I approve the transfer of ${amount.toFixed(6)} ${input.originSymbol} from ${input.originChain} to ${input.targetAddress} on ${input.targetChain}.`
+      }
+    }
+  }
 }

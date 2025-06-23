@@ -18,8 +18,10 @@ import { transValidation } from '../middleware/trans-validation'
 import { txMessage, TxMessageInputs } from '../message'
 import { formatUnits } from 'viem'
 import { generateCreditCardOptions } from '../creditcard'
+import { fetchWrapper } from '../fetch-wrapper'
 
 const submitRouter = Router()
+const isSimulator = process.env.SIMULATOR
 
 /**
  * @openapi
@@ -142,14 +144,16 @@ submitRouter.post(
   '/',
   [transValidation, checkCompliance],
   async (req: Request, res: Response) => {
-    let result = SubmitRequestSchema.safeParse(req.body)
+    let validationResult = isSimulator
+      ? { success: true, error: { format: () => {}, flatten: () => {} } }
+      : SubmitRequestSchema.safeParse(req.body)
 
-    if (!result.success) {
-      console.error('Validation Error:', result.error.format())
+    if (!validationResult.success) {
+      console.error('Validation Error:', validationResult.error.format())
 
       return res.status(400).json({
         error: 'Validation failed',
-        details: result.error.flatten()
+        details: validationResult.error.flatten()
       })
     }
 
@@ -244,26 +248,44 @@ submitRouter.post(
       htlcVersion,
       senderPubKey,
       options,
-      mode,
+      mode
     })
 
+    let result;
     try {
-      const result = await submitKimaTransaction({
-        originAddress: originChain === 'CC' ? '' : originAddress,
-        originChain: originChain === 'CC' ? 'FIAT' : originChain,
-        targetAddress,
-        targetChain,
-        originSymbol,
-        targetSymbol,
-        amount: amountStr,
-        fee: feeStr,
-        htlcCreationHash,
-        htlcCreationVout,
-        htlcExpirationTimestamp,
-        htlcVersion,
-        senderPubKey: hexStringToUint8Array(senderPubKey),
-        options
-      })
+      if (isSimulator) {
+        result = await fetchWrapper.post(
+          `${process.env.KIMA_BACKEND_NODE_PROVIDER}/submit` as string,
+          {
+            originAddress,
+            originChain,
+            originAmount: fixedAmount,
+            originSymbol,
+            targetAddress,
+            targetChain,
+            targetAmount: fixedAmount,
+            targetSymbol,
+            fee: fixedFee
+          }
+        )
+      } else {
+        result = await submitKimaTransaction({
+          originAddress: originChain === 'CC' ? '' : originAddress,
+          originChain: originChain === 'CC' ? 'FIAT' : originChain,
+          targetAddress,
+          targetChain,
+          originSymbol,
+          targetSymbol,
+          amount: amountStr,
+          fee: feeStr,
+          htlcCreationHash,
+          htlcCreationVout,
+          htlcExpirationTimestamp,
+          htlcVersion,
+          senderPubKey: hexStringToUint8Array(senderPubKey),
+          options
+        })
+      }
 
       console.log('kima submit result', result)
       res.send(result)
@@ -438,7 +460,7 @@ submitRouter.get(
         targetSymbol: targetSymbol as string
       })
 
-      console.log("result: ",result)
+      console.log('result: ', result)
       res.status(200).json(result)
       // const message = txMessage({
       //   allowanceAmount: result.allowanceAmount,
