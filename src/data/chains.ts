@@ -19,7 +19,9 @@ import {
   polygon,
   polygonAmoy,
   sepolia,
-  tron
+  tron,
+  confluxESpaceTestnet,
+  confluxESpace
 } from 'viem/chains'
 
 // const allViemChains: Record<number, ViemChain> = Object.values(chains)
@@ -309,6 +311,40 @@ export const CHAINS: Chain[] = [
   //   },
   //   testnet: true
   // },
+  {
+    ...confluxESpace,
+    compatibility: ChainCompatibility.EVM,
+    shortName: 'CFX',
+    supportedLocations: ['origin', 'target'],
+    supportedTokens: [
+      {
+        symbol: 'USDT',
+        address: '0xfe97e85d13abd9c1c33384e796f10b73905637ce',
+        decimals: 18,
+        peggedTo: 'USD'
+      },
+      {
+        symbol: 'USDC',
+        address: '0x6963efed0ab40f6c3d7bda44a05dcf1437c44372',
+        decimals: 18,
+        peggedTo: 'USD'
+      }
+    ]
+  },
+  {
+    ...confluxESpaceTestnet,
+    compatibility: ChainCompatibility.EVM,
+    shortName: 'CFX',
+    supportedLocations: ['origin', 'target'],
+    supportedTokens: [
+      {
+        symbol: 'USDK',
+        address: '0xb16de57a9c4d28cfe7ce2ab87ee4a4debd643cd1',
+        decimals: 18,
+        peggedTo: 'USD'
+      }
+    ],
+  },
   {
     ...mainnet,
     shortName: 'ETH',

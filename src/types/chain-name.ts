@@ -6,6 +6,7 @@ export enum ChainName {
   BERA = 'BERA',
   BSC = 'BSC',
   // BTC = 'BTC',
+  CFX = 'CFX',
   CREDITCARD = 'CC',
   ETHEREUM = 'ETH',
   FIAT = 'FIAT',
