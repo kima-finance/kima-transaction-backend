@@ -1,6 +1,6 @@
 {
   "name": "kima-transaction-backend",
-  "version": "1.4.0",
+  "version": "1.4.7",
   "description": "",
   "main": "index.js",
   "engines": {
