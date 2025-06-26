@@ -239,11 +239,15 @@ export class ChainsService {
     chainName: string,
     tokenSymbol: string
   ): Promise<TokenDto | undefined> => {
+    console.log('getToken: chainName', { chainName, tokenSymbol })
+    // the Kima chain currently uses the FIAT symbol instead of CC
+    chainName = chainName === 'FIAT' ? 'CC' : chainName
     const chain = await this.getChain(chainName as ChainName)
     if (!chain) {
       throw new Error(`Chain ${chainName} not found`)
     }
-    return chain.supportedTokens.find((t) => t.symbol === tokenSymbol)
+    const token = chain.supportedTokens.find((t) => t.symbol === tokenSymbol)
+    return token
   }
 
   /**
@@ -302,10 +306,7 @@ export class ChainsService {
     tokenSymbol: string,
     amount: number | string
   ): Promise<TokenAmount> => {
-    const token = await this.getToken(
-      chainName === 'FIAT' ? 'CC' : chainName,
-      tokenSymbol
-    )
+    const token = await this.getToken(chainName, tokenSymbol)
     if (!token) {
       throw new Error(`Token ${tokenSymbol} not found`)
     }
@@ -315,9 +316,3 @@ export class ChainsService {
     }
   }
 }
-
-const chainsService = new ChainsService(
-  ENV.KIMA_ENVIRONMENT,
-  ENV.KIMA_CHAIN_FILTER
-)
-export default chainsService

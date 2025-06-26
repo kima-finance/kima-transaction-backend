@@ -1,10 +1,7 @@
 import { ChainName } from './types/chain-name'
 import { fetchWrapper } from './fetch-wrapper'
 import { ENV } from './env-validate'
-import chainsService from './service/chains.service'
 import { getCreatorAddress } from '@kimafinance/kima-transaction-api'
-import { parseUnits } from 'viem'
-import { bigintToNumber, formatterFloat } from './utils'
 
 export interface GetFeeInput {
   amount: string
