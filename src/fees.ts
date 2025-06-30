@@ -116,7 +116,10 @@ export async function calcServiceFee({
       targetChain,
       targetAddress,
       targetSymbol,
-      amount: amountStr
+      amount: amountStr,
+      options: originToken.protocol
+        ? { payment_method: originToken.protocol }
+        : undefined
     }
   )) as unknown as FeeResponse
   // console.debug('fee result:', JSON.stringify(result, null, 2))

@@ -96,11 +96,12 @@ export class ChainsService {
         ...chain,
         disabled: remoteChain.disabled,
         derivationAlgorithm: remoteChain.derivationAlgorithm,
-        isEvm: remoteChain.isEvm,
-        supportedTokens: remoteChain.tokens.map((t) => ({
-          ...t,
-          decimals: parseInt(t.decimals)
-        }))
+        isEvm: remoteChain.isEvm
+        // TODO: use remote tokens once decimals fixed and new tokens added
+        // supportedTokens: remoteChain.tokens.map((t) => ({
+        //   ...t,
+        //   decimals: parseInt(t.decimals)
+        // }))
       }
     })
 
