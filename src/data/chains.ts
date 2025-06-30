@@ -171,6 +171,12 @@ export const CHAINS: Chain[] = [
     supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
+        symbol: 'EURK',
+        address: '0xd29ccaF2f4EEafF1f49cAF871AaeaF4780c67eF0',
+        decimals: 18,
+        peggedTo: 'EUR'
+      },
+      {
         symbol: 'USDK',
         address: '0x5d8598Ce65f15f14c58aD3a4CD285223c8e76a2E',
         decimals: 18,
@@ -209,6 +215,12 @@ export const CHAINS: Chain[] = [
         address: '0x2B0F2060d358a2DF51dBc4147a09445b11EF5D41',
         decimals: 18,
         peggedTo: 'USD'
+      },
+      {
+        symbol: 'EURK',
+        address: '0xC9421eB9e4942cb156310Dcf218321D66de4f0D3',
+        decimals: 18,
+        peggedTo: 'EUR'
       }
     ]
   },
@@ -396,8 +408,8 @@ export const CHAINS: Chain[] = [
     supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
-        symbol: 'KEUR',
-        address: '0xAFc823fcbe5945f5f38f144314663c87dA713E06',
+        symbol: 'EURK',
+        address: '0x6B8Db7F19Be371fCFeE7a695b1438690518d4E13',
         decimals: 18,
         peggedTo: 'EUR'
       },
@@ -537,8 +549,8 @@ export const CHAINS: Chain[] = [
     supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
-        symbol: 'KEUR',
-        address: '2xBbCRnpeMnQxqPaP8yAmwBcHpJidad4HUe13XFipLx3',
+        symbol: 'EURK',
+        address: '4X7SWEPfa8e1fhSseJQBK7rNPqnniePLffCJMGvEDh9u',
         decimals: 9,
         peggedTo: 'EUR'
       },
