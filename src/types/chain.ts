@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { ChainName } from './chain-name'
 
 export enum ChainCompatibility {
+  BANK = 'BANK',
   BTC = 'BTC',
   EVM = 'EVM',
   FIAT = 'FIAT',
