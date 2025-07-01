@@ -48,7 +48,15 @@ export const CHAINS: Chain[] = [
         symbol: 'USD',
         decimals: 2,
         address: '',
-        peggedTo: 'USD'
+        peggedTo: 'USD',
+        protocol: 'credit_card'
+      },
+      {
+        symbol: 'EUR',
+        decimals: 2,
+        address: '',
+        peggedTo: 'EUR',
+        protocol: 'credit_card'
       }
     ],
     nativeCurrency: {
@@ -79,7 +87,15 @@ export const CHAINS: Chain[] = [
         symbol: 'USD',
         decimals: 2,
         address: '',
-        peggedTo: 'USD'
+        peggedTo: 'USD',
+        protocol: 'swift_usd'
+      },
+      {
+        symbol: 'EUR',
+        decimals: 2,
+        address: '',
+        peggedTo: 'EUR',
+        protocol: 'sepa_eur'
       }
     ],
     nativeCurrency: {
@@ -139,6 +155,12 @@ export const CHAINS: Chain[] = [
     supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
+        symbol: 'EURC',
+        address: '0xC891EB4cbdEFf6e073e859e987815Ed1505c2ACD',
+        decimals: 6,
+        peggedTo: 'EUR'
+      },
+      {
         symbol: 'USDT',
         address: '0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7',
         decimals: 6,
@@ -159,6 +181,12 @@ export const CHAINS: Chain[] = [
     supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
+        symbol: 'EURK',
+        address: '0xd29ccaF2f4EEafF1f49cAF871AaeaF4780c67eF0',
+        decimals: 18,
+        peggedTo: 'EUR'
+      },
+      {
         symbol: 'USDK',
         address: '0x5d8598Ce65f15f14c58aD3a4CD285223c8e76a2E',
         decimals: 18,
@@ -166,13 +194,18 @@ export const CHAINS: Chain[] = [
       }
     ]
   },
-  // TODO: enable once BASE supported in mainnet
   {
     ...base,
     compatibility: ChainCompatibility.EVM,
     shortName: 'BASE',
     supportedLocations: ['origin', 'target'],
     supportedTokens: [
+      {
+        symbol: 'EURC',
+        address: '0x60a3E35Cc302bFA44Cb288Bc5a4F316Fdb1adb42',
+        decimals: 6,
+        peggedTo: 'EUR'
+      },
       {
         symbol: 'USDC',
         address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
@@ -192,6 +225,12 @@ export const CHAINS: Chain[] = [
         address: '0x2B0F2060d358a2DF51dBc4147a09445b11EF5D41',
         decimals: 18,
         peggedTo: 'USD'
+      },
+      {
+        symbol: 'EURK',
+        address: '0xC9421eB9e4942cb156310Dcf218321D66de4f0D3',
+        decimals: 18,
+        peggedTo: 'EUR'
       }
     ]
   },
@@ -343,7 +382,7 @@ export const CHAINS: Chain[] = [
         decimals: 18,
         peggedTo: 'USD'
       }
-    ],
+    ]
   },
   {
     ...mainnet,
@@ -351,6 +390,12 @@ export const CHAINS: Chain[] = [
     compatibility: ChainCompatibility.EVM,
     supportedLocations: ['origin', 'target'],
     supportedTokens: [
+      {
+        symbol: 'EURC',
+        address: '0x1aBaEA1f7C830bD89Acc67eC4af516284b1bC33c',
+        decimals: 6,
+        peggedTo: 'EUR'
+      },
       {
         symbol: 'USDT',
         address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
@@ -372,6 +417,12 @@ export const CHAINS: Chain[] = [
     compatibility: ChainCompatibility.EVM,
     supportedLocations: ['origin', 'target'],
     supportedTokens: [
+      {
+        symbol: 'EURK',
+        address: '0x6B8Db7F19Be371fCFeE7a695b1438690518d4E13',
+        decimals: 18,
+        peggedTo: 'EUR'
+      },
       {
         symbol: 'USDK',
         address: '0x5FF59Bf2277A1e6bA9bB8A38Ea3F9ABfd3d9345a',
@@ -466,6 +517,12 @@ export const CHAINS: Chain[] = [
     supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
+        symbol: 'EURC',
+        address: 'HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr',
+        decimals: 6,
+        peggedTo: 'EUR'
+      },
+      {
         symbol: 'USDT',
         address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
         decimals: 6,
@@ -501,6 +558,12 @@ export const CHAINS: Chain[] = [
     compatibility: ChainCompatibility.SELF,
     supportedLocations: ['origin', 'target'],
     supportedTokens: [
+      {
+        symbol: 'EURK',
+        address: '4X7SWEPfa8e1fhSseJQBK7rNPqnniePLffCJMGvEDh9u',
+        decimals: 9,
+        peggedTo: 'EUR'
+      },
       {
         symbol: 'USDK',
         address: '9YSFWfU9Ram6mAo2QP9zsTnA8yFkkkFGEs3kGgjtQKvp',
