@@ -26,7 +26,7 @@ See OpenAPI documentation at `/docs` for more details (only available when `NODE
 
 #### `GET /compliant`:
 
-If enabled by suppling the `COMPLIANCE_URL` environment variable, this route will check if an address meets compliance requirements- is not sanctioned, blocked, etc.
+If enabled by supplying the `COMPLIANCE_URL` environment variable, this route will check if an address meets compliance requirements- is not sanctioned, blocked, etc.
 
 Use this in the frontend to notify the user an address is not compliant BEFORE doing the ERC20 approval. When compliance is enabled, the `/submit` endpoint will return status `403` (Forbidden) if an address is not compliant.
 
