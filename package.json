@@ -12,7 +12,7 @@
     "dev": "cross-env NODE_ENV=development nodemon",
     "build": "rimraf ./build && tsc",
     "start": "cross-env NODE_ENV=production node build/index.js",
-    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org kima-finance --project node-express ./build && sentry-cli sourcemaps upload --org kima-finance --project node-express ./build"
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org kima-finance --project kima-transaction-backend ./build && sentry-cli sourcemaps upload --org kima-finance --project kima-transaction-backend ./build"
   },
   "keywords": [],
   "author": "",
