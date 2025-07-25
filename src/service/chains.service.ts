@@ -82,6 +82,7 @@ export class ChainsService {
   mergeChainData = async (): Promise<Chain[]> => {
     // merge the local chain data with the remote chain data to as chains can be dynamically enabled/disabled
     const remoteData = await this.fetchChains()
+
     const localData = this.getLocalChainData()
 
     // TODO: it should look for chains in the remote data that are not in the local data
@@ -96,17 +97,18 @@ export class ChainsService {
         ...chain,
         disabled: remoteChain.disabled,
         derivationAlgorithm: remoteChain.derivationAlgorithm,
-        isEvm: remoteChain.isEvm
-        // TODO: use remote tokens once decimals fixed and new tokens added
-        // supportedTokens: remoteChain.tokens.map((t) => ({
-        //   ...t,
-        //   decimals: parseInt(t.decimals)
-        // }))
+        isEvm: remoteChain.isEvm,
+        supportedTokens: remoteChain.tokens.map((t) => ({
+          ...t,
+          decimals: parseInt(t.decimals)
+        }))
       }
     })
 
     this.updateFilters(mergedChains)
 
+    console.log('merged chains: ')
+    console.dir(mergedChains, { depth: null })
     return mergedChains
   }
 
