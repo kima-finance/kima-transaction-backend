@@ -91,6 +91,7 @@ export class ChainsService {
 
     const mergedChains = localData.map((chain) => {
       const remoteChain = remoteData.find((c) => c.symbol === chain.shortName)
+
       if (!remoteChain) return chain
 
       return {
@@ -107,8 +108,6 @@ export class ChainsService {
 
     this.updateFilters(mergedChains)
 
-    console.log('merged chains: ')
-    console.dir(mergedChains, { depth: null })
     return mergedChains
   }
 
