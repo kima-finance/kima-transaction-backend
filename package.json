@@ -11,7 +11,8 @@
     "test:watch": "cross-env NODE_ENV=test jest --testTimeout=10000 --watch --maxWorkers=50% --verbose --detectOpenHandles",
     "dev": "cross-env NODE_ENV=development nodemon",
     "build": "rimraf ./build && tsc",
-    "start": "node build/index.js"
+    "start": "cross-env NODE_ENV=production node build/index.js",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org kima-finance --project kima-transaction-backend ./build && sentry-cli sourcemaps upload --org kima-finance --project kima-transaction-backend ./build"
   },
   "keywords": [],
   "author": "",
@@ -40,6 +41,8 @@
     "@cosmjs/encoding": "^0.33.1",
     "@cosmjs/proto-signing": "^0.33.1",
     "@kimafinance/kima-transaction-api": "^1.3.7",
+    "@sentry/cli": "^2.46.0",
+    "@sentry/node": "^9.23.0",
     "@solana/kit": "^2.1.0",
     "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.98.0",
