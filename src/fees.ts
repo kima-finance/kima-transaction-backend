@@ -1,10 +1,8 @@
 import { ChainName } from './types/chain-name'
 import { fetchWrapper } from './fetch-wrapper'
 import { ENV } from './env-validate'
-import chainsService from './service/chains.service'
 import { getCreatorAddress } from '@kimafinance/kima-transaction-api'
-import { parseUnits } from 'viem'
-import { bigintToNumber, formatterFloat } from './utils'
+import { chainsService } from './service/chain-service-singleton'
 
 export interface GetFeeInput {
   amount: string
@@ -99,6 +97,12 @@ export async function calcServiceFee({
   })
 
   const kimaAddress = await getCreatorAddress()
+  const originToken = await chainsService.getToken(originChain, originSymbol)
+  if (!originToken) {
+    throw new Error(
+      `orign token ${originSymbol} not found on chain ${originChain}`
+    )
+  }
 
   if (originChain === 'CFX')
     return mockServiceFee({
@@ -113,16 +117,20 @@ export async function calcServiceFee({
 
   console.log(ENV.KIMA_BACKEND_FEE_URL)
   const result = (await fetchWrapper.post(
-    `${ENV.KIMA_BACKEND_FEE_URL as string}/v2/fees/calculate`,
+    `${ENV.KIMA_BACKEND_FEE_URL as string}/v3/fees/calculate`,
     {
       creator: kimaAddress.address,
       originChain,
       originAddress,
       originSymbol,
+      peggedTo: originToken.peggedTo,
       targetChain,
       targetAddress,
       targetSymbol,
-      amount: amountStr
+      amount: amountStr,
+      options: originToken.protocol
+        ? { payment_method: originToken.protocol }
+        : undefined
     }
   )) as unknown as FeeResponse
   // console.debug('fee result:', JSON.stringify(result, null, 2))
