@@ -21,7 +21,6 @@ import {
   polygonAmoy,
   sepolia,
   tron,
-  confluxESpaceTestnet,
   confluxESpace
 } from 'viem/chains'
 
@@ -81,12 +80,75 @@ export const CHAINS: Chain[] = [
         symbol: 'USD',
         decimals: 2,
         address: '',
-        peggedTo: 'USD',
+        peggedTo: 'USD'
       }
     ],
     nativeCurrency: {
       name: 'USD',
       symbol: 'USD',
+      decimals: 2
+    },
+    rpcUrls: {
+      default: { http: [] }
+    },
+    faucets: [],
+    blockExplorers: {
+      default: {
+        name: '',
+        url: ''
+      }
+    }
+  },
+  {
+    id: 2,
+    name: 'Bank Transfer',
+    shortName: 'BANK',
+    compatibility: ChainCompatibility.BANK,
+    supportedLocations: ['origin'],
+    supportedTokens: [
+      {
+        symbol: 'EUR',
+        decimals: 2,
+        address: '',
+        peggedTo: 'EUR',
+        protocol: 'sepa_eur'
+      }
+    ],
+    nativeCurrency: {
+      name: 'EUR',
+      symbol: 'EUR',
+      decimals: 2
+    },
+    rpcUrls: {
+      default: { http: [] }
+    },
+    faucets: [],
+    blockExplorers: {
+      default: {
+        name: '',
+        url: ''
+      }
+    },
+    testnet: true
+  },
+  {
+    id: 2,
+    name: 'Bank Transfer',
+    shortName: 'BANK',
+    compatibility: ChainCompatibility.BANK,
+    supportedLocations: ['origin'],
+    supportedTokens: [
+      {
+        symbol: 'EUR',
+        decimals: 2,
+        address: '',
+        peggedTo: 'EUR',
+        protocol: 'sepa_eur'
+      }
+    ],
+    nativeCurrency: {
+      name: 'EUR',
+      symbol: 'EUR',
       decimals: 2
     },
     rpcUrls: {
@@ -289,7 +351,7 @@ export const CHAINS: Chain[] = [
     supportedLocations: ['origin', 'target'],
     supportedTokens: [
       {
-        symbol: "USDK",
+        symbol: 'USDK',
         address: '0xB16de57a9c4D28CFe7Ce2ab87EE4A4deBD643cD1',
         decimals: 18,
         peggedTo: 'USD'
@@ -375,20 +437,6 @@ export const CHAINS: Chain[] = [
   //     }
   //   ]
   // },.
-  {
-    ...confluxESpaceTestnet,
-    compatibility: ChainCompatibility.EVM,
-    shortName: 'CFX',
-    supportedLocations: ['origin', 'target'],
-    supportedTokens: [
-      {
-        symbol: 'USDK',
-        address: '0xb16de57a9c4d28cfe7ce2ab87ee4a4debd643cd1',
-        decimals: 18,
-        peggedTo: 'USD'
-      }
-    ]
-  },
   {
     ...mainnet,
     shortName: 'ETH',

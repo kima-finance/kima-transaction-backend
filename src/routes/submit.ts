@@ -190,7 +190,7 @@ submitRouter.post(
     console.log(req.body, { amountStr, feeStr })
 
     // signature for CC
-    if (originChain === 'CC') {
+    if (['CC', 'BANK'].includes(originChain as string)) {
       const { options: creditCardOptions, transactionId } =
         await generateCreditCardOptions(ccTransactionIdSeed)
 
@@ -251,7 +251,7 @@ submitRouter.post(
       mode
     })
 
-    let result;
+    let result
     try {
       if (isSimulator) {
         result = await fetchWrapper.post(
@@ -270,8 +270,12 @@ submitRouter.post(
         )
       } else {
         result = await submitKimaTransaction({
-          originAddress: originChain === 'CC' ? '' : originAddress,
-          originChain: originChain === 'CC' ? 'FIAT' : originChain,
+          originAddress: ['CC', 'BANK'].includes(originChain)
+            ? ''
+            : originAddress,
+          originChain: ['CC', 'BANK'].includes(originChain)
+            ? 'FIAT'
+            : originChain,
           targetAddress,
           targetChain,
           originSymbol,
@@ -451,9 +455,10 @@ submitRouter.get(
       const result = await calcServiceFee({
         amount: amount as string,
         // deductFee: deductFee === 'true',
-        originChain:
-          originChain === 'CC' ? ChainName.FIAT : (originChain as ChainName),
-        originAddress: originChain === 'CC' ? '' : (originAddress as string),
+        originChain: originChain as ChainName,
+        originAddress: ['CC', 'BANK'].includes(originChain as string)
+          ? ''
+          : (originAddress as string),
         originSymbol: originSymbol as string,
         targetChain: targetChain as ChainName,
         targetAddress: targetAddress as string,

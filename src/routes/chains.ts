@@ -610,8 +610,13 @@ chainsRouter.get(
     //   .optional()
   ],
   async (req: Request, res: Response) => {
-    const chains = await chainsService.supportedChains()
-    res.status(200).json(chains)
+    try {
+      const chains = await chainsService.supportedChains()
+      res.status(200).json(chains)
+    } catch (e) {
+      console.error('cant get chains: ', e)
+      res.status(500).send('failed to fetch chain data')
+    }
   }
 )
 
