@@ -74,7 +74,6 @@ export class ChainsService {
   getLocalChainData = (): Chain[] => {
     // get only testnet or mainnet chains
     // the chain will have the isTestnet property only if it is a testnet chain
-    console.log('getting local chain data...')
     const chains = CHAINS.filter((chain) =>
       this.env == ChainEnv.MAINNET ? !chain.testnet : chain.testnet === true
     )
@@ -94,6 +93,10 @@ export class ChainsService {
 
     const mergedChains = localData.map((chain) => {
       const remoteChain = remoteData.find((c) => c.symbol === chain.shortName)
+
+      // console.log('remote chain: ')
+      // console.dir(remoteChain, { length: 2 })
+      // console.log('===========================')
 
       if (!remoteChain) return chain
 
@@ -180,15 +183,15 @@ export class ChainsService {
       throw new Error('Failed to get TSS public keys')
     }
     const [pubKeys] = pubKeyResult.tssPubkey
-    console.log('pubkeys: ', pubKeys)
+    // console.log('pubkeys: ', pubKeys)
 
     const [chains, poolBalances] = await Promise.all([
       this.getLocalChainData(),
       this.getPoolBalances()
     ])
 
-    console.log('chains: ', chains)
-    console.log('poolbalances: ', poolBalances)
+    // console.log('chains: ', chains)
+    // console.log('poolbalances: ', poolBalances)
 
     const pools = chains.map((chain) => {
       const poolAddress = this.getPoolAddress({ data: pubKeys, chain })
@@ -233,15 +236,15 @@ export class ChainsService {
    */
   getPoolBalances = async (): Promise<PoolBalanceDto[]> => {
     try {
-      console.log("getting pool balances...")
+      console.log('getting pool balances...')
       const result = await fetchWrapper.get<PoolBalanceResponseDto>(
         `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/pool_balance`
       )
 
-      console.log('getpoolbalances result: ', result)
+      // console.log('getpoolbalances result: ', result)
       return typeof result === 'string' ? [] : result.poolBalance
     } catch (error) {
-      throw new Error("Error getting pool balances...")
+      throw new Error('Error getting pool balances...')
     }
   }
 
@@ -257,8 +260,6 @@ export class ChainsService {
     tokenSymbol: string
   ): Promise<TokenDto | undefined> => {
     console.log('getToken: chainName', { chainName, tokenSymbol })
-    // the Kima chain currently uses the FIAT symbol instead of CC
-    chainName = chainName === 'FIAT' ? 'CC' : chainName
     const chain = await this.getChain(chainName as ChainName)
     if (!chain) {
       throw new Error(`Chain ${chainName} not found`)

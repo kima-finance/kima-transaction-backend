@@ -12,9 +12,9 @@ export const SubmitRequestSchema = TransactionDetails.extend({
   options: z.string().optional(),
   ccTransactionIdSeed: z.string().optional()
 }).superRefine((data, ctx) => {
-  // Custom rule: originAddress is required unless originChain === 'FIAT'
+  // Custom rule: originAddress is required unless originChain === 'FIAT' type
   if (
-    data.originChain !== 'CC' && data.originChain !== 'FIAT' &&
+    ['BANK', 'CC'].includes(data.originChain) &&
     (!data.originAddress || data.originAddress.trim() === '')
   ) {
     ctx.addIssue({

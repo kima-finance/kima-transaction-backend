@@ -4,13 +4,13 @@ import { z } from 'zod'
 import { ChainName } from './chain-name'
 
 export enum ChainCompatibility {
-  BANK = 'BANK',
   BTC = 'BTC',
   EVM = 'EVM',
   FIAT = 'FIAT',
   COSMOS = 'COSMOS',
   SELF = 'SELF',
-  CC = 'CC'
+  CC = 'CC',
+  BANK = 'BANK'
 }
 
 export interface Chain extends ViemChain {
@@ -31,10 +31,12 @@ const chainFilterSchema = z.object({
 })
 export type ChainList = [ChainName, ...ChainName[]]
 
-export const filterConfigSchema = z.object({
-  origin: chainFilterSchema.optional(),
-  target: chainFilterSchema.optional()
-}).optional()
+export const filterConfigSchema = z
+  .object({
+    origin: chainFilterSchema.optional(),
+    target: chainFilterSchema.optional()
+  })
+  .optional()
 
 export type FilterConfig = z.infer<typeof filterConfigSchema>
 export type ChainFilterConfig = z.infer<typeof chainFilterSchema>

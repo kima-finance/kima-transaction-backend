@@ -104,23 +104,25 @@ export async function calcServiceFee({
     )
   }
 
-  if (originChain === 'CFX')
-    return mockServiceFee({
-      amount: amountStr,
-      originChain,
-      originAddress,
-      originSymbol,
-      targetChain,
-      targetAddress,
-      targetSymbol
-    })
+  // if (originSymbol === 'EUR')
+  //   return mockServiceFee({
+  //     amount: amountStr,
+  //     originChain,
+  //     originAddress,
+  //     originSymbol,
+  //     targetChain,
+  //     targetAddress,
+  //     targetSymbol
+  //   })
 
   console.log(ENV.KIMA_BACKEND_FEE_URL)
   const result = (await fetchWrapper.post(
     `${ENV.KIMA_BACKEND_FEE_URL as string}/v3/fees/calculate`,
     {
       creator: kimaAddress.address,
-      originChain,
+      originChain: ['CC', 'BANK'].includes(originChain as string)
+        ? 'FIAT'
+        : originChain,
       originAddress,
       originSymbol,
       peggedTo: originToken.peggedTo,
@@ -150,7 +152,9 @@ export function mockServiceFee(input: GetFeeInput): FeeResponse {
   const totalFiatStr = kimaFeeStr // total fees = only Kima fee
   const totalFiatBigInt = kimaFeeBigInt
 
-  const allowanceAmount = BigInt(Math.floor((amount + kimaFee) * 10 ** 18)).toString()
+  const allowanceAmount = BigInt(
+    Math.floor((amount + kimaFee) * 10 ** 18)
+  ).toString()
 
   return {
     feeId: 'mock-zero-fee-id',
