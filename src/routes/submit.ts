@@ -253,49 +253,53 @@ submitRouter.post(
 
     let result
     try {
-      if (isSimulator) {
-        result = await fetchWrapper.post(
-          `${process.env.KIMA_BACKEND_NODE_PROVIDER}/submit` as string,
-          {
-            originAddress,
-            originChain,
-            originAmount: fixedAmount,
-            originSymbol,
-            targetAddress,
-            targetChain,
-            targetAmount: fixedAmount,
-            targetSymbol,
-            fee: fixedFee
-          }
-        )
-      } else {
-        result = await submitKimaTransaction({
-          originAddress: ['CC', 'BANK'].includes(originChain)
-            ? ''
-            : originAddress,
-          originChain: ['CC', 'BANK'].includes(originChain)
-            ? 'FIAT'
-            : originChain,
-          targetAddress,
-          targetChain,
-          originSymbol,
-          targetSymbol,
-          amount: amountStr,
-          fee: feeStr,
-          htlcCreationHash,
-          htlcCreationVout,
-          htlcExpirationTimestamp,
-          htlcVersion,
-          senderPubKey: hexStringToUint8Array(senderPubKey),
-          options
-        })
+      // if (isSimulator) {
+      //   console.log("is simulator")
+      //   result = await fetchWrapper.post(
+      //     `${process.env.KIMA_BACKEND_NODE_PROVIDER}/submit` as string,
+      //     {
+      //       originAddress,
+      //       originChain,
+      //       originAmount: fixedAmount,
+      //       originSymbol,
+      //       targetAddress,
+      //       targetChain,
+      //       targetAmount: fixedAmount,
+      //       targetSymbol,
+      //       fee: fixedFee
+      //     }
+      //   )
+      // } else {
+      const txObject = {
+        originAddress: ['CC', 'BANK'].includes(originChain)
+          ? ''
+          : originAddress,
+        originChain: ['CC', 'BANK'].includes(originChain)
+          ? 'FIAT'
+          : originChain,
+        targetAddress,
+        targetChain,
+        originSymbol,
+        targetSymbol,
+        amount: amountStr,
+        fee: feeStr,
+        htlcCreationHash,
+        htlcCreationVout,
+        htlcExpirationTimestamp,
+        htlcVersion,
+        senderPubKey: hexStringToUint8Array(senderPubKey),
+        options
       }
+
+      console.log('tx object: ', txObject)
+      result = await submitKimaTransaction(txObject)
+      
+      // }
 
       console.log('kima submit result', result)
       res.send(result)
     } catch (e) {
-      console.error('error submitting transaction')
-      console.error(e)
+      console.error('error submitting transaction: ', e)
       res.status(500).send('failed to submit transaction')
     }
   }
