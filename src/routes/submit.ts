@@ -256,22 +256,22 @@ submitRouter.post(
 
     let result
     try {
-      if (isSimulator) {
-        result = await fetchWrapper.post(
-          `${process.env.KIMA_BACKEND_NODE_PROVIDER}/submit` as string,
-          {
-            originAddress,
-            originChain,
-            originAmount: fixedAmount,
-            originSymbol,
-            targetAddress,
-            targetChain,
-            targetAmount: fixedAmount,
-            targetSymbol,
-            fee: fixedFee
-          }
-        )
-      } else {
+      // if (isSimulator) {
+      //   result = await fetchWrapper.post(
+      //     `${process.env.KIMA_BACKEND_NODE_PROVIDER}/submit` as string,
+      //     {
+      //       originAddress,
+      //       originChain,
+      //       originAmount: fixedAmount,
+      //       originSymbol,
+      //       targetAddress,
+      //       targetChain,
+      //       targetAmount: fixedAmount,
+      //       targetSymbol,
+      //       fee: fixedFee
+      //     }
+      //   )
+      // } else {
         result = await submitKimaTransferTransaction({
           originAddress: ['CC', 'BANK'].includes(originChain)
             ? ''
@@ -292,7 +292,7 @@ submitRouter.post(
           senderPubKey: hexStringToUint8Array(senderPubKey),
           options
         })
-      }
+      // }
 
       console.log('kima submit result', result)
       res.send(result)
