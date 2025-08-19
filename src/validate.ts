@@ -1,13 +1,12 @@
-import dotenv from 'dotenv'
+import 'dotenv/config'
 import { Request } from 'express'
 import { PublicKey } from '@solana/web3.js'
 import { isAddress } from 'viem'
 import { fetchWrapper } from './fetch-wrapper'
 // import { Network, validate as validateBTC } from 'bitcoin-address-validation'
 import { ChainName } from './types/chain-name'
-import chainsService from './service/chains.service'
-
-dotenv.config()
+import { chainsService } from './service/chain-service-singleton'
+import { SubmitTransaction } from './types/submit-transaction'
 
 /**
  * Returns empty string if the tokens are supported on the given chains
@@ -38,26 +37,6 @@ async function isValidChain(
     return `target chain ${targetChain} disabled`
   }
 
-  // const currencies = await chainsService.getAvailableCurrencies({
-  //   originChain,
-  //   targetChain
-  // })
-
-  // if (
-  //   !currencies.find(
-  //     (item: string) => item.toLowerCase() === originSymbol.toLowerCase()
-  //   )
-  // ) {
-  //   return `origin symbol ${originSymbol} not found`
-  // }
-  // if (
-  //   !currencies.find(
-  //     (item: string) => item.toLowerCase() === targetSymbol.toLowerCase()
-  //   )
-  // ) {
-  //   return `target symbol ${targetSymbol} not found`
-  // }
-
   return ''
 }
 
@@ -74,8 +53,6 @@ async function isValidAddress(
   chain: ChainName
 ): Promise<string> {
   try {
-    console.log("address and chain: ", address, chain)
-
     if (chain === ChainName.FIAT || chain === 'CC') {
       return ''
     }
@@ -83,7 +60,7 @@ async function isValidAddress(
     if (chain === ChainName.SOLANA) {
       const owner = new PublicKey(address)
       return !PublicKey.isOnCurve(owner)
-        ? 'invalid Solana address ${address}'
+        ? `invalid Solana address ${address}`
         : ''
     }
 
@@ -96,7 +73,7 @@ async function isValidAddress(
         }
       )
 
-      return res?.result === false ? 'invalid Tron address ${address}' : ''
+      return res?.result === false ? `invalid Tron address ${address}` : ''
     }
 
     // TODO: add BTC once supported in mainnet
@@ -111,6 +88,36 @@ async function isValidAddress(
   }
 }
 
+async function areValidTokens(inputs: {
+  originChain: string
+  originSymbol: string
+  targetChain: string
+  targetSymbol: string
+}): Promise<string> {
+  const originToken = await chainsService.getToken(
+    inputs.originChain,
+    inputs.originSymbol
+  )
+  if (!originToken) {
+    return `origin symbol ${inputs.originSymbol} not found`
+  }
+
+  const targetToken = await chainsService.getToken(
+    inputs.targetChain,
+    inputs.targetSymbol
+  )
+  if (!targetToken) {
+    return `target symbol ${inputs.targetSymbol} not found`
+  }
+
+  // must be pegged to the same currency
+  if (originToken.peggedTo !== targetToken.peggedTo) {
+    return `origin and target tokens must be pagged to the same currency. ${originToken.symbol} (${originToken.peggedTo}) != ${targetToken.symbol} (${targetToken.peggedTo})`
+  }
+
+  return ''
+}
+
 /**
  * Validation for the POST /submit endpoint
  *
@@ -120,7 +127,17 @@ async function isValidAddress(
  * @returns {Promise<string>}
  */
 export async function validate(req: Request): Promise<string> {
-  const { originAddress, originChain, targetAddress, targetChain } = req.body
+  const {
+    originAddress,
+    originSymbol,
+    targetAddress,
+    targetChain,
+    targetSymbol
+  } = req.body as SubmitTransaction
+
+  // the Kima chain currently uses the FIAT symbol instead of CC (Credit Card)
+  const originChain =
+    req.body.originChain === 'FIAT' ? 'CC' : req.body.originChain
 
   try {
     let error = await isValidChain(originChain, targetChain)
@@ -128,12 +145,18 @@ export async function validate(req: Request): Promise<string> {
       return error
     }
 
-    console.log("will validate origin...")
-    error = await isValidAddress(originAddress, originChain)
+    error = await isValidAddress(originAddress, originChain as ChainName)
     if (error) return error
 
-    console.log("will validate target...")
-    error = await isValidAddress(targetAddress, targetChain)
+    error = await isValidAddress(targetAddress, targetChain as ChainName)
+
+    error = await areValidTokens({
+      originChain,
+      originSymbol,
+      targetChain,
+      targetSymbol
+    })
+
     return error
   } catch (e) {
     console.error(e)

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { TransactionDetails } from './transaction-details'
 
-type TransactionDetailsType = z.infer<typeof TransactionDetails>
+export type TransactionDetailsType = z.infer<typeof TransactionDetails>
 
 export interface SubmitTransaction extends TransactionDetailsType {
   htlcCreationHash?: string

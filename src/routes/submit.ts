@@ -244,7 +244,7 @@ submitRouter.post(
       htlcVersion,
       senderPubKey,
       options,
-      mode,
+      mode
     })
 
     try {
@@ -438,7 +438,7 @@ submitRouter.get(
         targetSymbol: targetSymbol as string
       })
 
-      console.log("result: ",result)
+      console.log('result: ', result)
       res.status(200).json(result)
       // const message = txMessage({
       //   allowanceAmount: result.allowanceAmount,
@@ -454,7 +454,7 @@ submitRouter.get(
       // })
     } catch (e) {
       console.log(e)
-      res.status(500).send('failed to get fee')
+      res.status(500).json({ ok: false, errors: ['failed to get fee', e] })
     }
   }
 )

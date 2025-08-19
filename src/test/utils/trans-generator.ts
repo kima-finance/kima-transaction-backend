@@ -1,12 +1,11 @@
-import { z } from 'zod'
-import { TransactionDetails } from '../../types/transaction-details'
+import { TransactionDetailsType } from '../../types/submit-transaction'
 
-type TransactionDetailsType = z.infer<typeof TransactionDetails>
-
-export const generateTransDetails = (data?: Partial<TransactionDetailsType>) => {
+export const generateTransDetails = (
+  data?: Partial<TransactionDetailsType>
+) => {
   return {
-    amount: 100000000,
-    fee: 500000,
+    amount: '100000000',
+    fee: '500000',
     decimals: 6,
     originAddress: '0xDD4c48C0B24039969fC16D1cdF626eaB821d3384',
     originChain: 'ETH',

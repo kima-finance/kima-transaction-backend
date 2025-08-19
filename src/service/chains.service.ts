@@ -82,6 +82,7 @@ export class ChainsService {
   mergeChainData = async (): Promise<Chain[]> => {
     // merge the local chain data with the remote chain data to as chains can be dynamically enabled/disabled
     const remoteData = await this.fetchChains()
+
     const localData = this.getLocalChainData()
 
     // TODO: it should look for chains in the remote data that are not in the local data
@@ -90,6 +91,7 @@ export class ChainsService {
 
     const mergedChains = localData.map((chain) => {
       const remoteChain = remoteData.find((c) => c.symbol === chain.shortName)
+
       if (!remoteChain) return chain
 
       return {
@@ -239,11 +241,15 @@ export class ChainsService {
     chainName: string,
     tokenSymbol: string
   ): Promise<TokenDto | undefined> => {
+    console.log('getToken: chainName', { chainName, tokenSymbol })
+    // the Kima chain currently uses the FIAT symbol instead of CC
+    chainName = chainName === 'FIAT' ? 'CC' : chainName
     const chain = await this.getChain(chainName as ChainName)
     if (!chain) {
       throw new Error(`Chain ${chainName} not found`)
     }
-    return chain.supportedTokens.find((t) => t.symbol === tokenSymbol)
+    const token = chain.supportedTokens.find((t) => t.symbol === tokenSymbol)
+    return token
   }
 
   /**
@@ -302,10 +308,7 @@ export class ChainsService {
     tokenSymbol: string,
     amount: number | string
   ): Promise<TokenAmount> => {
-    const token = await this.getToken(
-      chainName === 'FIAT' ? 'CC' : chainName,
-      tokenSymbol
-    )
+    const token = await this.getToken(chainName, tokenSymbol)
     if (!token) {
       throw new Error(`Token ${tokenSymbol} not found`)
     }
@@ -315,9 +318,3 @@ export class ChainsService {
     }
   }
 }
-
-const chainsService = new ChainsService(
-  ENV.KIMA_ENVIRONMENT,
-  ENV.KIMA_CHAIN_FILTER
-)
-export default chainsService

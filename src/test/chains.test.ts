@@ -1,9 +1,16 @@
 import { CHAINS } from '../data/chains'
+import { fetchWrapper } from '../fetch-wrapper'
 import { ChainsService } from '../service/chains.service'
 import { ChainList, ChainLocation, FilterConfig } from '../types/chain'
 import { ChainEnv } from '../types/chain-env'
+import apiChainsResponse from './data/api-chains-response.json'
 
 jest.mock('../fetch-wrapper')
+
+const mockedFetchWrapper = fetchWrapper as {
+  get: jest.Mock
+  post: jest.Mock
+}
 
 describe('Chain Service', () => {
   let chainFilter: FilterConfig
@@ -12,6 +19,13 @@ describe('Chain Service', () => {
 
   beforeEach(() => {
     jest.resetAllMocks()
+    mockedFetchWrapper.get.mockImplementation((url: string) => {
+      if (url.includes('/chains/chain')) {
+        return Promise.resolve(apiChainsResponse)
+      }
+      return Promise.resolve({ status: 'fail', error: 'not found' })
+    })
+
     chainFilter = {
       origin: {
         mode: 'whitelist',
