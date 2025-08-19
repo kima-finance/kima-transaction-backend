@@ -6,7 +6,7 @@ import { ChainName } from '../types/chain-name'
 import { ChainsResponseDto } from '../types/chains-response.dto'
 import { AvailableChainsResponseDto } from '../types/available-chains-response.dto'
 import { ChainEnv } from '../types/chain-env'
-import chainsService from '../service/chains.service'
+import { chainsService } from '../service/chain-service-singleton'
 import { ENV } from '../env-validate'
 import { BlockchainParamsResponseDto } from '../types/kima-blockchain-params.dto'
 
