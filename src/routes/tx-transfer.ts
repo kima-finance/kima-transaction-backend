@@ -10,7 +10,7 @@ import {
 } from '../types/transaction-status'
 import { ENV } from '../env-validate'
 
-const txRouter = Router()
+const transferTxRouter = Router()
 
 /**
  * @openapi
@@ -80,7 +80,7 @@ const txRouter = Router()
  *             schema:
  *               type: string
  */
-txRouter.get(
+transferTxRouter.get(
   '/lp/:txId/status',
   [
     param('txId')
@@ -206,7 +206,7 @@ txRouter.get(
  *             schema:
  *               type: string
  */
-txRouter.get(
+transferTxRouter.get(
   '/:txId/status',
   [
     param('txId')
@@ -264,4 +264,4 @@ txRouter.get(
   }
 )
 
-export default txRouter
+export default transferTxRouter

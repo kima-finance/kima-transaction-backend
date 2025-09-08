@@ -6,8 +6,8 @@ import htlcRouter from './htlc'
 import kycRouter from './kyc'
 import reclaimRouter from './reclaim'
 import submitRouter from './submit'
-import txRouter from './tx'
-import swapTxRouter from './swap_tx'
+import transferTxRouter from './tx-transfer'
+import swapTxRouter from './tx-swap'
 import chainsRouter from './chains'
 import docsRouter from './docs'
 import uuidRouter from './uuid'
@@ -41,7 +41,7 @@ router.use('/compliant', compliantRouter)
 router.use('/kyc', kycRouter)
 // router.use('/reclaim', reclaimRouter) TODO: enable once BTC supported in mainnet
 router.use('/submit', submitRouter)
-router.use('/tx', txRouter)
+router.use('/transfer_tx', transferTxRouter)
 router.use('/swap_tx', swapTxRouter)
 router.use('/uuid', uuidRouter)
 

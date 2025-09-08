@@ -5,8 +5,7 @@ import { body, query } from 'express-validator'
 import {
   bigintToFixedNumber,
   hexStringToUint8Array,
-  signApprovalMessage,
-  signApprovalSwapMessage
+  signApprovalMessage
 } from '../utils'
 import { ChainName } from '../types/chain-name'
 import { calcServiceFee } from '../fees'
@@ -340,21 +339,12 @@ submitRouter.post(
  *               targetSymbol:
  *                 type: string
  *                 description: receiving token symbol
- *               htlcCreationHash:
+ *               dex:
  *                 type: string
- *                 description: (Bitcoin only) HTLC creation hash
- *               htlcCreationVout:
- *                 type: number
- *                 description: (Bitcoin only) HTLC creation vout
- *               htlcExpirationTimestamp:
+ *                 description: the name of the DEX that user wants to interact with
+ *               slippage:
  *                 type: string
- *                 description: (Bitcoin only) HTLC expiration timestamp
- *               htlcVersion:
- *                 type: string
- *                 description: (Bitcoin only) HTLC version
- *               senderPubKey:
- *                 type: string
- *                 description: (Bitcoin only) Sender public key
+ *                 description: the maximum acceptable price slippage
  *     responses:
  *       200:
  *         description: Successful response
@@ -474,7 +464,7 @@ submitRouter.post(
     // generate signature from backend
     if (mode === 'light') {
       options = JSON.parse(options)
-      options.signature = await signApprovalSwapMessage({
+      options.signature = await signApprovalMessage({
         originSymbol,
         originChain,
         targetAddress,
