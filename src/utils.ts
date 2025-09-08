@@ -1,5 +1,5 @@
 import { createWalletClient, http, formatUnits } from 'viem'
-import { DECIMALS } from './constants'
+import { DECIMALS, isTestnet } from './constants'
 import { CHAINS } from './data/chains'
 import { Chain, ChainCompatibility } from './types/chain'
 import { privateKeyToAccount, privateKeyToAddress } from 'viem/accounts'
@@ -91,15 +91,14 @@ export const signApprovalMessage = async ({
   targetChain,
   allowanceAmount
 }: SignApprovalData): Promise<string> => {
-  const isTestnet = process.env.KIMA_ENVIRONMENT === 'tesnet'
-
   const chain = CHAINS.find(
     (CHAIN) => CHAIN.shortName === originChain && !!CHAIN.testnet === isTestnet
   )
+
   if (!chain) throw new Error('Chain not found')
 
   const message = `I approve the transfer of ${allowanceAmount} ${originSymbol} from ${originChain} to ${targetAddress} on ${targetChain}.`
-  console.log("message: ", message)
+  console.log('message: ', message)
 
   if (chain.compatibility === ChainCompatibility.EVM) {
     return await signEvmMessage(chain, message)
@@ -134,7 +133,7 @@ export const signApprovalSwapMessage = async ({
   if (!chain) throw new Error('Chain not found')
 
   const message = `I approve the swap of ${allowanceAmount} ${originSymbol} from ${originChain} to ${targetAddress} on ${targetChain}.`
-  console.log("message: ", message)
+  console.log('message: ', message)
 
   if (chain.compatibility === ChainCompatibility.EVM) {
     return await signEvmMessage(chain, message)
@@ -214,9 +213,9 @@ const signTronMessage = (message: string): string => {
 
   const prefix = `\x19TRON Signed Message:\n${message.length}${message}`
 
-  console.log("prefix: ", prefix)
+  console.log('prefix: ', prefix)
   const messageHash = keccak256(Buffer.from(prefix))
-  console.log("messagehash: ", messageHash)
+  console.log('messagehash: ', messageHash)
 
   const { v, r, s } = ecsign(messageHash, privateKey)
 
