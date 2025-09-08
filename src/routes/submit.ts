@@ -5,7 +5,8 @@ import { body, query } from 'express-validator'
 import {
   bigintToFixedNumber,
   hexStringToUint8Array,
-  signApprovalMessage
+  signApprovalMessage,
+  signApprovalSwapMessage
 } from '../utils'
 import { ChainName } from '../types/chain-name'
 import { calcServiceFee } from '../fees'
@@ -464,7 +465,7 @@ submitRouter.post(
     // generate signature from backend
     if (mode === 'light') {
       options = JSON.parse(options)
-      options.signature = await signApprovalMessage({
+      options.signature = await signApprovalSwapMessage({
         originSymbol,
         originChain,
         targetAddress,
