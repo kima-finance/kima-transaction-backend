@@ -21,7 +21,7 @@ import { TokenDto } from '../types/token.dto'
 import { TokenAmount } from '../types/token-amount.dto'
 import { parseUnits } from 'viem'
 import { ENV } from '../env-validate'
-import { ChainFilter } from './chain-fiter'
+import { ChainFilter } from './chain-filter'
 import { ChainDto } from '../types/chain.dto.'
 import { defineCached } from '../utils/cache'
 
