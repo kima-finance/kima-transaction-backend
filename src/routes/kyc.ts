@@ -26,32 +26,10 @@ const kycRouter = Router()
  *     responses:
  *       200:
  *         description: Successful response
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                 status:
- *                   type: string
- *                 name:
- *                   type: string
- *                 surname:
- *                   type: string
- *                 external_uuid:
- *                   type: string
- *                   format: uuidv4
- *                 account_id:
- *                   type: string
- *                 created_at:
- *                   type: number
+ *       403:
+ *         description: KYC not enabled
  *       500:
  *         description: Internal server error
- *         content:
- *           text/plain:
- *             schema:
- *               type: string
  */
 kycRouter.get(
   '/',
@@ -63,19 +41,19 @@ kycRouter.get(
     if (!ENV.DEPASIFY_API_KEY) {
       return res.status(403).json({ message: 'KYC is not enabled' })
     }
-    const { uuid } = req.body
+
+    const { uuid } = req.query as { uuid: string }
 
     try {
       const kycResult = await fetchWrapper.get<KYCResponseDto>(
         `http://sandbox.depasify.com/api/v1/identifications?filter[external_uuid]=${uuid}`,
-        ENV.DEPASIFY_API_KEY as string
+        ENV.DEPASIFY_API_KEY
       )
-
-      res.send(kycResult)
+      return res.status(200).send(kycResult)
     } catch (e) {
       console.error(e)
+      return res.status(500).send('failed to get kyc status')
     }
-    res.status(500).send('failed to get kyc status')
   }
 )
 
