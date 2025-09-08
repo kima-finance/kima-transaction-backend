@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { TransactionDetails } from './transaction-details'
+import { SwapDetails } from './swap-details'
 
 export const SubmitRequestSchema = TransactionDetails.extend({
   decimals: z.number(),
@@ -24,5 +25,24 @@ export const SubmitRequestSchema = TransactionDetails.extend({
   }
 })
 
+export const SubmitSwapRequestSchema = SwapDetails.extend({
+  decimals: z.number(),
+  options: z.string().optional(),
+  ccTransactionIdSeed: z.string().optional()
+}).superRefine((data, ctx) => {
+  // Custom rule: originAddress is required unless originChain === 'FIAT'
+  if (
+    data.originChain !== 'CC' && data.originChain !== 'FIAT' &&
+    (!data.originAddress || data.originAddress.trim() === '')
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['originAddress'],
+      message: 'originAddress is required when originChain is not FIAT'
+    })
+  }
+})
+
 // Optional: Export the inferred type
 export type SubmitRequestDto = z.infer<typeof SubmitRequestSchema>
+export type SubmitSwapRequestDto = z.infer<typeof SubmitSwapRequestSchema>
