@@ -4,19 +4,21 @@ export const fetchWrapper = {
 }
 
 function get<T = any>(url: string, token?: string) {
-  const requestOptions: any = {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+  if (token) headers['Authorization'] = token
+
+  const requestOptions: RequestInit = {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `${token}`
-    }
+    headers
   }
 
   return fetch(url, requestOptions).then(handleResponse<T>)
 }
 
 function post<T = any>(url: string, body: any) {
-  const requestOptions: any = {
+  const requestOptions: RequestInit = {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -34,18 +36,13 @@ function handleResponse<T = any>(response: Response): Promise<T | string> {
 
     try {
       data = JSON.parse(text) as T
-    } catch (error) {
+    } catch {
       data = text
     }
 
     if (!response.ok) {
-      if ([401, 403].includes(response.status)) {
-        // auto logout if 401 Unauthorized or 403 Forbidden response returned from api
-      }
-
-      // const error = (data && data.message) || response.statusText;
+      // Include upstream body text for debugging; caller can decide what to expose
       const error = data || response.statusText
-
       return Promise.reject({ status: response.status, error })
     }
 
