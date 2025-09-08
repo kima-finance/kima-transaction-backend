@@ -9,6 +9,14 @@ import { BtcUtxoResponseDto } from '../types/btc-utxo-response.dto'
 
 const btcRouter = Router()
 
+const BLOCKSTREAM_BASE = isTestnet
+  ? 'https://blockstream.info/testnet'
+  : 'https://blockstream.info'
+
+const MEMPOOL_BASE = isTestnet
+  ? 'https://mempool.space/testnet'
+  : 'https://mempool.space'
+
 /**
  * @openapi
  * /btc/balance:
@@ -24,28 +32,18 @@ const btcRouter = Router()
  *         description: BTC address
  *         schema:
  *           type: string
- *           pattern: ^bc1[a-zA-HJ-NP-Z0-9]{25,39}$
  *     responses:
  *       200:
  *         description: Successful response
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 balance:
- *                   type: number
  *       500:
  *         description: Internal server error
- *         content:
- *           text/plain:
- *             schema:
- *               type: string
  */
 btcRouter.get(
   '/balance',
   [
-    query('address').custom((address) => validateBTC(address, Network.testnet)),
+    query('address').custom((address) =>
+      validateBTC(address, isTestnet ? Network.testnet : Network.mainnet)
+    ),
     validateRequest
   ],
   async (req: Request, res: Response) => {
@@ -53,7 +51,7 @@ btcRouter.get(
 
     try {
       const btcInfo: any = await fetchWrapper.get(
-        `https://blockstream.info/testnet/api/address/${address}`
+        `${BLOCKSTREAM_BASE}/api/address/${address}`
       )
 
       const balance =
@@ -82,84 +80,11 @@ btcRouter.get(
  *         description: BTC transaction hash
  *         schema:
  *           type: string
- *           pattern: ^[a-fA-F0-9]{64}$
  *     responses:
  *       200:
  *         description: Successful response
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 txid:
- *                   type: string
- *                 version:
- *                   type: number
- *                 locktime:
- *                   type: number
- *                 vin:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       txid:
- *                         type: string
- *                       vout:
- *                         type: number
- *                       prevout:
- *                         type: object
- *                         properties:
- *                           scriptpubkey:
- *                             type: string
- *                           scriptpubkey_asm:
- *                             type: string
- *                           scriptpubkey_type:
- *                             type: string
- *                           scriptpubkey_address:
- *                             type: string
- *                           value:
- *                             type: number
- *                       scriptsig:
- *                         type: string
- *                       scriptsig_asm:
- *                         type: string
- *                       is_coinbase:
- *                         type: boolean
- *                       sequence:
- *                         type: number
- *                 vout:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       scriptpubkey:
- *                         type: string
- *                       scriptpubkey_asm:
- *                         type: string
- *                       scriptpubkey_type:
- *                         type: string
- *                       scriptpubkey_address:
- *                         type: string
- *                       value:
- *                         type: number
- *
- *                 size:
- *                   type: number
- *                 weight:
- *                   type: number
- *                 fee:
- *                   type: number
- *                 status:
- *                   type: object
- *                   properties:
- *                     confirmed:
- *                       type: boolean
  *       500:
  *         description: Internal server error
- *         content:
- *           text/plain:
- *             schema:
- *               type: string
  */
 btcRouter.get(
   '/transaction',
@@ -169,7 +94,7 @@ btcRouter.get(
 
     try {
       const btcInfo = await fetchWrapper.get<BtcTransactionDto>(
-        `https://blockstream.info/testnet/api/tx/${hash}`
+        `${BLOCKSTREAM_BASE}/api/tx/${hash}`
       )
 
       res.send(btcInfo)
@@ -194,50 +119,27 @@ btcRouter.get(
  *         required: true
  *         schema:
  *           type: string
- *           pattern: ^bc1[a-zA-Z0-9]{25,39}$
  *     responses:
  *       200:
  *         description: Successful response
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   txid:
- *                     type: string
- *                   vout:
- *                     type: number
- *                   value:
- *                     type: number
- *                   status:
- *                     type: object
- *                     properties:
- *                       confirmed:
- *                         type: boolean
  *       500:
  *         description: Internal server error
- *         content:
- *           text/plain:
- *             schema:
- *               type: string
  */
 btcRouter.get(
   '/utxo/:address',
   [
     param('address')
-      .notEmpty()
-      .withMessage('address path parameter must be provided'),
+      .custom((address) =>
+        validateBTC(address, isTestnet ? Network.testnet : Network.mainnet)
+      )
+      .withMessage('address path parameter must be a valid BTC address'),
     validateRequest
   ],
   async (req: Request, res: Response) => {
     const { address } = req.params
 
     try {
-      const networkSubpath = isTestnet ? '/testnet' : ''
-      const url = `https://mempool.space${networkSubpath}/api/address/${address}/utxo`
-
+      const url = `${MEMPOOL_BASE}/api/address/${address}/utxo`
       const response = await fetchWrapper.get<BtcUtxoResponseDto[]>(url)
       res.send(response)
     } catch (e) {
