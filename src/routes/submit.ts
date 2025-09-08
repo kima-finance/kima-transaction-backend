@@ -1,21 +1,24 @@
 import { Request, Response, Router } from 'express'
-import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
+import { submitKimaTransferTransaction, submitKimaSwapTransaction } from '@kimafinance/kima-transaction-api'
 import { validateRequest } from '../middleware/validation'
 import { body, query } from 'express-validator'
 import {
   bigintToFixedNumber,
   hexStringToUint8Array,
-  signApprovalMessage
+  signApprovalMessage,
+  signApprovalSwapMessage
 } from '../utils'
 import { ChainName } from '../types/chain-name'
 import { calcServiceFee } from '../fees'
 import {
   SubmitRequestDto,
-  SubmitRequestSchema
+  SubmitRequestSchema,
+  SubmitSwapRequestDto,
+  SubmitSwapRequestSchema
 } from '../types/submit-request.dto'
 import { checkCompliance } from '../middleware/compliance'
 import { transValidation } from '../middleware/trans-validation'
-import { txMessage, TxMessageInputs } from '../message'
+import { txTransferMessage, txSwapMessage, TxMessageInputs } from '../message'
 import { formatUnits } from 'viem'
 import { generateCreditCardOptions } from '../creditcard'
 
@@ -23,10 +26,10 @@ const submitRouter = Router()
 
 /**
  * @openapi
- * /submit:
+ * /submit/transfer:
  *   post:
- *     summary: Submit transaction
- *     description: Submit a transaction to the Kima Chain
+ *     summary: Submit transfer transaction
+ *     description: Submit a transfer transaction to the Kima Chain
  *     tags:
  *       - Submit
  *     requestBody:
@@ -139,7 +142,7 @@ const submitRouter = Router()
  *               type: string
  */
 submitRouter.post(
-  '/',
+  '/transfer',
   [transValidation, checkCompliance],
   async (req: Request, res: Response) => {
     let result = SubmitRequestSchema.safeParse(req.body)
@@ -248,7 +251,7 @@ submitRouter.post(
     })
 
     try {
-      const result = await submitKimaTransaction({
+      const result = await submitKimaTransferTransaction({
         originAddress: originChain === 'CC' ? '' : originAddress,
         originChain: originChain === 'CC' ? 'FIAT' : originChain,
         targetAddress,
@@ -269,6 +272,247 @@ submitRouter.post(
       res.send(result)
     } catch (e) {
       console.error('error submitting transaction')
+      console.error(e)
+      res.status(500).send('failed to submit transaction')
+    }
+  }
+)
+
+/**
+ * @openapi
+ * /submit/swap:
+ *   post:
+ *     summary: Submit swap transaction
+ *     description: Submit a swap transaction to the Kima Chain
+ *     tags:
+ *       - Submit
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               amountIn:
+ *                 type: string
+ *                 description: (bigint string) Amount in of token to swap
+ *               amountOut:
+ *                 type: string
+ *                 description: (bigint string) Amount out of token to receive
+ *               fee:
+ *                 type: string
+ *                 description: (bigint string) Total service fees.
+ *               decimals:
+ *                 type: number
+ *                 description: Number of decimals for the amount and fee
+ *               originAddress:
+ *                 type: string
+ *                 description: sender address
+ *               originChain:
+ *                 type: string
+ *                 description: starting chain
+ *                 enum:
+ *                   - ARB
+ *                   - AVX
+ *                   - BASE
+ *                   - BSC
+ *                   - ETH
+ *                   - OPT
+ *                   - POL
+ *                   - SOL
+ *                   - TRX
+ *               targetAddress:
+ *                 type: string
+ *                 description: receiver address
+ *               targetChain:
+ *                 type: string
+ *                 description: receiving chain
+ *                 enum:
+ *                   - ARB
+ *                   - AVX
+ *                   - BASE
+ *                   - BSC
+ *                   - ETH
+ *                   - OPT
+ *                   - POL
+ *                   - SOL
+ *                   - TRX
+ *               targetSymbol:
+ *                 type: string
+ *                 description: receiving token symbol
+ *               dex:
+ *                 type: string
+ *                 description: the name of the DEX that user wants to interact with
+ *               slippage:
+ *                 type: string
+ *                 description: the maximum acceptable price slippage
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *       403:
+ *         description: Address is not compliant. Applies if compliance is enabled.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isCompliant:
+ *                   type: boolean
+ *                 isError:
+ *                   type: boolean
+ *                 results:
+ *                   type: object
+ *                   properties:
+ *                     isCompliant:
+ *                       type: boolean
+ *                     results:
+ *                       type: object
+ *                       properties:
+ *                         address:
+ *                           type: string
+ *                         error:
+ *                           type: string
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ */
+submitRouter.post(
+  '/swap',
+  [transValidation, checkCompliance],
+  async (req: Request, res: Response) => {
+    let result = SubmitSwapRequestSchema.safeParse(req.body)
+
+    if (!result.success) {
+      console.error('Validation Error:', result.error.format())
+
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: result.error.flatten()
+      })
+    }
+
+    let {
+      originAddress,
+      originChain,
+      originSymbol,
+      targetAddress,
+      targetChain,
+      targetSymbol,
+      amountIn,
+      amountOut,
+      fee,
+      decimals,
+      dex,
+      slippage,
+      options = '',
+      ccTransactionIdSeed = '',
+      mode,
+    } = req.body satisfies SubmitSwapRequestDto
+
+    const fixedAmountIn = bigintToFixedNumber(amountIn, decimals)
+    const fixedAmountOut = bigintToFixedNumber(amountOut, decimals)
+    const fixedFee = bigintToFixedNumber(fee, decimals)
+
+    // set the proper amount to sign message and send to blockchain
+    // swap tranaction will always deduct the fee from the amount out
+    const allowanceAmount = fixedAmountIn
+
+    const amountInStr = formatUnits(amountIn, decimals)
+    const amountOutStr = formatUnits(amountOut, decimals)
+    const feeStr = formatUnits(fee, decimals)
+    console.log(req.body, { amountInStr, amountOutStr, feeStr })
+
+    // signature for CC
+    if (originChain === 'CC') {
+      const { options: creditCardOptions, transactionId } =
+        await generateCreditCardOptions(ccTransactionIdSeed)
+
+      options = JSON.stringify({
+        ...JSON.parse(options),
+        ...creditCardOptions
+      })
+    }
+
+    console.log({
+      originAddress,
+      originChain,
+      targetAddress,
+      targetChain,
+      originSymbol,
+      targetSymbol,
+      amountIn: amountInStr,
+      amountOut: amountOutStr,
+      fee: feeStr,
+      dex,
+      slippage,
+      options,
+      ccTransactionIdSeed
+    })
+
+    // generate signature from backend
+    if (mode === 'light') {
+      options = JSON.parse(options)
+      options.signature = await signApprovalSwapMessage({
+        originSymbol,
+        originChain,
+        targetAddress,
+        targetChain,
+        allowanceAmount
+      })
+
+      options = JSON.stringify(options)
+    }
+
+    console.log({
+      originAddress,
+      originChain,
+      originSymbol,
+      targetAddress,
+      targetChain,
+      targetSymbol,
+      fixedAmountIn,
+      fixedAmountOut,
+      fixedFee,
+      decimals,
+      dex,
+      slippage,
+      options,
+      mode
+    })
+
+    try {
+      const result = await submitKimaSwapTransaction({
+        originAddress: originChain === 'CC' ? '' : originAddress,
+        originChain: originChain === 'CC' ? 'FIAT' : originChain,
+        targetAddress,
+        targetChain,
+        originSymbol,
+        targetSymbol,
+        amountIn: amountInStr,
+        amountOut: amountOutStr,
+        fee: feeStr,
+        dex,
+        slippage,
+        options
+      })
+
+      console.log('kima submit swap result', result)
+      res.send(result)
+    } catch (e) {
+      console.error('error submitting swap transaction')
       console.error(e)
       res.status(500).send('failed to submit transaction')
     }
@@ -512,7 +756,7 @@ submitRouter.get(
 
 // test only TODO: remove
 submitRouter.get<never, { messsage: string }, never, TxMessageInputs>(
-  '/message',
+  '/transfer-message',
   [
     query('allowanceAmount')
       .isInt({ gt: 0 })
@@ -537,7 +781,45 @@ submitRouter.get<never, { messsage: string }, never, TxMessageInputs>(
       targetAddress,
       targetChain
     } = req.query
-    const message = txMessage({
+    const message = txTransferMessage({
+      allowanceAmount: allowanceAmount as string,
+      originChain: originChain as string,
+      originSymbol: originSymbol as string,
+      targetAddress: targetAddress as string,
+      targetChain: targetChain as string
+    })
+    res.status(200).json({ message })
+  }
+)
+
+// test only TODO: remove
+submitRouter.get<never, { messsage: string }, never, TxMessageInputs>(
+  '/swap-message',
+  [
+    query('allowanceAmount')
+      .isInt({ gt: 0 })
+      .withMessage('allowanceAmount must be an integer greater than 0'),
+    query('originChain')
+      .isString()
+      .isIn(Object.values(ChainName))
+      .withMessage('targetChain must be a valid chain name'),
+    query('originSymbol').isString().notEmpty(),
+    query('targetAddress').isString().notEmpty(),
+    query('targetChain')
+      .isString()
+      .isIn(Object.values(ChainName))
+      .withMessage('targetChain must be a valid chain name'),
+    validateRequest
+  ],
+  async (req: Request, res: Response) => {
+    const {
+      allowanceAmount,
+      originChain,
+      originSymbol,
+      targetAddress,
+      targetChain
+    } = req.query
+    const message = txSwapMessage({
       allowanceAmount: allowanceAmount as string,
       originChain: originChain as string,
       originSymbol: originSymbol as string,
