@@ -53,7 +53,7 @@ async function isValidAddress(
   chain: ChainName
 ): Promise<string> {
   try {
-    if (chain === ChainName.FIAT || chain === 'CC') {
+    if (['BANK', 'CC'].includes(chain)) {
       return ''
     }
 

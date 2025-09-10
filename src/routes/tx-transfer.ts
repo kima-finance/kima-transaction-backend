@@ -10,7 +10,7 @@ import {
 } from '../types/transaction-status'
 import { ENV } from '../env-validate'
 
-const txRouter = Router()
+const transferTxRouter = Router()
 
 /**
  * @openapi
@@ -80,7 +80,7 @@ const txRouter = Router()
  *             schema:
  *               type: string
  */
-txRouter.get(
+transferTxRouter.get(
   '/lp/:txId/status',
   [
     param('txId')
@@ -206,16 +206,16 @@ txRouter.get(
  *             schema:
  *               type: string
  */
-txRouter.get(
+transferTxRouter.get(
   '/:txId/status',
-  [
-    param('txId')
-      .isInt()
-      .withMessage(
-        'txId must be a valid tx id (a sequential numeric value different from the hash)'
-      ),
-    validateRequest
-  ],
+  // [
+  //   param('txId')
+  //     .isInt()
+  //     .withMessage(
+  //       'txId must be a valid tx id (a sequential numeric value different from the hash)'
+  //     ),
+  //   validateRequest
+  // ],
   async (req: Request, res: Response) => {
     const { txId } = req.params
 
@@ -223,6 +223,7 @@ txRouter.get(
       const response = await fetchWrapper.get<ApiTxStatusResponse>(
         `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/transaction/transaction_data/${txId}`
       )
+
       if (typeof response === 'string') {
         const message = `failed to get status for transaction ${txId}`
         console.error(message, response)
@@ -230,38 +231,56 @@ txRouter.get(
         return
       }
 
-      // convert to GraphQL response for backwards compatibility
-      const data = response.transactionData
+      // Support both real API and simulator format
+      const data =
+        (response as any).transactionData ??
+        (response as any).data?.transaction_data?.[0]
+
+      if (!data) {
+        const message = `No transaction data found for ${txId}`
+        console.error(message)
+        res.status(404).json({ message })
+        return
+      }
+
+      console.log('transactionData: ', data)
+
       const output = {
         data: {
           transaction_data: {
-            failreason: data.failReason,
-            pullfailcount: Number(data.pullFailCount),
-            pullhash: data.tssPullHash,
-            releasefailcount: Number(data.releaseFailCount),
-            releasehash: data.tssReleaseHash,
-            refundhash: data.tssRefundHash,
-            txstatus: data.status,
-            amount: Number(data.amount),
-            creator: data.creator,
-            originaddress: data.originAddress,
-            originchain: data.originChain,
-            originsymbol: data.originSymbol,
-            targetsymbol: data.targetSymbol,
-            targetaddress: data.targetAddress,
-            targetchain: data.targetChain,
-            tx_id: data.index,
-            kimahash: data.kimaTxHash
+            failreason: data.failReason ?? data.failreason ?? '',
+            pullfailcount: Number(
+              data.pullFailCount ?? data.pullfailcount ?? 0
+            ),
+            pullhash: data.tssPullHash ?? data.pullhash ?? '',
+            releasefailcount: Number(
+              data.releaseFailCount ?? data.releasefailcount ?? 0
+            ),
+            releasehash: data.tssReleaseHash ?? data.releasehash ?? '',
+            refundhash: data.tssRefundHash ?? data.refundhash ?? '',
+            txstatus: data.status ?? data.txstatus ?? 'pending',
+            amount: Number(data.amount ?? 0),
+            creator: data.creator ?? '',
+            originaddress: data.originAddress ?? data.originaddress ?? '',
+            originchain: data.originChain ?? data.originchain ?? '',
+            originsymbol: data.originSymbol ?? data.originsymbol ?? '',
+            targetsymbol: data.targetSymbol ?? data.targetsymbol ?? '',
+            targetaddress: data.targetAddress ?? data.targetaddress ?? '',
+            targetchain: data.targetChain ?? data.targetchain ?? '',
+            tx_id: data.index ?? data.tx_id ?? txId,
+            kimahash: data.kimaTxHash ?? data.kimahash ?? ''
           }
         }
       } satisfies GraphqlTxStatusResponse
 
       res.status(200).json(output)
     } catch (e) {
-      console.error(e)
-      res.status(500).send(`failed to get status for transaction ${txId}`)
+      console.error(`Error in /tx/${req.params.txId}/status`, e)
+      res
+        .status(500)
+        .send(`failed to get status for transaction ${req.params.txId}`)
     }
   }
 )
 
-export default txRouter
+export default transferTxRouter
