@@ -116,6 +116,41 @@ export const signApprovalMessage = async ({
   throw new Error(`Unsupported compatibility: ${chain.compatibility}`)
 }
 
+/**
+ * Signs an approval message using Viem Wallet Client
+ */
+export const signApprovalSwapMessage = async ({
+  originSymbol,
+  originChain,
+  targetAddress,
+  targetChain,
+  allowanceAmount
+}: SignApprovalData): Promise<string> => {
+  const isTestnet = process.env.KIMA_ENVIRONMENT === 'tesnet'
+
+  const chain = CHAINS.find(
+    (CHAIN) => CHAIN.shortName === originChain && !!CHAIN.testnet === isTestnet
+  )
+  if (!chain) throw new Error('Chain not found')
+
+  const message = `I approve the swap of ${allowanceAmount} ${originSymbol} from ${originChain} to ${targetAddress} on ${targetChain}.`
+  console.log("message: ", message)
+
+  if (chain.compatibility === ChainCompatibility.EVM) {
+    return await signEvmMessage(chain, message)
+  }
+
+  if (chain.shortName === 'SOL') {
+    return await signSolanaMessage(message)
+  }
+
+  if (chain.shortName === 'TRX') {
+    return await signTronMessage(message)
+  }
+
+  throw new Error(`Unsupported compatibility: ${chain.compatibility}`)
+}
+
 const signEvmMessage = async (
   chain: Chain,
   message: string
