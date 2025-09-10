@@ -2,7 +2,7 @@ import { RiskScore } from '../compliance'
 import { generateTransDetails } from './utils/trans-generator'
 import { mockGetRisk, setRisk } from './mocks/compliance.mock'
 import { testServer } from './config'
-import { submitKimaTransaction } from '@kimafinance/kima-transaction-api'
+import { submitKimaTransferTransaction } from '@kimafinance/kima-transaction-api'
 import { CHAINS } from '../data/chains'
 import { chainsService } from '../service/chain-service-singleton'
 import { ENV } from '../env-validate'
@@ -12,7 +12,7 @@ jest.mock('../compliance')
 jest.mock('@kimafinance/kima-transaction-api')
 
 export const mockSubmitKimaTransaction =
-  submitKimaTransaction as jest.MockedFunction<typeof submitKimaTransaction>
+  submitKimaTransferTransaction as jest.MockedFunction<typeof submitKimaTransferTransaction>
 
 const mockChainService = chainsService as jest.Mocked<typeof chainsService>
 

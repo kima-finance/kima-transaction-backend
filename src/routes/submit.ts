@@ -257,25 +257,8 @@ submitRouter.post(
       mode
     })
 
-    let result
     try {
-      // if (isSimulator) {
-      //   result = await fetchWrapper.post(
-      //     `${process.env.KIMA_BACKEND_NODE_PROVIDER}/submit` as string,
-      //     {
-      //       originAddress,
-      //       originChain,
-      //       originAmount: fixedAmount,
-      //       originSymbol,
-      //       targetAddress,
-      //       targetChain,
-      //       targetAmount: fixedAmount,
-      //       targetSymbol,
-      //       fee: fixedFee
-      //     }
-      //   )
-      // } else {
-      result = await submitKimaTransferTransaction({
+      const result = await submitKimaTransferTransaction({
         originAddress: isFiat ? '' : originAddress,
         originChain: isFiat ? 'FIAT' : originChain,
         targetAddress,
