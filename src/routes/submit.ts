@@ -1,5 +1,8 @@
 import { Request, Response, Router } from 'express'
-import { submitKimaTransferTransaction, submitKimaSwapTransaction } from '@kimafinance/kima-transaction-api'
+import {
+  submitKimaTransferTransaction,
+  submitKimaSwapTransaction
+} from '@kimafinance/kima-transaction-api'
 import { validateRequest } from '../middleware/validation'
 import { body, query } from 'express-validator'
 import {
@@ -181,6 +184,9 @@ submitRouter.post(
       feeDeduct
     } = req.body satisfies SubmitRequestDto
 
+    // parse options into object for safe managament
+    options = JSON.parse(options)
+
     const fixedAmount = bigintToFixedNumber(amount, decimals)
     const fixedFee = bigintToFixedNumber(fee, decimals)
 
@@ -190,20 +196,20 @@ submitRouter.post(
 
     const amountStr = formatUnits(amount, decimals)
     const feeStr = formatUnits(fee, decimals)
-    console.log(req.body, { amountStr, feeStr })
+    console.log('req.body: ', req.body, { amountStr, feeStr })
 
-    // signature for CC
-    if (['CC', 'BANK'].includes(originChain as string)) {
+    const isFiat = originChain === 'CC' || originChain === 'BANK'
+
+    // signature forfiat
+    if (isFiat) {
       const { options: creditCardOptions, transactionId } =
         await generateCreditCardOptions(ccTransactionIdSeed)
 
-      options = JSON.stringify({
-        ...JSON.parse(options),
-        ...creditCardOptions
-      })
+      options = { ...options, ...creditCardOptions }
+      delete options.signature // remove signature
     }
 
-    console.log({
+    console.log('stuff to send: ', {
       originAddress,
       originChain,
       targetAddress,
@@ -223,7 +229,6 @@ submitRouter.post(
 
     // generate signature from backend
     if (mode === 'light') {
-      options = JSON.parse(options)
       options.signature = await signApprovalMessage({
         originSymbol,
         originChain,
@@ -231,8 +236,6 @@ submitRouter.post(
         targetChain,
         allowanceAmount
       })
-
-      options = JSON.stringify(options)
     }
 
     console.log({
@@ -272,26 +275,22 @@ submitRouter.post(
       //     }
       //   )
       // } else {
-        result = await submitKimaTransferTransaction({
-          originAddress: ['CC', 'BANK'].includes(originChain)
-            ? ''
-            : originAddress,
-          originChain: ['CC', 'BANK'].includes(originChain)
-            ? 'FIAT'
-            : originChain,
-          targetAddress,
-          targetChain,
-          originSymbol,
-          targetSymbol,
-          amount: amountStr,
-          fee: feeStr,
-          htlcCreationHash,
-          htlcCreationVout,
-          htlcExpirationTimestamp,
-          htlcVersion,
-          senderPubKey: hexStringToUint8Array(senderPubKey),
-          options
-        })
+      result = await submitKimaTransferTransaction({
+        originAddress: isFiat ? '' : originAddress,
+        originChain: isFiat ? 'FIAT' : originChain,
+        targetAddress,
+        targetChain,
+        originSymbol,
+        targetSymbol,
+        amount: amountStr,
+        fee: feeStr,
+        htlcCreationHash,
+        htlcCreationVout,
+        htlcExpirationTimestamp,
+        htlcVersion,
+        senderPubKey: hexStringToUint8Array(senderPubKey),
+        options: JSON.stringify(options)
+      })
       // }
 
       console.log('kima submit result', result)
@@ -445,7 +444,7 @@ submitRouter.post(
       slippage,
       options = '',
       ccTransactionIdSeed = '',
-      mode,
+      mode
     } = req.body satisfies SubmitSwapRequestDto
 
     const fixedAmountIn = bigintToFixedNumber(amountIn, decimals)
