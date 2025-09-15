@@ -90,6 +90,9 @@ jobs:
       #     docker version
       - name: Docker context create
         run: |
+          # Create cert/key files from secrets
+          echo "${{ secrets.SWARM_API_CERT }}" > swarm-api.crt
+          echo "${{ secrets.SWARM_API_KEY }}" > swarm-api.key
           docker context create swarm --description "swarm" --docker "host=tcp://${{ secrets.SWARM_API_ENDPOINT }},cert=swarm-api.crt,key=swarm-api.key"
           docker context use swarm
       
