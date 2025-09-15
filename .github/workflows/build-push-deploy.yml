@@ -81,28 +81,16 @@ jobs:
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
-      # - name: configure docker context with certificate
-      #   run: |
-      #     echo "${{ secrets.SWARM_API_CERT }}" > swarm-api.crt
-      #     echo "${{ secrets.SWARM_API_KEY }}" > swarm-api.key
-      #     docker context create swarm --description "swarm" --docker "host=tcp://${{ secrets.SWARM_API_ENDPOINT }},cert=swarm-api.crt,key=swarm-api.key"
-      #     docker context use swarm
-      #     docker version
-      - name: Docker context create
+      - name: configure docker context with certificate (debug)
         run: |
-          # Create cert/key files from secrets
+          set -x  # debug: print all commands
           echo "${{ secrets.SWARM_API_CERT }}" > swarm-api.crt
           echo "${{ secrets.SWARM_API_KEY }}" > swarm-api.key
           docker context create swarm --description "swarm" --docker "host=tcp://${{ secrets.SWARM_API_ENDPOINT }},cert=swarm-api.crt,key=swarm-api.key"
           docker context use swarm
-      
-      - name: Docker version
-        run: docker version || true
-      
-      - name: Test metadata step
-        run: |
-          echo $DOCKER_METADATA_OUTPUT_JSON
-##
+          docker version
+        shell: bash
+        
       - name: deploy docker stack
         run: |
           cat swarm-docker-compose-template.yml | envsubst > swarm-docker-compose.yml
