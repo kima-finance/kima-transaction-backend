@@ -97,7 +97,7 @@ jobs:
           docker context use swarm
       
       - name: Docker version
-        run: docker version
+        run: docker version || true
       
       - name: Test metadata step
         run: |
