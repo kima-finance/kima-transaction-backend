@@ -1,5 +1,5 @@
+import ENV from './core/env'
 import app from './app'
-import { ENV } from './env-validate'
 
 const port = ENV.PORT || 3000
 

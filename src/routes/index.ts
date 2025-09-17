@@ -1,48 +1,33 @@
-import { Response, Router } from 'express'
+import { Router } from 'express'
 
-import btcRouter from './btc'
-import compliantRouter from './compliant'
-import htlcRouter from './htlc'
-import kycRouter from './kyc'
-import reclaimRouter from './reclaim'
-import submitRouter from './submit'
-import transferTxRouter from './tx-transfer'
-import swapTxRouter from './tx-swap'
-import chainsRouter from './chains'
+import { chainsRouter } from '@features/chains'
+import { submitRouter } from '@features/submit'
+import { transferTxRouter, swapTxRouter } from '@features/tx'
+import { btcRouter } from '@features/btc'
+import { complianceRouter } from '@features/compliance'
+import { htlcRouter } from '@features/htlc'
+import { kycRouter } from '@features/kyc'
+import { uuidRouter } from '@features/uuid'
+
+// docs router
 import docsRouter from './docs'
-import uuidRouter from './uuid'
 
 const router = Router()
 
-/**
- * @openapi /:
- *   get:
- *     summary: Health check
- *     description: Returns ok
- *     tags:
- *       - Health
- *     responses:
- *       200:
- *         description: Successful response
- *         content:
- *           text/plain:
- *             schema:
- *               type: string
- */
-router.get('/', (_, res: Response) => {
-  res.send('ok')
-})
+// health
+router.get('/health', (_req, res) => res.status(200).send('ok'))
 
-router.use('/btc', btcRouter)
+// docs
 router.use('/docs', docsRouter)
+
 router.use('/chains', chainsRouter)
-router.use('/compliant', compliantRouter)
-// router.use('/htlc', htlcRouter) TODO: enable once BTC supported in mainnet
-router.use('/kyc', kycRouter)
-// router.use('/reclaim', reclaimRouter) TODO: enable once BTC supported in mainnet
-router.use('/submit', submitRouter)
-router.use('/transfer_tx', transferTxRouter)
+router.use('/tx', transferTxRouter)
 router.use('/swap_tx', swapTxRouter)
+router.use('/submit', submitRouter)
+router.use('/btc', btcRouter)
+router.use('/compliant', complianceRouter)
+router.use('/htlc', htlcRouter)
+router.use('/kyc', kycRouter)
 router.use('/uuid', uuidRouter)
 
 export default router
