@@ -1,7 +1,7 @@
 // import * as chains from 'viem/chains'
 // import { Chain as ViemChain } from 'viem'
-import { Chain, ChainCompatibility } from '../types/chain'
 
+import { Chain, ChainCompatibility } from '@features/chains/types/chain'
 import {
   arbitrum,
   arbitrumSepolia,
@@ -13,6 +13,7 @@ import {
   berachainBepolia,
   bsc,
   bscTestnet,
+  confluxESpaceTestnet,
   mainnet,
   optimism,
   optimismSepolia,
@@ -20,7 +21,6 @@ import {
   polygonAmoy,
   sepolia,
   tron,
-  confluxESpaceTestnet,
   confluxESpace
 } from 'viem/chains'
 
@@ -48,8 +48,8 @@ export const CHAINS: Chain[] = [
         symbol: 'USD',
         decimals: 2,
         address: '',
-        peggedTo: 'USD'
-        // protocol: 'credit_card'
+        peggedTo: 'USD',
+        protocol: 'credit_card'
       }
     ],
     nativeCurrency: {
@@ -81,11 +81,75 @@ export const CHAINS: Chain[] = [
         decimals: 2,
         address: '',
         peggedTo: 'USD',
+        protocol: 'credit_card'
       }
     ],
     nativeCurrency: {
       name: 'USD',
       symbol: 'USD',
+      decimals: 2
+    },
+    rpcUrls: {
+      default: { http: [] }
+    },
+    faucets: [],
+    blockExplorers: {
+      default: {
+        name: '',
+        url: ''
+      }
+    }
+  },
+  {
+    id: 2,
+    name: 'Bank Transfer',
+    shortName: 'BANK',
+    compatibility: ChainCompatibility.BANK,
+    supportedLocations: ['origin'],
+    supportedTokens: [
+      {
+        symbol: 'EUR',
+        decimals: 2,
+        address: '',
+        peggedTo: 'EUR',
+        protocol: 'sepa_eur'
+      }
+    ],
+    nativeCurrency: {
+      name: 'EUR',
+      symbol: 'EUR',
+      decimals: 2
+    },
+    rpcUrls: {
+      default: { http: [] }
+    },
+    faucets: [],
+    blockExplorers: {
+      default: {
+        name: '',
+        url: ''
+      }
+    },
+    testnet: true
+  },
+  {
+    id: 2,
+    name: 'Bank Transfer',
+    shortName: 'BANK',
+    compatibility: ChainCompatibility.BANK,
+    supportedLocations: ['origin'],
+    supportedTokens: [
+      {
+        symbol: 'EUR',
+        decimals: 2,
+        address: '',
+        peggedTo: 'EUR',
+        protocol: 'sepa_eur'
+      }
+    ],
+    nativeCurrency: {
+      name: 'EUR',
+      symbol: 'EUR',
       decimals: 2
     },
     rpcUrls: {
@@ -282,6 +346,25 @@ export const CHAINS: Chain[] = [
     ],
     faucets: ['https://testnet.bnbchain.org/faucet-smart']
   },
+  {
+    ...confluxESpaceTestnet,
+    shortName: 'CFX',
+    supportedLocations: ['origin', 'target'],
+    supportedTokens: [
+      {
+        symbol: 'USDK',
+        address: '0xB16de57a9c4D28CFe7Ce2ab87EE4A4deBD643cD1',
+        decimals: 18,
+        peggedTo: 'USD'
+      }
+    ],
+    compatibility: ChainCompatibility.EVM,
+    rpcUrls: {
+      default: {
+        http: ['https://71.rpc.thirdweb.com']
+      }
+    }
+  },
   // {
   //   id: 0,
   //   shortName: 'BTC',
@@ -355,20 +438,6 @@ export const CHAINS: Chain[] = [
   //     }
   //   ]
   // },.
-  {
-    ...confluxESpaceTestnet,
-    compatibility: ChainCompatibility.EVM,
-    shortName: 'CFX',
-    supportedLocations: ['origin', 'target'],
-    supportedTokens: [
-      {
-        symbol: 'USDK',
-        address: '0xb16de57a9c4d28cfe7ce2ab87ee4a4debd643cd1',
-        decimals: 18,
-        peggedTo: 'USD'
-      }
-    ]
-  },
   {
     ...mainnet,
     shortName: 'ETH',
