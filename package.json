@@ -10,7 +10,7 @@
     "test": "cross-env NODE_ENV=test jest --testTimeout=10000 --runInBand",
     "test:watch": "cross-env NODE_ENV=test jest --testTimeout=10000 --watch --maxWorkers=50% --verbose --detectOpenHandles",
     "dev": "cross-env NODE_ENV=development nodemon",
-    "build": "rimraf ./build && tsc",
+    "build": "rimraf ./build && tsc && tsc-alias",
     "start": "node build/index.js"
   },
   "keywords": [],
@@ -34,6 +34,7 @@
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.2"
   },
