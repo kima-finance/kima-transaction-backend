@@ -13,7 +13,15 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "downlevelIteration": true,
-    
+    "baseUrl": "src",
+    "paths": {
+      "core/*": ["core/*"],
+      "@shared/*": ["shared/*"],
+      "@features/*": ["features/*"],
+      "@config/*": ["config/*"],
+      "@lib/*": ["lib/*"]
+    },
+    "typeRoots": ["./src/@types", "./node_modules/@types"]
   },
   "include": ["src"],
   "exclude": ["./jest.config.js", "kima-transaction-api"]

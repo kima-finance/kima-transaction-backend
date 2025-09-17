@@ -1,6 +1,6 @@
 {
   "name": "kima-transaction-backend",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "",
   "main": "index.js",
   "engines": {
@@ -28,11 +28,13 @@
     "cross-env": "^7.0.3",
     "jest": "^29.5.0",
     "nodemon": "^3.1.7",
+    "pino-pretty": "^13.1.1",
     "prettier": "^3.3.3",
     "rimraf": "^6.0.1",
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.2"
   },
   "dependencies": {
@@ -60,6 +62,8 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "node-cache": "^5.1.2",
+    "pino": "^9.9.4",
+    "pino-http": "^10.5.0",
     "safe-stable-stringify": "^2.5.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
