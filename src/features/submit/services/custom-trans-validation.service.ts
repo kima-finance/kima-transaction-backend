@@ -36,12 +36,18 @@ const isValidChain = async (
   return ''
 }
 
+const NON_ADDRESS_CHAINS: ChainName[] = [
+  ChainName.FIAT,
+  ChainName.CC,
+  ChainName.BANK
+]
+
 const isValidAddress = async (
   address: string,
   chain: ChainName
 ): Promise<string> => {
   try {
-    if (['BANK', 'CC'].includes(chain)) return ''
+    if (NON_ADDRESS_CHAINS.includes(chain)) return ''
 
     if (chain === ChainName.SOLANA) {
       const owner = new PublicKey(address)
@@ -53,15 +59,12 @@ const isValidAddress = async (
     if (chain === ChainName.TRON) {
       const res: any = await fetchWrapper.post(
         'https://api.nileex.io/wallet/validateaddress',
-        {
-          address,
-          visible: 'true'
-        }
+        { address, visible: 'true' }
       )
       return res?.result === false ? `invalid Tron address ${address}` : ''
     }
 
-    // Future: BTC once supported in mainnet
+    // Default: treat as EVM
     return isAddress(address) ? '' : `invalid EVM address ${address}`
   } catch {
     return `unknown error: invalid address ${address}`
@@ -105,8 +108,7 @@ const customTransValidation = async (
     targetSymbol
   } = req.body
 
-  const originChain =
-    req.body.originChain === 'FIAT' ? 'CC' : req.body.originChain
+  const originChain = req.body.originChain
 
   try {
     let error = await isValidChain(originChain, targetChain)

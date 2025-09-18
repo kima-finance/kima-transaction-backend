@@ -1,4 +1,3 @@
-// TODO: add FIAT and BTC once supported in mainnet
 export enum ChainName {
   ARBITRUM = 'ARB',
   AVALANCHE = 'AVX',

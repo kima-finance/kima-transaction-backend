@@ -28,12 +28,18 @@ const isValidChain = async (
   return ''
 }
 
+const NON_ADDRESS_CHAINS: ChainName[] = [
+  ChainName.FIAT,
+  ChainName.CC,
+  ChainName.BANK
+]
+
 const isValidAddress = async (
   address: string,
   chain: ChainName
 ): Promise<string> => {
   try {
-    if (chain === ChainName.FIAT || chain === 'CC') return ''
+    if (NON_ADDRESS_CHAINS.includes(chain)) return ''
 
     if (chain === ChainName.SOLANA) {
       const owner = new PublicKey(address)
@@ -50,7 +56,7 @@ const isValidAddress = async (
       return res?.result === false ? `invalid Tron address ${address}` : ''
     }
 
-    // TODO: add BTC once supported in mainnet
+    // Default: treat as EVM
     return isAddress(address) ? '' : `invalid EVM address ${address}`
   } catch {
     return `unknown error: invalid address ${address}`
@@ -86,6 +92,8 @@ const validate = async (req: Request): Promise<string> => {
     targetChain,
     targetSymbol
   } = req.body as SubmitTransaction
+
+  console.log('trans validation origin chain: ', req.body.originChain)
 
   const originChain =
     req.body.originChain === 'FIAT' ? 'CC' : req.body.originChain

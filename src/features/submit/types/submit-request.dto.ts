@@ -2,6 +2,13 @@ import { z } from 'zod'
 import { TransactionDetails } from './transaction-details'
 import { SwapDetails } from './swap-details'
 
+import { ChainName } from '@features/chains/types/chain-name'
+const NON_ADDRESS_CHAINS: ChainName[] = [
+  ChainName.FIAT,
+  ChainName.CC,
+  ChainName.BANK
+]
+
 export const SubmitRequestSchema = TransactionDetails.extend({
   decimals: z.number(),
   htlcCreationHash: z.string().optional(),
@@ -12,16 +19,18 @@ export const SubmitRequestSchema = TransactionDetails.extend({
   options: z.string().optional(),
   fiatTransactionIdSeed: z.string().optional()
 }).superRefine((data, ctx) => {
-  // Custom rule: originAddress is required unless originChain === 'FIAT'
+  const needsOriginAddress = !NON_ADDRESS_CHAINS.includes(
+    data.originChain as ChainName
+  )
+
   if (
-    data.originChain !== 'CC' &&
-    data.originChain !== 'FIAT' &&
+    needsOriginAddress &&
     (!data.originAddress || data.originAddress.trim() === '')
   ) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ['originAddress'],
-      message: 'originAddress is required when originChain is not FIAT'
+      message: 'originAddress is required unless originChain is FIAT/CC/BANK'
     })
   }
 })
@@ -31,20 +40,21 @@ export const SubmitSwapRequestSchema = SwapDetails.extend({
   options: z.string().optional(),
   fiatTransactionIdSeed: z.string().optional()
 }).superRefine((data, ctx) => {
-  // Custom rule: originAddress is required unless originChain === 'FIAT'
+  const needsOriginAddress = !NON_ADDRESS_CHAINS.includes(
+    data.originChain as ChainName
+  )
+
   if (
-    data.originChain !== 'CC' &&
-    data.originChain !== 'FIAT' &&
+    needsOriginAddress &&
     (!data.originAddress || data.originAddress.trim() === '')
   ) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ['originAddress'],
-      message: 'originAddress is required when originChain is not FIAT'
+      message: 'originAddress is required unless originChain is FIAT/CC/BANK'
     })
   }
 })
 
-// Optional: Export the inferred type
 export type SubmitRequestDto = z.infer<typeof SubmitRequestSchema>
 export type SubmitSwapRequestDto = z.infer<typeof SubmitSwapRequestSchema>
