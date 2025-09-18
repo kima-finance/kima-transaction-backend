@@ -177,28 +177,43 @@ router.post(
     const feeStr = formatUnits(fee, decimals)
     console.log(req.body, { amountStr, feeStr })
 
-    if (['CC', 'BANK'].includes(originChain as string)) {
-      const { options: fiatOptions } = await generateFiatOptions(
-        fiatTransactionIdSeed
-      )
+    // parse options as json to work with it globally
+    options = JSON.parse(req.body.options)
+    const isFiat = ['FIAT', 'CC', 'BANK'].includes(originChain as string)
 
-      options = JSON.stringify({
-        ...JSON.parse(options || '{}'),
+    if (isFiat) {
+      const seed =
+        fiatTransactionIdSeed ||
+        (req.body as any).ccTransactionIdSeed ||
+        options.transactionIdSeed
+
+      if (!seed) {
+        return res
+          .status(400)
+          .json({ error: 'transactionIdSeed is required for FIAT rails' })
+      }
+
+      const { options: fiatOptions } = await generateFiatOptions(seed)
+
+      options = {
+        ...options,
         ...fiatOptions
-      })
+      }
+
+      delete options.signature
     }
 
     if (mode === 'light') {
-      const opts = JSON.parse(options || '{}')
-      opts.signature = await signApprovalMessage({
+      options.signature = await signApprovalMessage({
         originSymbol,
         originChain,
         targetAddress,
         targetChain,
         allowanceAmount
       })
-      options = JSON.stringify(opts)
     }
+
+    options = JSON.stringify(options)
 
     try {
       const basePayload = {
@@ -237,6 +252,8 @@ router.post(
         ...htlcPayload,
         ...pubKeyPayload
       }
+
+      console.log('payload to be sent: ', payload)
 
       const result = await submitKimaTransferTransaction(payload as any)
 
@@ -375,43 +392,55 @@ router.post(
       mode
     } = req.body satisfies SubmitSwapRequestDto
 
+    const fixedAmountIn = bigintToFixedNumber(amountIn, decimals)
     const amountInStr = formatUnits(amountIn, decimals)
     const amountOutStr = formatUnits(amountOut, decimals)
     const feeStr = formatUnits(fee, decimals)
     console.log(req.body, { amountInStr, amountOutStr, feeStr })
 
-    if (['CC', 'BANK'].includes(originChain as string)) {
-      const { options: fiatOptions } = await generateFiatOptions(
-        fiatTransactionIdSeed
-      )
+    // parse options as json to work with it globally
+    options = JSON.parse(req.body.options)
+    const isFiat = ['FIAT', 'CC', 'BANK'].includes(originChain as string)
 
-      options = JSON.stringify({
-        ...JSON.parse(options || '{}'),
+    if (isFiat) {
+      const seed =
+        fiatTransactionIdSeed ||
+        (req.body as any).ccTransactionIdSeed ||
+        options.transactionIdSeed
+
+      if (!seed) {
+        return res
+          .status(400)
+          .json({ error: 'transactionIdSeed is required for FIAT rails' })
+      }
+
+      const { options: fiatOptions } = await generateFiatOptions(seed)
+
+      options = {
+        ...options,
         ...fiatOptions
-      })
+      }
+
+      delete options.signature
     }
 
     if (mode === 'light') {
-      const fixedAmountIn = bigintToFixedNumber(amountIn, decimals)
-      const opts = JSON.parse(options || '{}')
-      opts.signature = await signApprovalSwapMessage({
+      options.signature = await signApprovalSwapMessage({
         originSymbol,
         originChain,
         targetAddress,
         targetChain,
         allowanceAmount: fixedAmountIn
       })
-      options = JSON.stringify(opts)
     }
+
+    // parse as stringified JSON for api package usage
+    options = JSON.stringify(options)
 
     try {
       const submitResult = await submitKimaSwapTransaction({
-        originAddress: ['CC', 'BANK'].includes(originChain as string)
-          ? ''
-          : originAddress,
-        originChain: ['CC', 'BANK'].includes(originChain as string)
-          ? 'FIAT'
-          : originChain,
+        originAddress: originChain === 'CC' ? '' : originAddress,
+        originChain: originChain === 'CC' ? 'FIAT' : originChain,
         targetAddress,
         targetChain,
         originSymbol,
