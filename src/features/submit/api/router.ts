@@ -217,12 +217,8 @@ router.post(
 
     try {
       const basePayload = {
-        originAddress: ['CC', 'BANK'].includes(originChain)
-          ? ''
-          : originAddress,
-        originChain: ['CC', 'BANK'].includes(originChain)
-          ? 'FIAT'
-          : originChain,
+        originAddress: isFiat ? '' : originAddress,
+        originChain: isFiat ? 'FIAT' : originChain,
         targetAddress,
         targetChain,
         originSymbol,
@@ -438,9 +434,24 @@ router.post(
     options = JSON.stringify(options)
 
     try {
+      console.log('payload to be sent: ', {
+        originAddress: isFiat ? '' : originAddress,
+        originChain: isFiat ? 'FIAT' : originChain,
+        targetAddress,
+        targetChain,
+        originSymbol,
+        targetSymbol,
+        amountIn: amountInStr,
+        amountOut: amountOutStr,
+        fee: feeStr,
+        dex,
+        slippage,
+        options
+      })
+
       const submitResult = await submitKimaSwapTransaction({
-        originAddress: originChain === 'CC' ? '' : originAddress,
-        originChain: originChain === 'CC' ? 'FIAT' : originChain,
+        originAddress: isFiat ? '' : originAddress,
+        originChain: isFiat ? 'FIAT' : originChain,
         targetAddress,
         targetChain,
         originSymbol,
