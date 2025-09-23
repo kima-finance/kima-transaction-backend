@@ -1,3 +1,7 @@
+// import * as chains from 'viem/chains'
+// import { Chain as ViemChain } from 'viem'
+
+import { Chain, ChainCompatibility } from '@features/chains/types/chain'
 import {
   arbitrum,
   arbitrumSepolia,
@@ -16,10 +20,21 @@ import {
   polygon,
   polygonAmoy,
   sepolia,
-  tron
-  // confluxESpace
+  tron,
+  confluxESpace
 } from 'viem/chains'
-import { Chain, ChainCompatibility } from '../types/chain'
+
+// const allViemChains: Record<number, ViemChain> = Object.values(chains)
+//   .filter((c) => typeof c === 'object' && 'id' in c && 'rpcUrls' in c)
+//   .reduce((acc, chain) => {
+//     acc[chain.id] = chain as ViemChain
+//     return acc
+//   }, {} as Record<number, ViemChain>)
+
+// this won't work for chains returned from the Kima API as they don't chain chainId
+// export const getChainById = (id: number): ViemChain | undefined => {
+//   return allViemChains[id]
+// }
 
 export const CHAINS: Chain[] = [
   {
@@ -29,12 +44,29 @@ export const CHAINS: Chain[] = [
     compatibility: ChainCompatibility.CC,
     supportedLocations: ['origin'],
     supportedTokens: [
-      { symbol: 'USD', decimals: 2, address: '', peggedTo: 'USD' }
+      {
+        symbol: 'USD',
+        decimals: 2,
+        address: '',
+        peggedTo: 'USD',
+        protocol: 'creditCard'
+      }
     ],
-    nativeCurrency: { name: 'USD', symbol: 'USD', decimals: 2 },
-    rpcUrls: { default: { http: [] } },
+    nativeCurrency: {
+      name: 'USD',
+      symbol: 'USD',
+      decimals: 2
+    },
+    rpcUrls: {
+      default: { http: [] }
+    },
     faucets: [],
-    blockExplorers: { default: { name: '', url: '' } },
+    blockExplorers: {
+      default: {
+        name: '',
+        url: ''
+      }
+    },
     testnet: true
   },
   {
@@ -44,12 +76,29 @@ export const CHAINS: Chain[] = [
     compatibility: ChainCompatibility.CC,
     supportedLocations: ['origin'],
     supportedTokens: [
-      { symbol: 'USD', decimals: 2, address: '', peggedTo: 'USD' }
+      {
+        symbol: 'USD',
+        decimals: 2,
+        address: '',
+        peggedTo: 'USD',
+        protocol: 'creditCard'
+      }
     ],
-    nativeCurrency: { name: 'USD', symbol: 'USD', decimals: 2 },
-    rpcUrls: { default: { http: [] } },
+    nativeCurrency: {
+      name: 'USD',
+      symbol: 'USD',
+      decimals: 2
+    },
+    rpcUrls: {
+      default: { http: [] }
+    },
     faucets: [],
-    blockExplorers: { default: { name: '', url: '' } }
+    blockExplorers: {
+      default: {
+        name: '',
+        url: ''
+      }
+    }
   },
   {
     id: 2,
@@ -63,13 +112,24 @@ export const CHAINS: Chain[] = [
         decimals: 2,
         address: '',
         peggedTo: 'EUR',
-        protocol: 'sepa_eur'
+        protocol: 'sepaEur'
       }
     ],
-    nativeCurrency: { name: 'EUR', symbol: 'EUR', decimals: 2 },
-    rpcUrls: { default: { http: [] } },
+    nativeCurrency: {
+      name: 'EUR',
+      symbol: 'EUR',
+      decimals: 2
+    },
+    rpcUrls: {
+      default: { http: [] }
+    },
     faucets: [],
-    blockExplorers: { default: { name: '', url: '' } },
+    blockExplorers: {
+      default: {
+        name: '',
+        url: ''
+      }
+    },
     testnet: true
   },
   {
@@ -84,13 +144,24 @@ export const CHAINS: Chain[] = [
         decimals: 2,
         address: '',
         peggedTo: 'EUR',
-        protocol: 'sepa_eur'
+        protocol: 'sepaEur'
       }
     ],
-    nativeCurrency: { name: 'EUR', symbol: 'EUR', decimals: 2 },
-    rpcUrls: { default: { http: [] } },
+    nativeCurrency: {
+      name: 'EUR',
+      symbol: 'EUR',
+      decimals: 2
+    },
+    rpcUrls: {
+      default: { http: [] }
+    },
     faucets: [],
-    blockExplorers: { default: { name: '', url: '' } }
+    blockExplorers: {
+      default: {
+        name: '',
+        url: ''
+      }
+    }
   },
   {
     ...arbitrum,
@@ -288,8 +359,85 @@ export const CHAINS: Chain[] = [
       }
     ],
     compatibility: ChainCompatibility.EVM,
-    rpcUrls: { default: { http: ['https://71.rpc.thirdweb.com'] } }
+    rpcUrls: {
+      default: {
+        http: ['https://71.rpc.thirdweb.com']
+      }
+    }
   },
+  // {
+  //   id: 0,
+  //   shortName: 'BTC',
+  //   name: 'Bitcoin',
+  //   supportedLocations: ['origin', 'target'],
+  //   supportedTokens: [],
+  //   compatibility: ChainCompatibility.BTC,
+  //   rpcUrls: {
+  //     default: { http: [] }
+  //   },
+  //   faucets: [],
+  //   nativeCurrency: {
+  //     name: 'Bitcoin',
+  //     symbol: 'BTC',
+  //     decimals: 8
+  //   },
+  //   blockExplorers: {
+  //     default: {
+  //       name: 'blockstream',
+  //       url: 'https://blockstream.info'
+  //     }
+  //   }
+  // },
+  // {
+  //   id: 0,
+  //   name: 'Bitcoin Testnet',
+  //   shortName: 'BTC',
+  //   supportedTokens: [
+  //     {
+  //       id: '1',
+  //       symbol: 'WBTC',
+  //       address: 'NativeCoin'
+  //     }
+  //   ],
+  //   compatibility: ChainCompatibility.BTC,
+  //   supportedLocations: ['origin', 'target'],
+  //   rpcUrls: {
+  //     default: { http: [] }
+  //   },
+  //   faucets: [],
+  //   nativeCurrency: {
+  //     name: 'Bitcoin',
+  //     symbol: 'BTC',
+  //     decimals: 8
+  //   },
+  //   blockExplorers: {
+  //     default: {
+  //       name: 'blockstream',
+  //       url: 'https://blockstream.info/testnet/'
+  //     }
+  //   },
+  //   testnet: true
+  // },
+  // {
+  //   ...confluxESpace,
+  //   compatibility: ChainCompatibility.EVM,
+  //   shortName: 'CFX',
+  //   supportedLocations: ['origin', 'target'],
+  //   supportedTokens: [
+  //     {
+  //       symbol: 'USDT',
+  //       address: '0xfe97e85d13abd9c1c33384e796f10b73905637ce',
+  //       decimals: 18,
+  //       peggedTo: 'USD'
+  //     },
+  //     {
+  //       symbol: 'USDC',
+  //       address: '0x6963efed0ab40f6c3d7bda44a05dcf1437c44372',
+  //       decimals: 18,
+  //       peggedTo: 'USD'
+  //     }
+  //   ]
+  // },.
   {
     ...mainnet,
     shortName: 'ETH',
@@ -335,6 +483,11 @@ export const CHAINS: Chain[] = [
         decimals: 18,
         peggedTo: 'USD'
       }
+      // {
+      //   symbol: 'WBTC',
+      //   address: '0x5703992Cd91cAB655f2BF3EcbD4cD22e3c75832D',
+      //   decimals: 8
+      // }
     ]
   },
   {
@@ -403,6 +556,11 @@ export const CHAINS: Chain[] = [
         decimals: 18,
         peggedTo: 'USD'
       }
+      // {
+      //   symbol: 'WBTC',
+      //   address: '0x66E1537e2A62168Ca19Bf5b6e2E66b5C806b8ab1',
+      //   decimals: 8
+      // }
     ]
   },
   {
@@ -431,10 +589,21 @@ export const CHAINS: Chain[] = [
         peggedTo: 'USD'
       }
     ],
-    rpcUrls: { default: { http: ['https://api.mainnet-beta.solana.com'] } },
+    rpcUrls: {
+      default: { http: ['https://api.mainnet-beta.solana.com'] }
+    },
     faucets: [],
-    nativeCurrency: { name: 'Solana', symbol: 'SOL', decimals: 9 },
-    blockExplorers: { default: { name: 'solscan', url: 'https://solscan.io' } }
+    nativeCurrency: {
+      name: 'Solana',
+      symbol: 'SOL',
+      decimals: 9
+    },
+    blockExplorers: {
+      default: {
+        name: 'solscan',
+        url: 'https://solscan.io'
+      }
+    }
   },
   {
     id: 102,
@@ -456,10 +625,21 @@ export const CHAINS: Chain[] = [
         peggedTo: 'USD'
       }
     ],
-    rpcUrls: { default: { http: ['https://api.devnet.solana.com'] } },
+    rpcUrls: {
+      default: { http: ['https://api.devnet.solana.com'] }
+    },
     faucets: [],
-    nativeCurrency: { name: 'Solana', symbol: 'SOL', decimals: 9 },
-    blockExplorers: { default: { name: 'solscan', url: 'https://solscan.io' } },
+    nativeCurrency: {
+      name: 'Solana',
+      symbol: 'SOL',
+      decimals: 9
+    },
+    blockExplorers: {
+      default: {
+        name: 'solscan',
+        url: 'https://solscan.io'
+      }
+    },
     testnet: true
   },
   {
@@ -497,12 +677,45 @@ export const CHAINS: Chain[] = [
         peggedTo: 'USD'
       }
     ],
-    nativeCurrency: { name: 'TRON', symbol: 'TRX', decimals: 10 },
+    nativeCurrency: {
+      name: 'TRON',
+      symbol: 'TRX',
+      decimals: 10
+    },
     rpcUrls: { default: { http: ['https://api.nileex.io/jsonrpc'] } },
     faucets: ['http://nileex.io/join/getJoinPage'],
     blockExplorers: {
-      default: { name: 'Tronscan', url: 'https://nile.tronscan.org' }
+      default: {
+        name: 'Tronscan',
+        url: 'https://nile.tronscan.org'
+      }
     },
     testnet: true
   }
+
+  // Tron Shasta not supported yet
+  // {
+  //   id: 2494104990,
+  //   name: 'Tron Shasta',
+  //   shortName: 'TRX',
+  //   compatibility: ChainCompatibility.EVM,
+  //   supportedLocations: ['origin', 'target'],
+  //   supportedTokens: [],
+  //   nativeCurrency: {
+  //     name: 'TRON',
+  //     symbol: 'TRX',
+  //     decimals: 6
+  //   },
+  //   rpcUrls: {
+  //     default: { http: ['https://api.shasta.trongrid.io/jsonrpc'] }
+  //   },
+  //   faucets: ['https://shasta.tronex.io/'],
+  //   blockExplorers: {
+  //     default: {
+  //       name: 'Tronscan',
+  //       url: 'https://shasta.tronscan.org'
+  //     }
+  //   },
+  //   testnet: true
+  // }
 ] satisfies Chain[]

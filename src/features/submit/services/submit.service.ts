@@ -68,13 +68,6 @@ export const calcServiceFee = async ({
 
   const mappedOriginChain = isFiat ? 'FIAT' : originChain
 
-  // set payment_method explicitly for FIAT
-  const payment_method = isFiat
-    ? originChain === 'CC'
-      ? 'credit_card'
-      : 'sepa_eur'
-    : (originToken.protocol as any | undefined)
-
   const body = {
     creator: kimaAddress.address,
     originChain: mappedOriginChain,
@@ -85,7 +78,9 @@ export const calcServiceFee = async ({
     targetAddress,
     targetSymbol,
     amount: amountStr,
-    options: payment_method ? { payment_method } : undefined
+    options: originToken.protocol
+      ? { paymentMethod: originToken.protocol }
+      : undefined
   }
 
   return fetchWrapper.post<FeeResponse>(

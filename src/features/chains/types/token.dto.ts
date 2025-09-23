@@ -12,5 +12,5 @@ export interface TokenDto extends Omit<KimaApiTokenDto, 'decimals'> {
   protocol?: TokenProtocol
 }
 
-const protocolSchema = z.enum(['credit_card', 'ERC20', 'swift_usd', 'sepa_eur'])
+const protocolSchema = z.enum(['creditCard', 'swiftUsd', 'sepaEur'])
 export type TokenProtocol = z.infer<typeof protocolSchema>

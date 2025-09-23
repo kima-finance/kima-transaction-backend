@@ -49,7 +49,7 @@ export const CHAINS: Chain[] = [
         decimals: 2,
         address: '',
         peggedTo: 'USD',
-        protocol: 'credit_card'
+        protocol: 'creditCard'
       }
     ],
     nativeCurrency: {
@@ -81,7 +81,7 @@ export const CHAINS: Chain[] = [
         decimals: 2,
         address: '',
         peggedTo: 'USD',
-        protocol: 'credit_card'
+        protocol: 'creditCard'
       }
     ],
     nativeCurrency: {
@@ -112,7 +112,7 @@ export const CHAINS: Chain[] = [
         decimals: 2,
         address: '',
         peggedTo: 'EUR',
-        protocol: 'sepa_eur'
+        protocol: 'sepaEur'
       }
     ],
     nativeCurrency: {
@@ -144,7 +144,7 @@ export const CHAINS: Chain[] = [
         decimals: 2,
         address: '',
         peggedTo: 'EUR',
-        protocol: 'sepa_eur'
+        protocol: 'sepaEur'
       }
     ],
     nativeCurrency: {

@@ -591,12 +591,12 @@ router.get(
     } = req.query
 
     try {
+      const isFiat = ['FIAT', 'CC', 'BANK'].includes(originChain as string)
+
       const result = await calcServiceFee({
         amount: amount as string,
         originChain: originChain as ChainName,
-        originAddress: ['CC', 'BANK'].includes(originChain as string)
-          ? ''
-          : (originAddress as string),
+        originAddress: isFiat ? '' : (originAddress as string),
         originSymbol: originSymbol as string,
         targetChain: targetChain as ChainName,
         targetAddress: targetAddress as string,
@@ -662,7 +662,7 @@ router.get(
   }
 )
 
-// ===== test-only helpers (consider removing in production) =====
+// test-only helpers (consider removing in production)
 
 router.get<never, { messsage: string }, never, TxMessageInputs>(
   '/transfer-message',
