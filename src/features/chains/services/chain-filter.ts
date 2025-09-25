@@ -2,7 +2,7 @@ import {
   Chain,
   ChainFilterConfig,
   ChainFilterMode,
-  ChainLocation
+  Location
 } from '../types/chain'
 import { ChainName } from '../types/chain-name'
 
@@ -12,7 +12,7 @@ class ChainFilter {
 
   constructor(
     public allChainsMap: Map<ChainName, Chain>,
-    private readonly location: ChainLocation,
+    private readonly location: Location,
     chainFilter?: ChainFilterConfig
   ) {
     this.filterSet = chainFilter ? new Set(chainFilter.chains) : new Set()
@@ -24,7 +24,7 @@ class ChainFilter {
     if (!chain) return false
 
     const supportedLocation = chain.supportedLocations.includes(
-      this.location as ChainLocation
+      this.location as Location
     )
     if (!supportedLocation) return false
 

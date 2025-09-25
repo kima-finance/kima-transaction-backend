@@ -15,6 +15,7 @@ import { BlockchainParamsResponseDto } from '../types/kima-blockchain-params.dto
 import { ChainEnv } from 'core/types/chain-env'
 import { ChainName } from '../types/chain-name'
 import { AvailableChainsResponseDto } from '../types/available-chains-response.dto'
+import ChainsService from '../services/chains.service'
 
 const chainsRouter = Router()
 const baseUrl = `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain`

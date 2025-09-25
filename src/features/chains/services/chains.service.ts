@@ -6,8 +6,8 @@ import { ChainDto } from '../types/chain.dto'
 import {
   Chain,
   ChainCompatibility,
-  ChainLocation,
-  chainLocationSchema,
+  Location,
+  locationSchema,
   FilterConfig
 } from '../types/chain'
 import { ChainName } from '../types/chain-name'
@@ -27,7 +27,7 @@ import toTronAddress from '@shared/crypto/tron'
 import defineCached from '@shared/utils/cache'
 
 class ChainsService {
-  filters: Record<ChainLocation, ChainFilter>
+  filters: Record<Location, ChainFilter>
   allChainsMap: Map<ChainName, Chain>
 
   constructor(
@@ -72,26 +72,51 @@ class ChainsService {
   }
 
   mergeChainData = async (): Promise<Chain[]> => {
-    const remoteData = await this.fetchChains()
-    const localData = this.getLocalChainData()
+    const [remoteData, localData] = await Promise.all([
+      this.fetchChains(),
+      Promise.resolve(this.getLocalChainData())
+    ])
 
-    const mergedChains = localData.map((chain) => {
-      const remoteChain = remoteData.find((c) => c.symbol === chain.shortName)
-      if (!remoteChain) return chain
+    const mergedChains = localData.map((localChain) => {
+      const remoteChain = remoteData.find(
+        (c) => c.symbol === localChain.shortName
+      )
+      if (!remoteChain) return localChain
+
+      // local per-token metadata (e.g., supportedLocations, protocol) keyed by symbol
+      const localTokensBySymbol = new Map(
+        (localChain.supportedTokens ?? []).map((t) => [t.symbol, t])
+      )
+
+      const supportedTokens: TokenDto[] = (remoteChain.tokens ?? []).map(
+        (rt) => {
+          const local = localTokensBySymbol.get(rt.symbol)
+          const out: TokenDto = {
+            symbol: rt.symbol,
+            address: rt.address,
+            decimals: parseInt(rt.decimals, 10),
+            peggedTo: rt.peggedTo
+          }
+          // enrich ONLY with metadata defined in data/chains.ts
+          if (local?.protocol) out.protocol = local.protocol
+          if (local?.supportedLocations)
+            out.supportedLocations = local.supportedLocations
+          return out
+        }
+      )
 
       return {
-        ...chain,
+        // keep local chain identity/rpcs/explorers/compatibility/etc.
+        ...localChain,
+        // override only what the remote controls
         disabled: remoteChain.disabled,
         derivationAlgorithm: remoteChain.derivationAlgorithm,
         isEvm: remoteChain.isEvm,
-        supportedTokens: remoteChain.tokens.map((t) => ({
-          ...t,
-          decimals: parseInt(t.decimals)
-        }))
+        supportedTokens
       }
     })
 
-    this.updateFilters(mergedChains)
+    await this.updateFilters(mergedChains)
     return mergedChains
   }
 
@@ -194,15 +219,12 @@ class ChainsService {
     return chain?.disabled ?? false
   }
 
-  isSupportedChain = (
-    chainShortName: string,
-    location: ChainLocation
-  ): boolean => {
+  isSupportedChain = (chainShortName: string, location: Location): boolean => {
     return this.filters[location].isSupportedChain(chainShortName)
   }
 
   supportedChains = async (): Promise<Chain[]> => {
-    const chainLocations = chainLocationSchema.options
+    const chainLocations = locationSchema.options
     const chains = await this.getMergedChainData()
     return chains
       .map((chain) => ({

@@ -17,7 +17,7 @@ export interface Chain extends ViemChain {
   shortName: string
   compatibility: ChainCompatibility
   faucets?: string[]
-  supportedLocations: ChainLocation[]
+  supportedLocations: Location[]
   supportedTokens: TokenDto[]
   disabled?: boolean
 }
@@ -31,16 +31,23 @@ const chainFilterSchema = z.object({
 })
 export type ChainList = [ChainName, ...ChainName[]]
 
-export const filterConfigSchema = z.object({
-  origin: chainFilterSchema.optional(),
-  target: chainFilterSchema.optional()
-}).optional()
+export const filterConfigSchema = z
+  .object({
+    origin: chainFilterSchema.optional(),
+    target: chainFilterSchema.optional()
+  })
+  .optional()
 
 export type FilterConfig = z.infer<typeof filterConfigSchema>
 export type ChainFilterConfig = z.infer<typeof chainFilterSchema>
 
-export const chainLocationSchema = z.enum(['origin', 'target'])
-export type ChainLocation = z.infer<typeof chainLocationSchema>
+export const locationSchema = z.enum(['origin', 'target'])
+export type Location = z.infer<typeof locationSchema>
+
+export const DEFAULT_TOKEN_LOCATIONS: Readonly<Location[]> = [
+  'origin',
+  'target'
+] as const
 
 /**
  * Example filter config
