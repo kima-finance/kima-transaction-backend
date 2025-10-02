@@ -1,5 +1,11 @@
 # Release Log
 
+## 1.5.7
+
+### Overview
+
+- Fix: wrong decimals number used in amountOut for swap transaction
+
 ## v1.5.6
 
 ### Overview
