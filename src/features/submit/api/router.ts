@@ -388,11 +388,21 @@ router.post(
       mode
     } = req.body satisfies SubmitSwapRequestDto
 
-    const fixedAmountIn = bigintToFixedNumber(amountIn, decimals)
-    const amountInStr = formatUnits(amountIn, decimals)
-    const amountOutStr = formatUnits(amountOut, decimals)
-    const feeStr = formatUnits(fee, decimals)
-    console.log(req.body, { amountInStr, amountOutStr, feeStr })
+    // per-side decimals (fallback to legacy `decimals`)
+    const inDec =
+      typeof (req.body as any).amountInDecimals === 'number'
+        ? (req.body as any).amountInDecimals
+        : decimals
+    const outDec =
+      typeof (req.body as any).amountOutDecimals === 'number'
+        ? (req.body as any).amountOutDecimals
+        : decimals
+
+    const fixedAmountIn = bigintToFixedNumber(amountIn, inDec)
+    const amountInStr = formatUnits(amountIn, inDec)
+    const amountOutStr = formatUnits(amountOut, outDec)
+    const feeStr = formatUnits(fee, inDec)
+    console.log('body: ', req.body, { amountInStr, amountOutStr, feeStr })
 
     // parse options as json to work with it globally
     options = JSON.parse(req.body.options)
@@ -469,7 +479,7 @@ router.post(
     } catch (e) {
       console.error('error submitting swap transaction')
       console.error(e)
-      res.status(500).send('failed to submit transaction')
+      res.status(500).send('failed to submit swap transaction')
     }
   }
 )

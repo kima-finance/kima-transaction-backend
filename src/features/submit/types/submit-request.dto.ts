@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import { TransactionDetails } from './transaction-details'
 import { SwapDetails } from './swap-details'
-
 import { ChainName } from '@features/chains/types/chain-name'
+
 const NON_ADDRESS_CHAINS: ChainName[] = [
   ChainName.FIAT,
   ChainName.CC,
@@ -17,12 +17,12 @@ export const SubmitRequestSchema = TransactionDetails.extend({
   htlcVersion: z.string().optional(),
   senderPubKey: z.string().optional(),
   options: z.string().optional(),
-  fiatTransactionIdSeed: z.string().optional()
+  fiatTransactionIdSeed: z.string().optional(),
+  mode: z.enum(['bridge', 'light']).optional()
 }).superRefine((data, ctx) => {
   const needsOriginAddress = !NON_ADDRESS_CHAINS.includes(
     data.originChain as ChainName
   )
-
   if (
     needsOriginAddress &&
     (!data.originAddress || data.originAddress.trim() === '')
@@ -36,14 +36,18 @@ export const SubmitRequestSchema = TransactionDetails.extend({
 })
 
 export const SubmitSwapRequestSchema = SwapDetails.extend({
-  decimals: z.number(),
+  decimals: z.number().optional(),
+
+  amountInDecimals: z.number().int().positive().optional(),
+  amountOutDecimals: z.number().int().positive().optional(),
+
   options: z.string().optional(),
-  fiatTransactionIdSeed: z.string().optional()
+  fiatTransactionIdSeed: z.string().optional(),
+  mode: z.enum(['bridge', 'light']).optional()
 }).superRefine((data, ctx) => {
   const needsOriginAddress = !NON_ADDRESS_CHAINS.includes(
     data.originChain as ChainName
   )
-
   if (
     needsOriginAddress &&
     (!data.originAddress || data.originAddress.trim() === '')
