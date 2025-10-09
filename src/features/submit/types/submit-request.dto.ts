@@ -18,7 +18,7 @@ export const SubmitRequestSchema = TransactionDetails.extend({
   senderPubKey: z.string().optional(),
   options: z.string().optional(),
   fiatTransactionIdSeed: z.string().optional(),
-  mode: z.enum(['bridge', 'light']).optional()
+  mode: z.enum(['bridge', 'light', 'payment']).optional()
 }).superRefine((data, ctx) => {
   const needsOriginAddress = !NON_ADDRESS_CHAINS.includes(
     data.originChain as ChainName
@@ -43,7 +43,7 @@ export const SubmitSwapRequestSchema = SwapDetails.extend({
 
   options: z.string().optional(),
   fiatTransactionIdSeed: z.string().optional(),
-  mode: z.enum(['bridge', 'light']).optional()
+  mode: z.enum(['bridge', 'light', 'payment']).optional()
 }).superRefine((data, ctx) => {
   const needsOriginAddress = !NON_ADDRESS_CHAINS.includes(
     data.originChain as ChainName
