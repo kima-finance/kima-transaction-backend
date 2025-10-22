@@ -29,6 +29,35 @@ import {
 } from '../services/message.service'
 import hexStringToUint8Array from '@shared/utils/bytes'
 
+type KimaAttr = { key?: string; value?: string }
+type KimaEvt = { type?: string; attributes?: KimaAttr[] }
+type KimaSubmitResult = {
+  events?: KimaEvt[]
+  transactionHash?: string
+  [k: string]: unknown
+}
+
+const respondIfKimaError = (result: unknown, res: Response): boolean => {
+  const { events, transactionHash } = (result ?? {}) as KimaSubmitResult
+  const errorEvent = Array.isArray(events)
+    ? events.find((e) => e?.type === 'error')
+    : undefined
+  if (!errorEvent) return false
+
+  const code =
+    errorEvent.attributes?.find((a) => a?.key === 'code')?.value ?? 'UNKNOWN'
+  const message =
+    errorEvent.attributes?.find((a) => a?.key === 'content')?.value ??
+    'Unknown error'
+
+  res.status(400).json({
+    ok: false,
+    error: { code: String(code), message: String(message) },
+    transactionHash: transactionHash ?? null
+  })
+  return true
+}
+
 const router = Router()
 const isSimulator = process.env.SIMULATOR
 
@@ -252,8 +281,9 @@ router.post(
       console.log('payload to be sent: ', payload)
 
       const result = await submitKimaTransferTransaction(payload as any)
-
       console.log('kima submit result', result)
+
+      if (respondIfKimaError(result, res)) return
       res.send(result)
     } catch (e) {
       console.error('error submitting transaction')
@@ -473,8 +503,9 @@ router.post(
         slippage,
         options
       })
-
       console.log('kima submit swap result', submitResult)
+
+      if (respondIfKimaError(result, res)) return
       res.send(submitResult)
     } catch (e) {
       console.error('error submitting swap transaction')
