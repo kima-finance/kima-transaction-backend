@@ -180,6 +180,13 @@ export const CHAINS: Chain[] = [
         address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
         decimals: 6,
         peggedTo: 'USD'
+      },
+      {
+        symbol: 'WETH',
+        address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+        decimals: 18,
+        peggedTo: '',
+        supportedLocations: ['target']
       }
     ]
   },
@@ -220,6 +227,13 @@ export const CHAINS: Chain[] = [
         address: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
         decimals: 6,
         peggedTo: 'USD'
+      },
+      {
+        symbol: 'WETH',
+        address: '0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab',
+        decimals: 18,
+        peggedTo: '',
+        supportedLocations: ['target']
       }
     ]
   },
@@ -260,6 +274,13 @@ export const CHAINS: Chain[] = [
         address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
         decimals: 6,
         peggedTo: 'USD'
+      },
+      {
+        symbol: 'WETH',
+        address: '0x4200000000000000000000000000000000000006',
+        decimals: 18,
+        peggedTo: '',
+        supportedLocations: ['target']
       }
     ]
   },
@@ -328,6 +349,13 @@ export const CHAINS: Chain[] = [
         address: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
         decimals: 6,
         peggedTo: 'USD'
+      },
+      {
+        symbol: 'WETH',
+        address: '0x2170ed0880ac9a755fd29b2688956bd959f933f8',
+        decimals: 18,
+        peggedTo: '',
+        supportedLocations: ['target']
       }
     ]
   },
@@ -468,6 +496,13 @@ export const CHAINS: Chain[] = [
         decimals: 18,
         peggedTo: 'USD',
         supportedLocations: ['target']
+      },
+      {
+        symbol: 'WETH',
+        address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+        decimals: 18,
+        peggedTo: '',
+        supportedLocations: ['target']
       }
     ]
   },
@@ -514,6 +549,13 @@ export const CHAINS: Chain[] = [
         address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
         decimals: 6,
         peggedTo: 'USD'
+      },
+      {
+        symbol: 'WETH',
+        address: '0x4200000000000000000000000000000000000006',
+        decimals: 18,
+        peggedTo: '',
+        supportedLocations: ['target']
       }
     ]
   },
@@ -548,6 +590,13 @@ export const CHAINS: Chain[] = [
         address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
         decimals: 6,
         peggedTo: 'USD'
+      },
+      {
+        symbol: 'WETH',
+        address: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+        decimals: 18,
+        peggedTo: '',
+        supportedLocations: ['target']
       }
     ]
   },
@@ -597,6 +646,13 @@ export const CHAINS: Chain[] = [
       },
       {
         symbol: 'USD1',
+        address: 'USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB',
+        decimals: 6,
+        peggedTo: 'USD',
+        supportedLocations: ['target']
+      },
+      {
+        symbol: 'WSOL',
         address: 'USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB',
         decimals: 6,
         peggedTo: 'USD',
