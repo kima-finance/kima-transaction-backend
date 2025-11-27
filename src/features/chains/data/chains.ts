@@ -761,6 +761,50 @@ export const CHAINS: Chain[] = [
       }
     },
     testnet: true
+  },
+  {
+    id: 480,
+    name: 'World Chain',
+    shortName: 'WLD',
+    compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin', 'target'],
+    supportedTokens: [
+      {
+        symbol: 'USDC',
+        address: '0x79A02482A880bCE3F13e09Da970dC34db4CD24d1',
+        decimals: 6,
+        peggedTo: 'USD'
+      }
+    ],
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    rpcUrls: {
+      default: { http: ['https://worldchain-mainnet.g.alchemy.com/public'] }
+    },
+    faucets: [],
+    blockExplorers: {
+      default: { name: 'worldscan', url: 'https://worldscan.org' }
+    }
+  },
+
+  {
+    id: 4801,
+    name: 'World Chain Sepolia',
+    shortName: 'WLD',
+    compatibility: ChainCompatibility.EVM,
+    supportedLocations: ['origin', 'target'],
+    supportedTokens: [],
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    rpcUrls: {
+      default: { http: ['https://worldchain-sepolia.g.alchemy.com/public'] }
+    },
+    faucets: ['https://faucet.quicknode.com/world-chain/sepolia'],
+    blockExplorers: {
+      default: {
+        name: 'worldscan-sepolia',
+        url: 'https://sepolia.worldscan.org'
+      }
+    },
+    testnet: true
   }
 
   // Tron Shasta not supported yet
