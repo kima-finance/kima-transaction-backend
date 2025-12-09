@@ -36,6 +36,27 @@ export const SubmitRequestSchema = TransactionDetails.extend({
   }
 })
 
+export const SubmitExternalRequestSchema = TransactionDetails.extend({
+  decimals: z.number(),
+  options: z.string().optional(),
+  mode: z.enum(['bridge', 'light', 'payment']).optional(),
+  feeDeduct: z.boolean().optional()
+}).superRefine((data, ctx) => {
+  const needsOriginAddress = !NON_ADDRESS_CHAINS.includes(
+    data.originChain as ChainName
+  )
+  if (
+    needsOriginAddress &&
+    (!data.originAddress || data.originAddress.trim() === '')
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['originAddress'],
+      message: 'originAddress is required unless originChain is FIAT/CC/BANK'
+    })
+  }
+})
+
 export const SubmitSwapRequestSchema = SwapDetails.extend({
   decimals: z.number().optional(),
 
@@ -63,4 +84,5 @@ export const SubmitSwapRequestSchema = SwapDetails.extend({
 })
 
 export type SubmitRequestDto = z.infer<typeof SubmitRequestSchema>
+export type SubmitExternalRequestDto = z.infer<typeof SubmitExternalRequestSchema>
 export type SubmitSwapRequestDto = z.infer<typeof SubmitSwapRequestSchema>
