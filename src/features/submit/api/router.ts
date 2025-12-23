@@ -1,7 +1,8 @@
 import { Router, type Request, type Response } from 'express'
 import {
   submitKimaTransferTransaction,
-  submitKimaSwapTransaction
+  submitKimaSwapTransaction,
+  submitKimaExternalTransaction
 } from '@kimafinance/kima-transaction-api'
 import { query } from 'express-validator'
 import { validateRequest } from '@shared/middleware/validation'
@@ -12,7 +13,9 @@ import {
   SubmitRequestDto,
   SubmitRequestSchema,
   SubmitSwapRequestDto,
-  SubmitSwapRequestSchema
+  SubmitSwapRequestSchema,
+  SubmitExternalRequestDto,
+  SubmitExternalRequestSchema
 } from '../types/submit-request.dto'
 import { bigintToFixedNumber } from '@shared/utils/numbers'
 import { generateFiatOptions } from '@shared/crypto/fiatSign'
@@ -281,6 +284,155 @@ router.post(
       console.log('payload to be sent: ', payload)
 
       const result = await submitKimaTransferTransaction(payload as any)
+      console.log('kima submit result', result)
+
+      if (respondIfKimaError(result, res)) return
+      res.send(result)
+    } catch (e) {
+      console.error('error submitting transaction')
+      console.error(e)
+      res.status(500).send('failed to submit transaction')
+    }
+  }
+)
+
+/**
+ * @openapi
+ * /submit/external_transfer:
+ *   post:
+ *     summary: Submit external transfer transaction
+ *     description: Submit a external transfer transaction to the Kima Chain
+ *     tags:
+ *       - Submit
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               amount:
+ *                 type: string
+ *                 description: (bigint string) Amount target address will receive
+ *               fee:
+ *                 type: string
+ *                 description: (bigint string) Total service fees.
+ *               decimals:
+ *                 type: number
+ *                 description: Number of decimals for the amount and fee
+ *               originAddress:
+ *                 type: string
+ *                 description: sender address
+ *               originChain:
+ *                 type: string
+ *                 description: starting chain
+ *                 enum: [ARB, AVX, BASE, BSC, ETH, OPT, POL, SOL, TRX]
+ *               targetAddress:
+ *                 type: string
+ *                 description: receiver address
+ *               targetChain:
+ *                 type: string
+ *                 description: receiving chain
+ *                 enum: [ARB, AVX, BASE, BSC, ETH, OPT, POL, SOL, TRX]
+ *               targetSymbol:
+ *                 type: string
+ *                 description: receiving token symbol
+ *               options:
+ *                 type: string
+ *                 description: options for the transaction
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *       403:
+ *         description: Address is not compliant. Applies if compliance is enabled.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isCompliant:
+ *                   type: boolean
+ *                 isError:
+ *                   type: boolean
+ *                 results:
+ *                   type: object
+ *                   properties:
+ *                     isCompliant:
+ *                       type: boolean
+ *                     results:
+ *                       type: object
+ *                       properties:
+ *                         address:
+ *                           type: string
+ *                         error:
+ *                           type: string
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ */
+router.post(
+  '/external_transfer',
+  [transValidation, checkCompliance],
+  async (req: Request, res: Response) => {
+    const validationResult = isSimulator
+      ? { success: true, error: { format: () => {}, flatten: () => {} } }
+      : SubmitExternalRequestSchema.safeParse(req.body)
+
+    if (!validationResult.success) {
+      console.error('Validation Error:', validationResult.error.format())
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: validationResult.error.flatten()
+      })
+    }
+
+    let {
+      originAddress,
+      originChain,
+      originSymbol,
+      targetAddress,
+      targetChain,
+      targetSymbol,
+      amount,
+      decimals,
+      fee,
+      options
+    } = req.body satisfies SubmitExternalRequestDto
+
+    const amountStr = formatUnits(amount, decimals)
+    const feeStr = formatUnits(fee, decimals)
+
+    const isFiat = ['FIAT', 'CC', 'BANK'].includes(originChain as string)
+
+    try {
+      const payload = {
+        originAddress: isFiat ? '' : originAddress,
+        originChain: isFiat ? 'FIAT' : originChain,
+        targetAddress,
+        targetChain,
+        originSymbol,
+        targetSymbol,
+        amount: amountStr,
+        fee: feeStr,
+        options
+      } as const
+
+      console.log('payload to be sent: ', payload)
+
+      const result = await submitKimaExternalTransaction(payload as any)
       console.log('kima submit result', result)
 
       if (respondIfKimaError(result, res)) return
