@@ -395,6 +395,37 @@ export const CHAINS: Chain[] = [
   },
   // {
   //   id: 0,
+  //   name: 'Bitcoin Testnet',
+  //   shortName: 'BTC',
+  //   supportedLocations: ['origin', 'target'],
+  //   supportedTokens: [
+  //     {
+  //       symbol: 'BTC',
+  //       address: '',
+  //       decimals: 8,
+  //       peggedTo: ''
+  //     }
+  //   ],
+  //   compatibility: ChainCompatibility.BTC,
+  //   rpcUrls: {
+  //     default: { http: [] }
+  //   },
+  //   faucets: [],
+  //   nativeCurrency: {
+  //     name: 'Bitcoin',
+  //     symbol: 'BTC',
+  //     decimals: 8
+  //   },
+  //   blockExplorers: {
+  //     default: {
+  //       name: 'blockstream',
+  //       url: 'https://blockstream.info/testnet'
+  //     }
+  //   },
+  //   testnet: true
+  // },
+  // {
+  //   id: 0,
   //   shortName: 'BTC',
   //   name: 'Bitcoin',
   //   supportedLocations: ['origin', 'target'],
@@ -524,12 +555,13 @@ export const CHAINS: Chain[] = [
         address: '0x5FF59Bf2277A1e6bA9bB8A38Ea3F9ABfd3d9345a',
         decimals: 18,
         peggedTo: 'USD'
+      },
+      {
+        symbol: 'WBTC',
+        address: '0x20211626DF509E2f5530CA94fadC5499A809D809',
+        decimals: 8,
+        peggedTo: ''
       }
-      // {
-      //   symbol: 'WBTC',
-      //   address: '0x5703992Cd91cAB655f2BF3EcbD4cD22e3c75832D',
-      //   decimals: 8
-      // }
     ]
   },
   {
