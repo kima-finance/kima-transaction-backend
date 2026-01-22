@@ -27,10 +27,9 @@ const router = Router()
  *       - name: address
  *         in: query
  *         required: true
- *         description: A Bech32 Bitcoin address. Testnet and mainnet formats accepted.
+ *         description: A Bitcoin address for the current environment network.
  *         schema:
  *           type: string
- *           pattern: "^(bc1|tb1)[a-zA-HJ-NP-Z0-9]{25,90}$"
  *     responses:
  *       200:
  *         description: Balance fetched successfully
@@ -63,21 +62,28 @@ const router = Router()
 router.get(
   '/balance',
   [
-    // validate testnet/mainnet pattern via lib (runtime); pattern in docs is informative
-    query('address').custom(
-      (address) =>
-        validateBTC(address, Network.testnet) ||
-        validateBTC(address, Network.mainnet)
-    ),
+    query('address')
+      .custom((address) =>
+        isTestnet
+          ? validateBTC(address, Network.testnet)
+          : validateBTC(address, Network.mainnet)
+      )
+      .withMessage(
+        `Address must be ${
+          isTestnet ? 'testnet' : 'mainnet'
+        } for this environment`
+      ),
     validateRequest
   ],
   async (req: Request, res: Response) => {
     const address = req.query.address as string
 
     try {
-      // NOTE: this endpoint currently points to Blockstream testnet; adjust when mainnet support is enabled
+      const base = isTestnet
+        ? 'https://blockstream.info/testnet/api'
+        : 'https://blockstream.info/api'
       const btcInfo: any = await fetchWrapper.get(
-        `https://blockstream.info/testnet/api/address/${address}`
+        `${base}/address/${address}`
       )
 
       const balance =

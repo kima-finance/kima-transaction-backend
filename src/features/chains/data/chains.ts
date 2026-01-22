@@ -393,37 +393,37 @@ export const CHAINS: Chain[] = [
       }
     }
   },
-  // {
-  //   id: 0,
-  //   name: 'Bitcoin Testnet',
-  //   shortName: 'BTC',
-  //   supportedLocations: ['origin', 'target'],
-  //   supportedTokens: [
-  //     {
-  //       symbol: 'BTC',
-  //       address: '',
-  //       decimals: 8,
-  //       peggedTo: ''
-  //     }
-  //   ],
-  //   compatibility: ChainCompatibility.BTC,
-  //   rpcUrls: {
-  //     default: { http: [] }
-  //   },
-  //   faucets: [],
-  //   nativeCurrency: {
-  //     name: 'Bitcoin',
-  //     symbol: 'BTC',
-  //     decimals: 8
-  //   },
-  //   blockExplorers: {
-  //     default: {
-  //       name: 'blockstream',
-  //       url: 'https://blockstream.info/testnet'
-  //     }
-  //   },
-  //   testnet: true
-  // },
+  {
+    id: 0,
+    name: 'Bitcoin Testnet',
+    shortName: 'BTC',
+    supportedLocations: ['origin', 'target'],
+    supportedTokens: [
+      {
+        symbol: 'BTC',
+        address: '',
+        decimals: 8,
+        peggedTo: ''
+      }
+    ],
+    compatibility: ChainCompatibility.BTC,
+    rpcUrls: {
+      default: { http: [] }
+    },
+    faucets: [],
+    nativeCurrency: {
+      name: 'Bitcoin',
+      symbol: 'BTC',
+      decimals: 8
+    },
+    blockExplorers: {
+      default: {
+        name: 'blockstream',
+        url: 'https://blockstream.info/testnet'
+      }
+    },
+    testnet: true
+  },
   // {
   //   id: 0,
   //   shortName: 'BTC',
