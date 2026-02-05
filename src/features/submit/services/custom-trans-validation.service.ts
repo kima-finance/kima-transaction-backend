@@ -1,11 +1,13 @@
 import { Request } from 'express'
 import { PublicKey } from '@solana/web3.js'
 import { isAddress } from 'viem'
+import { validate as validateBTC } from 'bitcoin-address-validation'
 import fetchWrapper from '@shared/http/fetch'
 import { z } from 'zod'
 import chainsService from '@features/chains/services/singleton'
 import { ChainName } from '@features/chains/types/chain-name'
 import { TransactionDetails } from '../types/transaction-details'
+import { getBtcValidationNetwork } from '@shared/crypto/btc'
 
 type TransactionDetailsType = z.infer<typeof TransactionDetails>
 
@@ -62,6 +64,13 @@ const isValidAddress = async (
         { address, visible: 'true' }
       )
       return res?.result === false ? `invalid Tron address ${address}` : ''
+    }
+
+    if (chain === ChainName.BTC) {
+      const network = getBtcValidationNetwork()
+      return validateBTC(address, network)
+        ? ''
+        : `invalid BTC address ${address}`
     }
 
     // Default: treat as EVM

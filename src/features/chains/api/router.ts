@@ -337,6 +337,7 @@ chainsRouter.get('/tss_pubkey', async (_req, res: Response) => {
 chainsRouter.get('/', async (_req: Request, res: Response) => {
   try {
     const chains = await chainsService.supportedChains()
+    console.info('[chains] response\n', JSON.stringify(chains, null, 2))
     res.status(200).json(chains)
   } catch (e) {
     console.error('cant get chains: ', e)
