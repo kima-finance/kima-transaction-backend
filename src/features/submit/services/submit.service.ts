@@ -57,7 +57,6 @@ export const calcServiceFee = async ({
   const kimaAddress = await getCreatorAddress()
 
   const isFiat = originChain === 'CC' || originChain === 'BANK'
-
   // still get token (for peggedTo/decimals), but don't trust protocol for FIAT
   const originToken = await chainsService.getToken(originChain, originSymbol)
   if (!originToken) {
@@ -82,6 +81,8 @@ export const calcServiceFee = async ({
       ? { paymentMethod: originToken.protocol }
       : undefined
   }
+
+  console.log('[calcServiceFee] FCS payload', body)
 
   return fetchWrapper.post<FeeResponse>(
     `${ENV.KIMA_BACKEND_FEE_URL}/v3/fees/calculate`,

@@ -25,6 +25,8 @@ import { TokenAmount } from '../types/token-amount.dto'
 import { parseUnits } from 'viem'
 import toTronAddress from '@shared/crypto/tron'
 import defineCached from '@shared/utils/cache'
+import * as bitcoin from 'bitcoinjs-lib'
+import { getBitcoinJsNetwork } from '@shared/crypto/btc'
 
 class ChainsService {
   filters: Record<Location, ChainFilter>
@@ -182,6 +184,16 @@ class ChainsService {
     if (chain.shortName === ChainName.TRON) return toTronAddress(data.ecdsa)
     if (chain.compatibility === ChainCompatibility.EVM) return data.ecdsa
     if (chain.shortName === ChainName.SOLANA) return data.eddsa
+    if (chain.shortName === ChainName.BTC) {
+      const reserved = String(data.reserved ?? '').trim()
+      if (reserved) return reserved
+
+      const hex = (data.ecdsaPubkey || '').replace(/^0x/i, '')
+      if (!/^[0-9a-fA-F]+$/.test(hex)) return ''
+      const network = getBitcoinJsNetwork()
+      const pubkey = Buffer.from(hex, 'hex')
+      return bitcoin.payments.p2wpkh({ pubkey, network }).address ?? ''
+    }
 
     return ''
   }
@@ -211,6 +223,7 @@ class ChainsService {
     const result = await fetchWrapper.get<TssPubkeyResponseDto>(
       `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/kima/tss_pubkey`
     )
+    console.log('[getTssPubkeys] response', result)
     return result
   }
 

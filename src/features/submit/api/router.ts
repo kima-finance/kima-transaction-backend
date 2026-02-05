@@ -40,6 +40,23 @@ type KimaSubmitResult = {
   [k: string]: unknown
 }
 
+const logKimaResponse = (label: string, result: unknown) => {
+  try {
+    const json = JSON.stringify(
+      result,
+      (_key, value) => {
+        if (typeof value === 'bigint') return value.toString()
+        if (value instanceof Uint8Array) return Buffer.from(value).toString('hex')
+        return value
+      },
+      2
+    )
+    console.log(`[submit] ${label}`, json)
+  } catch {
+    console.log(`[submit] ${label}`, result)
+  }
+}
+
 const respondIfKimaError = (result: unknown, res: Response): boolean => {
   const { events, transactionHash } = (result ?? {}) as KimaSubmitResult
   const errorEvent = Array.isArray(events)
@@ -53,9 +70,19 @@ const respondIfKimaError = (result: unknown, res: Response): boolean => {
     errorEvent.attributes?.find((a) => a?.key === 'content')?.value ??
     'Unknown error'
 
+  console.error('[submit] Kima error event', {
+    code,
+    message,
+    transactionHash,
+    errorEvent,
+    events
+  })
+  logKimaResponse('kima raw response (error)', result)
+
   res.status(400).json({
     ok: false,
     error: { code: String(code), message: String(message) },
+    details: errorEvent ?? null,
     transactionHash: transactionHash ?? null
   })
   return true
@@ -245,6 +272,10 @@ router.post(
       })
     }
 
+    if (originChain === 'BTC') {
+      delete options.signature
+    }
+
     options = JSON.stringify(options)
 
     try {
@@ -284,7 +315,7 @@ router.post(
       console.log('payload to be sent: ', payload)
 
       const result = await submitKimaTransferTransaction(payload as any)
-      console.log('kima submit result', result)
+      logKimaResponse('kima submit result', result)
 
       if (respondIfKimaError(result, res)) return
       res.send(result)
@@ -433,7 +464,7 @@ router.post(
       console.log('payload to be sent: ', payload)
 
       const result = await submitKimaExternalTransaction(payload as any)
-      console.log('kima submit result', result)
+      logKimaResponse('kima submit result', result)
 
       if (respondIfKimaError(result, res)) return
       res.send(result)
@@ -622,6 +653,10 @@ router.post(
       })
     }
 
+    if (originChain === 'BTC') {
+      delete options.signature
+    }
+
     // parse as stringified JSON for api package usage
     options = JSON.stringify(options)
 
@@ -655,9 +690,9 @@ router.post(
         slippage,
         options
       })
-      console.log('kima submit swap result', submitResult)
+      logKimaResponse('kima submit swap result', submitResult)
 
-      if (respondIfKimaError(result, res)) return
+      if (respondIfKimaError(submitResult, res)) return
       res.send(submitResult)
     } catch (e) {
       console.error('error submitting swap transaction')
