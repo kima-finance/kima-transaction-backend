@@ -594,6 +594,11 @@ router.post(
       amountOut,
       fee,
       decimals,
+      htlcCreationHash = '',
+      htlcCreationVout = 0,
+      htlcExpirationTimestamp = '',
+      htlcVersion = '',
+      senderPubKey = '',
       dex,
       slippage,
       options = '',
@@ -657,11 +662,32 @@ router.post(
       delete options.signature
     }
 
+    if (originChain === 'BTC') {
+      if (!htlcCreationHash || !htlcVersion || !htlcExpirationTimestamp) {
+        return res.status(400).json({
+          error: 'htlc parameters are required for BTC swap',
+          details: {
+            htlcCreationHash,
+            htlcVersion,
+            htlcExpirationTimestamp
+          }
+        })
+      }
+      if (!senderPubKey || senderPubKey.trim() === '') {
+        return res.status(400).json({
+          error: 'senderPubKey is required for BTC swap',
+          details: {
+            senderPubKey
+          }
+        })
+      }
+    }
+
     // parse as stringified JSON for api package usage
     options = JSON.stringify(options)
 
     try {
-      console.log('payload to be sent: ', {
+      const basePayload = {
         originAddress: isFiat ? '' : originAddress,
         originChain: isFiat ? 'FIAT' : originChain,
         targetAddress,
@@ -674,22 +700,32 @@ router.post(
         dex,
         slippage,
         options
-      })
+      } as const
 
-      const submitResult = await submitKimaSwapTransaction({
-        originAddress: isFiat ? '' : originAddress,
-        originChain: isFiat ? 'FIAT' : originChain,
-        targetAddress,
-        targetChain,
-        originSymbol,
-        targetSymbol,
-        amountIn: amountInStr,
-        amountOut: amountOutStr,
-        fee: feeStr,
-        dex,
-        slippage,
-        options
-      })
+      const htlcPayload =
+        htlcCreationHash && htlcVersion
+          ? {
+              htlcCreationHash,
+              htlcCreationVout,
+              htlcExpirationTimestamp,
+              htlcVersion
+            }
+          : {}
+
+      const pubKeyPayload =
+        senderPubKey && senderPubKey.trim() !== ''
+          ? { senderPubKey: hexStringToUint8Array(senderPubKey) }
+          : {}
+
+      const payload = {
+        ...basePayload,
+        ...htlcPayload,
+        ...pubKeyPayload
+      }
+
+      console.log('payload to be sent: ', payload)
+
+      const submitResult = await submitKimaSwapTransaction(payload as any)
       logKimaResponse('kima submit swap result', submitResult)
 
       if (respondIfKimaError(submitResult, res)) return

@@ -63,6 +63,12 @@ export const SubmitSwapRequestSchema = SwapDetails.extend({
   amountInDecimals: z.number().int().positive().optional(),
   amountOutDecimals: z.number().int().positive().optional(),
 
+  htlcCreationHash: z.string().optional(),
+  htlcCreationVout: z.number().optional(),
+  htlcExpirationTimestamp: z.string().optional(),
+  htlcVersion: z.string().optional(),
+  senderPubKey: z.string().optional(),
+
   options: z.string().optional(),
   fiatTransactionIdSeed: z.string().optional(),
   mode: z.enum(['bridge', 'light', 'payment']).optional(),
