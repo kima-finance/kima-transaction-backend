@@ -424,29 +424,36 @@ export const CHAINS: Chain[] = [
     },
     testnet: true
   },
-  // {
-  //   id: 0,
-  //   shortName: 'BTC',
-  //   name: 'Bitcoin',
-  //   supportedLocations: ['origin', 'target'],
-  //   supportedTokens: [],
-  //   compatibility: ChainCompatibility.BTC,
-  //   rpcUrls: {
-  //     default: { http: [] }
-  //   },
-  //   faucets: [],
-  //   nativeCurrency: {
-  //     name: 'Bitcoin',
-  //     symbol: 'BTC',
-  //     decimals: 8
-  //   },
-  //   blockExplorers: {
-  //     default: {
-  //       name: 'blockstream',
-  //       url: 'https://blockstream.info'
-  //     }
-  //   }
-  // },
+  {
+    id: 0,
+    shortName: 'BTC',
+    name: 'Bitcoin',
+    supportedLocations: ['origin', 'target'],
+    supportedTokens: [
+      {
+        symbol: 'BTC',
+        address: '',
+        decimals: 8,
+        peggedTo: ''
+      }
+    ],
+    compatibility: ChainCompatibility.BTC,
+    rpcUrls: {
+      default: { http: [] }
+    },
+    faucets: [],
+    nativeCurrency: {
+      name: 'Bitcoin',
+      symbol: 'BTC',
+      decimals: 8
+    },
+    blockExplorers: {
+      default: {
+        name: 'blockstream',
+        url: 'https://blockstream.info'
+      }
+    }
+  },
   // {
   //   id: 0,
   //   name: 'Bitcoin Testnet',
