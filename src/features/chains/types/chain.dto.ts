@@ -4,6 +4,7 @@ export interface ChainDto {
   id: string
   name: string
   symbol: string
+  // remote token metadata from kima-blockchain (includes optional isPermit2)
   tokens: KimaApiTokenDto[]
   disabled: boolean
   isEvm: boolean

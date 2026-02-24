@@ -24,6 +24,8 @@ import {
   signApprovalSwapMessage
 } from '@shared/crypto/sign'
 import { ChainName } from '@features/chains/types/chain-name'
+import { ChainCompatibility } from '@features/chains/types/chain'
+import chainsService from '@features/chains/services/singleton'
 import { calcServiceFee } from '../services/submit.service'
 import {
   TxMessageInputs,
@@ -31,6 +33,7 @@ import {
   txTransferMessage
 } from '../services/message.service'
 import hexStringToUint8Array from '@shared/utils/bytes'
+import { validatePermit2Payload } from '../services/permit2'
 
 type KimaAttr = { key?: string; value?: string }
 type KimaEvt = { type?: string; attributes?: KimaAttr[] }
@@ -90,6 +93,42 @@ const respondIfKimaError = (result: unknown, res: Response): boolean => {
 
 const router = Router()
 const isSimulator = process.env.SIMULATOR
+
+type SubmitOptionsPayload = Record<string, any>
+
+const parseSubmitOptions = (rawOptions: unknown): SubmitOptionsPayload => {
+  if (rawOptions === undefined || rawOptions === null || rawOptions === '') {
+    return {}
+  }
+  if (typeof rawOptions === 'string') {
+    const parsed = JSON.parse(rawOptions)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('options must be a JSON object')
+    }
+    return parsed as SubmitOptionsPayload
+  }
+  if (typeof rawOptions === 'object' && !Array.isArray(rawOptions)) {
+    return { ...(rawOptions as SubmitOptionsPayload) }
+  }
+  throw new Error('options must be a JSON object')
+}
+
+const resolvePermitContext = async (args: {
+  originChain: string
+  originSymbol: string
+}) => {
+  const [token, sourceChain] = await Promise.all([
+    chainsService
+      .getToken(args.originChain, args.originSymbol)
+      .catch(() => undefined),
+    chainsService.getChain(args.originChain as ChainName)
+  ])
+  const isEvmSource = sourceChain?.compatibility === ChainCompatibility.EVM
+  const isPermitToken = token?.isPermit2 === true
+  return {
+    isPermitTokenEnabled: isEvmSource && isPermitToken
+  }
+}
 
 /**
  * @openapi
@@ -236,15 +275,47 @@ router.post(
     const feeStr = formatUnits(fee, decimals)
     console.log(req.body, { amountStr, feeStr })
 
-    // parse options as json to work with it globally
-    options = JSON.parse(req.body.options)
+    let parsedOptions: SubmitOptionsPayload
+    try {
+      parsedOptions = parseSubmitOptions(req.body.options)
+    } catch (error) {
+      return res.status(400).json({
+        error: 'Invalid options payload',
+        details:
+          error instanceof Error ? error.message : 'options must be valid JSON'
+      })
+    }
+
+    const { isPermitTokenEnabled } = await resolvePermitContext({
+      originChain,
+      originSymbol
+    })
+
+    if (isPermitTokenEnabled && mode === 'light') {
+      return res.status(400).json({
+        error: 'Permit2 tokens are not supported in light mode'
+      })
+    }
+
+    if (isPermitTokenEnabled && mode !== 'light') {
+      try {
+        parsedOptions.permit2 = validatePermit2Payload(parsedOptions.permit2)
+      } catch (error) {
+        return res.status(400).json({
+          error: 'Invalid permit2 payload',
+          details:
+            error instanceof Error ? error.message : 'permit2 validation failed'
+        })
+      }
+    }
+
     const isFiat = ['FIAT', 'CC', 'BANK'].includes(originChain as string)
 
     if (isFiat) {
       const seed =
         fiatTransactionIdSeed ||
         (req.body as any).ccTransactionIdSeed ||
-        options.transactionIdSeed
+        parsedOptions.transactionIdSeed
 
       if (!seed) {
         return res
@@ -254,16 +325,16 @@ router.post(
 
       const { options: fiatOptions } = await generateFiatOptions(seed)
 
-      options = {
-        ...options,
+      parsedOptions = {
+        ...parsedOptions,
         ...fiatOptions
       }
 
-      delete options.signature
+      delete parsedOptions.signature
     }
 
     if (mode === 'light') {
-      options.signature = await signApprovalMessage({
+      parsedOptions.signature = await signApprovalMessage({
         originSymbol,
         originChain,
         targetAddress,
@@ -273,10 +344,10 @@ router.post(
     }
 
     if (originChain === 'BTC') {
-      delete options.signature
+      delete parsedOptions.signature
     }
 
-    options = JSON.stringify(options)
+    options = JSON.stringify(parsedOptions)
 
     try {
       const basePayload = {
@@ -622,15 +693,47 @@ router.post(
     const feeStr = formatUnits(fee, inDec)
     console.log('body: ', req.body, { amountInStr, amountOutStr, feeStr })
 
-    // parse options as json to work with it globally
-    options = JSON.parse(req.body.options)
+    let parsedOptions: SubmitOptionsPayload
+    try {
+      parsedOptions = parseSubmitOptions(req.body.options)
+    } catch (error) {
+      return res.status(400).json({
+        error: 'Invalid options payload',
+        details:
+          error instanceof Error ? error.message : 'options must be valid JSON'
+      })
+    }
+
+    const { isPermitTokenEnabled } = await resolvePermitContext({
+      originChain,
+      originSymbol
+    })
+
+    if (isPermitTokenEnabled && mode === 'light') {
+      return res.status(400).json({
+        error: 'Permit2 tokens are not supported in light mode'
+      })
+    }
+
+    if (isPermitTokenEnabled && mode !== 'light') {
+      try {
+        parsedOptions.permit2 = validatePermit2Payload(parsedOptions.permit2)
+      } catch (error) {
+        return res.status(400).json({
+          error: 'Invalid permit2 payload',
+          details:
+            error instanceof Error ? error.message : 'permit2 validation failed'
+        })
+      }
+    }
+
     const isFiat = ['FIAT', 'CC', 'BANK'].includes(originChain as string)
 
     if (isFiat) {
       const seed =
         fiatTransactionIdSeed ||
         (req.body as any).ccTransactionIdSeed ||
-        options.transactionIdSeed
+        parsedOptions.transactionIdSeed
 
       if (!seed) {
         return res
@@ -640,16 +743,16 @@ router.post(
 
       const { options: fiatOptions } = await generateFiatOptions(seed)
 
-      options = {
-        ...options,
+      parsedOptions = {
+        ...parsedOptions,
         ...fiatOptions
       }
 
-      delete options.signature
+      delete parsedOptions.signature
     }
 
     if (mode === 'light') {
-      options.signature = await signApprovalSwapMessage({
+      parsedOptions.signature = await signApprovalSwapMessage({
         originSymbol,
         originChain,
         targetAddress,
@@ -659,7 +762,7 @@ router.post(
     }
 
     if (originChain === 'BTC') {
-      delete options.signature
+      delete parsedOptions.signature
     }
 
     if (originChain === 'BTC') {
@@ -684,7 +787,7 @@ router.post(
     }
 
     // parse as stringified JSON for api package usage
-    options = JSON.stringify(options)
+    options = JSON.stringify(parsedOptions)
 
     try {
       const basePayload = {
