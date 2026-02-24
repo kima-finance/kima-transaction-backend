@@ -83,7 +83,15 @@ class ChainsService {
       const remoteChain = remoteData.find(
         (c) => c.symbol === localChain.shortName
       )
-      if (!remoteChain) return localChain
+      if (!remoteChain) {
+        return {
+          ...localChain,
+          supportedTokens: (localChain.supportedTokens ?? []).map((t) => ({
+            ...t,
+            isPermit2: t.isPermit2 === true
+          }))
+        }
+      }
 
       // local per-token metadata (e.g., supportedLocations, protocol) keyed by symbol
       const localTokensBySymbol = new Map(
@@ -97,7 +105,8 @@ class ChainsService {
             symbol: rt.symbol,
             address: rt.address,
             decimals: parseInt(rt.decimals, 10),
-            peggedTo: rt.peggedTo
+            peggedTo: rt.peggedTo,
+            isPermit2: rt.isPermit2 === true
           }
           // enrich ONLY with metadata defined in data/chains.ts
           if (local?.protocol) out.protocol = local.protocol
@@ -216,7 +225,11 @@ class ChainsService {
     const chain = await this.getChain(chainName as ChainName)
     if (!chain) throw new Error(`Chain ${chainName} not found`)
     const token = chain.supportedTokens.find((t) => t.symbol === tokenSymbol)
-    return token
+    if (!token) return undefined
+    return {
+      ...token,
+      isPermit2: token.isPermit2 === true
+    }
   }
 
   getTssPubkeys = async (): Promise<TssPubkeyResponseDto | string> => {

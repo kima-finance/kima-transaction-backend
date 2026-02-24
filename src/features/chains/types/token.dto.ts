@@ -6,6 +6,7 @@ export interface KimaApiTokenDto {
   address: string
   decimals: string
   peggedTo: string // currency symbol i.e. USD, EUR
+  isPermit2?: boolean
 }
 
 const protocolSchema = z.enum(['creditCard', 'swiftUsd', 'sepaEur'])
@@ -17,6 +18,7 @@ export type TokenProtocol = z.infer<typeof protocolSchema>
  */
 export interface TokenDto extends Omit<KimaApiTokenDto, 'decimals'> {
   decimals: number
+  isPermit2?: boolean
   protocol?: TokenProtocol
   supportedLocations?: readonly Location[] // ['origin'], ['target'], or ['origin','target'] (default)
 }
