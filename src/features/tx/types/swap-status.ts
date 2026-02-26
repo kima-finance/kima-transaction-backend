@@ -21,9 +21,24 @@ export interface SwapTransactionStatus {
   kimahash: string
 }
 
+export interface HtlcLockRequestStatus {
+  id: string
+  senderAddress: string
+  senderPubkey: string
+  htlcTimestamp: string
+  amount: string
+  txHash: string
+  status: string
+  errReason: string
+  creator: string
+  htlcAddress: string
+  pull_status: string
+}
+
 export interface GraphqlSwapTxStatusResponse {
   data: {
     swap_data: SwapTransactionStatus
+    htlc_lock_request?: HtlcLockRequestStatus | null
   }
 }
 

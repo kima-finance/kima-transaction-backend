@@ -16,6 +16,7 @@ import { ChainEnv } from 'core/types/chain-env'
 import { ChainName } from '../types/chain-name'
 import { AvailableChainsResponseDto } from '../types/available-chains-response.dto'
 import ChainsService from '../services/chains.service'
+import { ChainDto } from '../types/chain.dto'
 
 const chainsRouter = Router()
 const baseUrl = `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain`
@@ -36,7 +37,7 @@ const isSimulator = process.env.SIMULATOR
  */
 chainsRouter.get('/chain', async (_req, res: Response) => {
   try {
-    const result = await fetchWrapper.get<ChainsResponseDto>(
+    const result = await fetchWrapper.get<ChainsResponseDto & { Chain?: ChainDto[] }>(
       `${baseUrl}/chains/chain`
     )
     res.json(result)
@@ -337,7 +338,6 @@ chainsRouter.get('/tss_pubkey', async (_req, res: Response) => {
 chainsRouter.get('/', async (_req: Request, res: Response) => {
   try {
     const chains = await chainsService.supportedChains()
-    console.info('[chains] response\n', JSON.stringify(chains, null, 2))
     res.status(200).json(chains)
   } catch (e) {
     console.error('cant get chains: ', e)

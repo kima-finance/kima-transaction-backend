@@ -32,8 +32,12 @@ import {
   txSwapMessage,
   txTransferMessage
 } from '../services/message.service'
-import hexStringToUint8Array from '@shared/utils/bytes'
 import { validatePermit2Payload } from '../services/permit2'
+import {
+  BtcHtlcLockValidationError,
+  ensureBtcHtlcLockRegistered
+} from '../services/btc-htlc-lock'
+import { encodeHexString } from '@shared/utils/hex'
 
 type KimaAttr = { key?: string; value?: string }
 type KimaEvt = { type?: string; attributes?: KimaAttr[] }
@@ -259,6 +263,9 @@ router.post(
       htlcCreationVout = 0,
       htlcExpirationTimestamp = '',
       htlcVersion = '',
+      htlcAddress = '',
+      htlcAmountSats = '',
+      htlcLockId = '',
       senderPubKey = '',
       options = '',
       fiatTransactionIdSeed = '',
@@ -343,8 +350,42 @@ router.post(
       })
     }
 
+    let encodedSenderPubKey = senderPubKey
     if (originChain === 'BTC') {
+      if (!senderPubKey || senderPubKey.trim() === '') {
+        return res.status(400).json({
+          error: 'senderPubKey is required for BTC transfer'
+        })
+      }
+      try {
+        encodedSenderPubKey = encodeHexString(senderPubKey, 'senderPubKey')
+      } catch (error) {
+        return res.status(400).json({
+          error:
+            error instanceof Error ? error.message : 'senderPubKey is invalid'
+        })
+      }
       delete parsedOptions.signature
+      try {
+        const lockResult = await ensureBtcHtlcLockRegistered({
+          lockId: htlcLockId,
+          originAddress,
+          senderPubKey: encodedSenderPubKey,
+          htlcAmountSats,
+          htlcExpirationTimestamp,
+          htlcAddress,
+          htlcCreationHash
+        })
+        console.log('[submit.transfer.btc] lock registration status', lockResult)
+      } catch (error) {
+        if (error instanceof BtcHtlcLockValidationError) {
+          return res.status(400).json({ error: error.message })
+        }
+        console.error('[submit.transfer.btc] lock registration failed', error)
+        return res
+          .status(500)
+          .json({ error: 'failed to register BTC HTLC lock before submit' })
+      }
     }
 
     options = JSON.stringify(parsedOptions)
@@ -372,9 +413,14 @@ router.post(
             }
           : {}
 
+      const payloadSenderPubKey =
+        encodedSenderPubKey && encodedSenderPubKey.trim() !== ''
+          ? encodedSenderPubKey
+          : undefined
+
       const pubKeyPayload =
-        senderPubKey && senderPubKey.trim() !== ''
-          ? { senderPubKey: hexStringToUint8Array(senderPubKey) }
+        payloadSenderPubKey != null && payloadSenderPubKey !== ''
+          ? { senderPubKey: payloadSenderPubKey }
           : {}
 
       const payload = {
@@ -383,6 +429,19 @@ router.post(
         ...pubKeyPayload
       }
 
+      if (originChain === 'BTC') {
+        console.log(
+          '[submit.transfer.btc] pubkey debug',
+          JSON.stringify(
+            {
+              senderPubKeyRaw: senderPubKey || null,
+              senderPubKeyHexEncoded: payloadSenderPubKey || null
+            },
+            null,
+            2
+          )
+        )
+      }
       console.log('payload to be sent: ', payload)
 
       const result = await submitKimaTransferTransaction(payload as any)
@@ -669,6 +728,9 @@ router.post(
       htlcCreationVout = 0,
       htlcExpirationTimestamp = '',
       htlcVersion = '',
+      htlcAddress = '',
+      htlcAmountSats = '',
+      htlcLockId = '',
       senderPubKey = '',
       dex,
       slippage,
@@ -761,11 +823,9 @@ router.post(
       })
     }
 
+    let encodedSenderPubKey = senderPubKey
     if (originChain === 'BTC') {
       delete parsedOptions.signature
-    }
-
-    if (originChain === 'BTC') {
       if (!htlcCreationHash || !htlcVersion || !htlcExpirationTimestamp) {
         return res.status(400).json({
           error: 'htlc parameters are required for BTC swap',
@@ -783,6 +843,34 @@ router.post(
             senderPubKey
           }
         })
+      }
+      try {
+        encodedSenderPubKey = encodeHexString(senderPubKey, 'senderPubKey')
+      } catch (error) {
+        return res.status(400).json({
+          error:
+            error instanceof Error ? error.message : 'senderPubKey is invalid'
+        })
+      }
+      try {
+        const lockResult = await ensureBtcHtlcLockRegistered({
+          lockId: htlcLockId,
+          originAddress,
+          senderPubKey: encodedSenderPubKey,
+          htlcAmountSats,
+          htlcExpirationTimestamp,
+          htlcAddress,
+          htlcCreationHash
+        })
+        console.log('[submit.swap.btc] lock registration status', lockResult)
+      } catch (error) {
+        if (error instanceof BtcHtlcLockValidationError) {
+          return res.status(400).json({ error: error.message })
+        }
+        console.error('[submit.swap.btc] lock registration failed', error)
+        return res
+          .status(500)
+          .json({ error: 'failed to register BTC HTLC lock before submit' })
       }
     }
 
@@ -815,9 +903,14 @@ router.post(
             }
           : {}
 
+      const payloadSenderPubKey =
+        encodedSenderPubKey && encodedSenderPubKey.trim() !== ''
+          ? encodedSenderPubKey
+          : undefined
+
       const pubKeyPayload =
-        senderPubKey && senderPubKey.trim() !== ''
-          ? { senderPubKey: hexStringToUint8Array(senderPubKey) }
+        payloadSenderPubKey != null && payloadSenderPubKey !== ''
+          ? { senderPubKey: payloadSenderPubKey }
           : {}
 
       const payload = {
@@ -826,6 +919,19 @@ router.post(
         ...pubKeyPayload
       }
 
+      if (originChain === 'BTC') {
+        console.log(
+          '[submit.swap.btc] pubkey debug',
+          JSON.stringify(
+            {
+              senderPubKeyRaw: senderPubKey || null,
+              senderPubKeyHexEncoded: payloadSenderPubKey || null
+            },
+            null,
+            2
+          )
+        )
+      }
       console.log('payload to be sent: ', payload)
 
       const submitResult = await submitKimaSwapTransaction(payload as any)

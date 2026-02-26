@@ -5,7 +5,6 @@ import { submitRouter } from '@features/submit'
 import { transferTxRouter, swapTxRouter } from '@features/tx'
 import { btcRouter } from '@features/btc'
 import { complianceRouter } from '@features/compliance'
-import { htlcRouter } from '@features/htlc'
 import { kycRouter } from '@features/kyc'
 import { uuidRouter } from '@features/uuid'
 
@@ -26,7 +25,6 @@ router.use('/swap_tx', swapTxRouter)
 router.use('/submit', submitRouter)
 router.use('/btc', btcRouter)
 router.use('/compliant', complianceRouter)
-router.use('/htlc', htlcRouter)
 router.use('/kyc', kycRouter)
 router.use('/uuid', uuidRouter)
 
