@@ -7,10 +7,101 @@ import {
   GraphqlLiquidityTxStatusResponse,
   GraphqlTxStatusResponse
 } from '../types/transaction-status'
+import { HtlcLockRequestStatus } from '../types/swap-status'
 import ENV from 'core/env'
 import fetchWrapper from '@shared/http/fetch'
+import { HtlcTransactionResponseDto } from '@features/htlc/types/htlc-transaction.dto'
 
 const router = Router()
+
+const normalizeHtlcLockRequest = (
+  raw: Partial<HtlcLockRequestStatus> | undefined
+): HtlcLockRequestStatus | null => {
+  if (!raw) return null
+  return {
+    id: String(raw.id ?? ''),
+    senderAddress: String(raw.senderAddress ?? ''),
+    senderPubkey: String(raw.senderPubkey ?? ''),
+    htlcTimestamp: String(raw.htlcTimestamp ?? ''),
+    amount: String(raw.amount ?? ''),
+    txHash: String(raw.txHash ?? ''),
+    status: String(raw.status ?? ''),
+    errReason: String(raw.errReason ?? ''),
+    creator: String(raw.creator ?? ''),
+    htlcAddress: String(raw.htlcAddress ?? ''),
+    pull_status: String(raw.pull_status ?? '')
+  }
+}
+
+const normalizeHash = (value: unknown): string =>
+  String(value ?? '')
+    .trim()
+    .toLowerCase()
+
+const parseOptions = (raw: unknown): Record<string, unknown> => {
+  if (!raw || typeof raw !== 'string') return {}
+  try {
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object'
+      ? (parsed as Record<string, unknown>)
+      : {}
+  } catch {
+    return {}
+  }
+}
+
+const getHtlcCreationHashFromTransactionData = (data: any): string => {
+  const options = parseOptions(data?.options)
+  return (
+    String(
+      data?.htlcCreationHash ??
+        data?.htlc_creation_hash ??
+        options?.htlcCreationHash ??
+        options?.htlc_creation_hash ??
+        ''
+    ).trim() || ''
+  )
+}
+
+const getSenderHtlcLockRequest = async (args: {
+  senderAddress: string
+  txHash: string
+  txId: string
+}): Promise<HtlcLockRequestStatus | null> => {
+  if (!args.senderAddress || !args.txHash) return null
+
+  try {
+    const response = await fetchWrapper.get<HtlcTransactionResponseDto>(
+      `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/transaction/get_htlc_transaction/${encodeURIComponent(args.senderAddress)}`
+    )
+
+    if (typeof response === 'string') {
+      console.warn(
+        `[tx/${args.txId}/status] failed to fetch htlc lock request`,
+        response
+      )
+      return null
+    }
+
+    const senderAddressLower = args.senderAddress.toLowerCase()
+    const txHash = normalizeHash(args.txHash)
+    const record = (response.htlcLockingTransaction ?? [])
+      .map((item) => normalizeHtlcLockRequest(item))
+      .find(
+        (item): item is HtlcLockRequestStatus =>
+          item !== null &&
+          item.senderAddress.toLowerCase() === senderAddressLower &&
+          normalizeHash(item.txHash) === txHash
+      )
+    return record ?? null
+  } catch (error) {
+    console.warn(
+      `[tx/${args.txId}/status] failed to fetch htlc lock request`,
+      error
+    )
+    return null
+  }
+}
 
 /**
  * @openapi
@@ -138,6 +229,19 @@ router.get('/:txId/status', async (req: Request, res: Response) => {
       return
     }
 
+    const originAddress = data.originAddress ?? data.originaddress ?? ''
+    const originChain = data.originChain ?? data.originchain ?? ''
+    const htlcCreationHash = getHtlcCreationHashFromTransactionData(data)
+
+    const htlcLockRequest =
+      originChain.toUpperCase() === 'BTC'
+        ? await getSenderHtlcLockRequest({
+            senderAddress: originAddress,
+            txHash: htlcCreationHash,
+            txId
+          })
+        : null
+
     const output = {
       data: {
         transaction_data: {
@@ -152,15 +256,16 @@ router.get('/:txId/status', async (req: Request, res: Response) => {
           txstatus: data.status ?? data.txstatus ?? 'pending',
           amount: Number(data.amount ?? 0),
           creator: data.creator ?? '',
-          originaddress: data.originAddress ?? data.originaddress ?? '',
-          originchain: data.originChain ?? data.originchain ?? '',
+          originaddress: originAddress,
+          originchain: originChain,
           originsymbol: data.originSymbol ?? data.originsymbol ?? '',
           targetsymbol: data.targetSymbol ?? data.targetsymbol ?? '',
           targetaddress: data.targetAddress ?? data.targetaddress ?? '',
           targetchain: data.targetChain ?? data.targetchain ?? '',
           tx_id: data.index ?? data.tx_id ?? txId,
           kimahash: data.kimaTxHash ?? data.kimahash ?? ''
-        }
+        },
+        htlc_lock_request: htlcLockRequest
       }
     } satisfies GraphqlTxStatusResponse
 

@@ -1,3 +1,5 @@
+import { HtlcLockRequestStatus } from './swap-status'
+
 export interface TransactionStatus {
   failreason: string
   pullfailcount: number
@@ -21,6 +23,7 @@ export interface TransactionStatus {
 export interface GraphqlTxStatusResponse {
   data: {
     transaction_data: TransactionStatus
+    htlc_lock_request?: HtlcLockRequestStatus | null
   }
 }
 

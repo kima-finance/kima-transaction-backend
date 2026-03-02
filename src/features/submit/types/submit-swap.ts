@@ -8,6 +8,9 @@ export interface SubmitTransaction extends TransactionDetailsType {
   htlcCreationVout?: number
   htlcExpirationTimestamp?: number
   htlcVersion?: string
+  htlcAddress?: string
+  htlcAmountSats?: string
+  htlcLockId?: string
   senderPubKey?: string
   options?: string
 }

@@ -60,10 +60,15 @@ class ChainsService {
   }
 
   fetchChains = async (): Promise<ChainDto[]> => {
+    const endpoint = `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/chain`
     const response = await fetchWrapper.get<{ Chain: ChainDto[] }>(
-      `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/chains/chain`
+      endpoint
     )
-    return typeof response === 'string' ? [] : response.Chain
+    if (typeof response === 'string') {
+      return []
+    }
+
+    return Array.isArray(response.Chain) ? response.Chain : []
   }
 
   getLocalChainData = (): Chain[] => {
@@ -236,7 +241,6 @@ class ChainsService {
     const result = await fetchWrapper.get<TssPubkeyResponseDto>(
       `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain/kima/tss_pubkey`
     )
-    console.log('[getTssPubkeys] response', result)
     return result
   }
 
