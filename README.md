@@ -8,27 +8,29 @@ This wallet is called Developer Wallet, and it should have enough KIMA token to 
 
 1. Create a `.env` file
 2. Copy the values from `.env.sample` into your `.env` and fill in the values
-3. Repeat for the Docker ENV files `/envs/dev.env` and `/envs/prod.env`
-4. To run locally: `npm run dev`
-5. Otherwise build the `docker-compose` and run it
-6. Use `docker-compose.yml` for dev, `docker-compose-prod.yml` for prod
+3. To run locally: `npm run dev`
+4. If you deploy it in a container or cloud runtime, pass the same environment variables from `.env.sample` through that platform
 
 ## Available Routes
 
 See OpenAPI documentation at `/docs` for more details (only available when `NODE_ENV` is `development`). The following is an overview of how the routes are used together.
 
 - Get various info for the frontend from `/chains/*` like supported chains, tokens, pool addresses, etc.
-- `GET /submit/fee`: get the fees. Use this to determine the total amount for the ERC20 approval. The approval must be completed before submitting the transaction or the transfer will fail.
-- `POST /submit`: submit will initiate the Kima Transaction and return a transaction id that can be used to monitor the status of the transaction
+- `GET /submit/fees`: get the fees and token authorization amounts. Use this before the user completes the required authorization step for the selected origin asset. Depending on the flow, that step may be a regular ERC-20 `approve()`, a Permit2 signature flow, or a BTC HTLC lock.
+- `POST /submit/transfer` and `POST /submit/swap`: initiate a Kima transaction and return the data needed to extract the Kima transaction id
 - `GET /tx/{txId}/status`: use the transaction id from submit to get the transaction status
 
 ### Optional Routes
 
+#### `GET /compliant/enabled`:
+
+Returns whether compliance checks are currently enabled in this backend instance.
+
 #### `GET /compliant`:
 
-If enabled by suppling the `COMPLIANCE_URL` environment variable, this route will check if an address meets compliance requirements- is not sanctioned, blocked, etc.
+If enabled by supplying the `COMPLIANCE_URL` environment variable, this route will check if an address meets compliance requirements- is not sanctioned, blocked, etc.
 
-Use this in the frontend to notify the user an address is not compliant BEFORE doing the ERC20 approval. When compliance is enabled, the `/submit` endpoint will return status `403` (Forbidden) if an address is not compliant.
+Use this in the frontend to notify the user an address is not compliant BEFORE the user completes the authorization step. When compliance is enabled, the submit endpoints will return status `403` (Forbidden) if an address is not compliant.
 
 #### `POST /kyc`:
 
