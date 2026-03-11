@@ -1,7 +1,5 @@
-#
-name: Create and publish a Docker image then deploy to environment
+name: Build, push to ECR and deploy to ECS
 
-# Configures this workflow to run every time a change is pushed to the branch called `release`.
 on:
   push:
     branches:
@@ -13,91 +11,120 @@ on:
       environment:
         description: 'Environment target for manual deployment'
         required: true
+        type: choice
+        options:
+          - staging
+          - testnet
+          - production
 
-# Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
-# There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
-  build-and-push-image:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.ref == 'refs/heads/main' && 'production' || github.ref == 'refs/heads/testnet' && 'testnet' || github.ref == 'refs/heads/staging' && 'staging' || github.event.inputs.environment }}
-    # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
       contents: read
-      packages: write
-      attestations: write
-      id-token: write
-      #
+      id-token: write  # required for OIDC auth to AWS
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      # Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
+
+      # Resolve the environment prefix from the branch name so we can select
+      # the right prefixed secrets/variables (e.g. TESTNET_AWS_ROLE_ARN)
+      - name: Resolve environment prefix
+        id: env
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "prefix=PRODUCTION" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/testnet" ]]; then
+            echo "prefix=TESTNET" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+            echo "prefix=STAGING" >> $GITHUB_OUTPUT
+          else
+            # manual workflow_dispatch
+            INPUT="${{ github.event.inputs.environment }}"
+            echo "prefix=${INPUT^^}" >> $GITHUB_OUTPUT
+          fi
+
+      # Exchange the GitHub OIDC token for temporary AWS credentials — no stored keys needed
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      # This step uses [docker/metadata-action](https://github.com/docker/metadata-action#about) to extract tags and labels that will be applied to the specified image. The `id` "meta" allows the output of this step to be referenced in a subsequent step. The `images` value provides the base name for the tags and labels.
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-      # set up qemu for multiplatform build
-      - name: set up qemu
-        uses: docker/setup-qemu-action@v3
-      # set up buildx for multiplatform build
-      - name: set up buildx
-        uses: docker/setup-buildx-action@v3
-      - name: fetch env
-        run: echo "${{ secrets.ENV_FILE }}" > .env
-      # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
-      # It uses the `context` parameter to define the build's context as the set of files located in the specified path. For more information, see [Usage](https://github.com/docker/build-push-action#usage) in the README of the `docker/build-push-action` repository.
-      # It uses the `tags` and `labels` parameters to tag and label the image with the output from the "meta" step.
-      - name: Build and push Docker image
+          role-to-assume: ${{ steps.env.outputs.prefix == 'TESTNET' && secrets.TESTNET_AWS_ROLE_ARN || steps.env.outputs.prefix == 'STAGING' && secrets.STAGING_AWS_ROLE_ARN || secrets.PRODUCTION_AWS_ROLE_ARN }}
+          aws-region: ${{ steps.env.outputs.prefix == 'TESTNET' && vars.TESTNET_AWS_REGION || steps.env.outputs.prefix == 'STAGING' && vars.STAGING_AWS_REGION || vars.PRODUCTION_AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Resolve remaining env-specific variables into a single output for reuse
+      - name: Resolve environment variables
+        id: cfg
+        run: |
+          PREFIX="${{ steps.env.outputs.prefix }}"
+          if [[ "$PREFIX" == "TESTNET" ]]; then
+            echo "ecr_repo=${{ vars.TESTNET_ECR_REPOSITORY }}" >> $GITHUB_OUTPUT
+            echo "ecs_cluster=${{ vars.TESTNET_ECS_CLUSTER }}" >> $GITHUB_OUTPUT
+            echo "ecs_service=${{ vars.TESTNET_ECS_SERVICE }}" >> $GITHUB_OUTPUT
+            echo "ecs_task_def=${{ vars.TESTNET_ECS_TASK_DEFINITION }}" >> $GITHUB_OUTPUT
+          elif [[ "$PREFIX" == "STAGING" ]]; then
+            echo "ecr_repo=${{ vars.STAGING_ECR_REPOSITORY }}" >> $GITHUB_OUTPUT
+            echo "ecs_cluster=${{ vars.STAGING_ECS_CLUSTER }}" >> $GITHUB_OUTPUT
+            echo "ecs_service=${{ vars.STAGING_ECS_SERVICE }}" >> $GITHUB_OUTPUT
+            echo "ecs_task_def=${{ vars.STAGING_ECS_TASK_DEFINITION }}" >> $GITHUB_OUTPUT
+          else
+            echo "ecr_repo=${{ vars.PRODUCTION_ECR_REPOSITORY }}" >> $GITHUB_OUTPUT
+            echo "ecs_cluster=${{ vars.PRODUCTION_ECS_CLUSTER }}" >> $GITHUB_OUTPUT
+            echo "ecs_service=${{ vars.PRODUCTION_ECS_SERVICE }}" >> $GITHUB_OUTPUT
+            echo "ecs_task_def=${{ vars.PRODUCTION_ECS_TASK_DEFINITION }}" >> $GITHUB_OUTPUT
+          fi
+
+      # Temporary: write .env file from secret until env vars are migrated to ECS task definition
+      - name: Fetch env file
+        run: |
+          PREFIX="${{ steps.env.outputs.prefix }}"
+          if [[ "$PREFIX" == "TESTNET" ]]; then
+            echo "${{ secrets.TESTNET_ENV_FILE }}" > .env
+          elif [[ "$PREFIX" == "STAGING" ]]; then
+            echo "${{ secrets.STAGING_ENV_FILE }}" > .env
+          else
+            echo "${{ secrets.PRODUCTION_ENV_FILE }}" > .env
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push image to ECR
         id: push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-${{ env.ENVIRONMENT_NAME }}
-          labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
-        env:
-          PORT: ${{ vars.PORT }}
-          SERVICE_NAME: ${{ vars.SERVICE_NAME }}
-          ENVIRONMENT_NAME: ${{ vars.ENVIRONMENT_NAME }}
+          # ECS Fargate (x86) only — single platform keeps build fast
+          platforms: linux/amd64
+          tags: ${{ steps.ecr-login.outputs.registry }}/${{ steps.cfg.outputs.ecr_repo }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      # This step generates an artifact attestation for the image, which is an unforgeable statement about where and how it was built. It increases supply chain security for people who consume the image. For more information, see [AUTOTITLE](/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds).
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@v2
+      # Pull the current task definition JSON and update only the app container image
+      - name: Download current task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ steps.cfg.outputs.ecs_task_def }} \
+            --query taskDefinition \
+            > task-definition.json
+
+      - name: Render new task definition with updated image
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
+          task-definition: task-definition.json
+          container-name: app
+          image: ${{ steps.ecr-login.outputs.registry }}/${{ steps.cfg.outputs.ecr_repo }}:latest
 
-      - name: configure docker context with certificate
-        run: |
-          echo "${{ secrets.SWARM_API_CERT }}" > swarm-api.crt
-          echo "${{ secrets.SWARM_API_KEY }}" > swarm-api.key
-          docker context create swarm --description "swarm" --docker "host=tcp://${{ secrets.SWARM_API_ENDPOINT }},cert=swarm-api.crt,key=swarm-api.key"
-          docker context use swarm
-          docker version
-
-      - name: deploy docker stack
-        run: |
-          cat swarm-docker-compose-template.yml | envsubst > swarm-docker-compose.yml
-          docker stack deploy -c swarm-docker-compose.yml --with-registry-auth --prune -d ${{ env.STACK_NAME }}
-        env:
-          PORT: ${{ vars.PORT }}
-          SERVICE_NAME: ${{ vars.SERVICE_NAME }}
-          ENVIRONMENT_NAME: ${{ vars.ENVIRONMENT_NAME }}
-          STACK_NAME: ${{ vars.STACK_NAME }}
-
-      - name: restore docker context
-        run: docker context use default 
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          service: ${{ steps.cfg.outputs.ecs_service }}
+          cluster: ${{ steps.cfg.outputs.ecs_cluster }}
+          wait-for-service-stability: true
