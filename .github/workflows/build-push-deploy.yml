@@ -95,9 +95,9 @@ jobs:
           else
             printf '%s' "$PRODUCTION_ENV" > .env
           fi
-          # Strip comment lines, blank lines, and surrounding quotes from values
-          CLEAN=$(grep -v '^\s*#' .env | grep -v '^\s*$' | grep '=' | \
-            sed "s/='\(.*\)'$/=\1/" | sed 's/="\(.*\)"$/=\1/')
+          # Normalize line endings, strip comment/blank lines, strip surrounding quotes from values
+          CLEAN=$(tr -d '\r' < .env | grep -v '^\s*#' | grep -v '^\s*$' | grep '=' | \
+            sed "s/='\(.*\)'\s*$/=\1/" | sed 's/="\(.*\)"\s*$/=\1/' | sed 's/\s*$//')
           {
             echo "env_vars<<EOF"
             echo "$CLEAN"
