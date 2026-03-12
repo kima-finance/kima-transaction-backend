@@ -78,17 +78,31 @@ jobs:
             echo "ecs_task_def=${{ vars.PRODUCTION_ECS_TASK_DEFINITION }}" >> $GITHUB_OUTPUT
           fi
 
-      # Temporary: write .env file from secret until env vars are migrated to ECS task definition
-      - name: Fetch env file
+      # Parse the env-file secret into a cleaned KEY=VALUE list for injection into the ECS task definition.
+      # Secrets are passed via env vars (masked) rather than inline expressions for safe handling.
+      - name: Fetch env file and parse for ECS
+        id: envfile
+        env:
+          TESTNET_ENV: ${{ secrets.TESTNET_ENV_FILE }}
+          STAGING_ENV: ${{ secrets.STAGING_ENV_FILE }}
+          PRODUCTION_ENV: ${{ secrets.PRODUCTION_ENV_FILE }}
         run: |
           PREFIX="${{ steps.env.outputs.prefix }}"
           if [[ "$PREFIX" == "TESTNET" ]]; then
-            echo "${{ secrets.TESTNET_ENV_FILE }}" > .env
+            printf '%s' "$TESTNET_ENV" > .env
           elif [[ "$PREFIX" == "STAGING" ]]; then
-            echo "${{ secrets.STAGING_ENV_FILE }}" > .env
+            printf '%s' "$STAGING_ENV" > .env
           else
-            echo "${{ secrets.PRODUCTION_ENV_FILE }}" > .env
+            printf '%s' "$PRODUCTION_ENV" > .env
           fi
+          # Strip comment lines, blank lines, and surrounding quotes from values
+          CLEAN=$(grep -v '^\s*#' .env | grep -v '^\s*$' | grep '=' | \
+            sed "s/='\(.*\)'$/=\1/" | sed 's/="\(.*\)"$/=\1/')
+          {
+            echo "env_vars<<EOF"
+            echo "$CLEAN"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -120,6 +134,7 @@ jobs:
           task-definition: task-definition.json
           container-name: app
           image: ${{ steps.ecr-login.outputs.registry }}/${{ steps.cfg.outputs.ecr_repo }}:latest
+          environment-variables: ${{ steps.envfile.outputs.env_vars }}
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
