@@ -15,7 +15,7 @@ on:
         options:
           - staging
           - testnet
-          - production
+          - mainnet
 
 jobs:
   build-and-deploy:
@@ -28,55 +28,39 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Resolve the environment prefix from the branch name so we can select
-      # the right prefixed secrets/variables (e.g. TESTNET_AWS_ROLE_ARN)
-      - name: Resolve environment prefix
+      # Resolve environment name and secret prefix from branch
+      - name: Resolve environment
         id: env
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "prefix=PRODUCTION" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == "refs/heads/testnet" ]]; then
-            echo "prefix=TESTNET" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
-            echo "prefix=STAGING" >> $GITHUB_OUTPUT
-          else
-            # manual workflow_dispatch
-            INPUT="${{ github.event.inputs.environment }}"
-            echo "prefix=${INPUT^^}" >> $GITHUB_OUTPUT
-          fi
+          case "${{ github.ref }}" in
+            refs/heads/main)     ENV=mainnet;  PREFIX=MAINNET ;;
+            refs/heads/testnet)  ENV=testnet;  PREFIX=TESTNET ;;
+            refs/heads/staging)  ENV=staging;  PREFIX=STAGING ;;
+            *)
+              # manual workflow_dispatch
+              INPUT="${{ github.event.inputs.environment }}"
+              PREFIX="${INPUT^^}"
+              if [[ "$PREFIX" == "MAINNET" ]]; then ENV=mainnet; else ENV="${INPUT}"; fi
+              ;;
+          esac
+          REPO="${{ github.event.repository.name }}"
+          echo "env=$ENV"                      >> $GITHUB_OUTPUT
+          echo "prefix=$PREFIX"                >> $GITHUB_OUTPUT
+          echo "ecr_repo=${REPO}-${ENV}"       >> $GITHUB_OUTPUT
+          echo "ecs_cluster=kima-${ENV}"       >> $GITHUB_OUTPUT
+          echo "ecs_service=${REPO}-${ENV}"    >> $GITHUB_OUTPUT
+          echo "ecs_task_def=${REPO}-${ENV}"   >> $GITHUB_OUTPUT
 
       # Exchange the GitHub OIDC token for temporary AWS credentials — no stored keys needed
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: ${{ steps.env.outputs.prefix == 'TESTNET' && secrets.TESTNET_AWS_ROLE_ARN || steps.env.outputs.prefix == 'STAGING' && secrets.STAGING_AWS_ROLE_ARN || secrets.PRODUCTION_AWS_ROLE_ARN }}
-          aws-region: ${{ steps.env.outputs.prefix == 'TESTNET' && vars.TESTNET_AWS_REGION || steps.env.outputs.prefix == 'STAGING' && vars.STAGING_AWS_REGION || vars.PRODUCTION_AWS_REGION }}
+          role-to-assume: ${{ steps.env.outputs.prefix == 'TESTNET' && secrets.TESTNET_AWS_ROLE_ARN || steps.env.outputs.prefix == 'STAGING' && secrets.STAGING_AWS_ROLE_ARN || secrets.MAINNET_AWS_ROLE_ARN }}
+          aws-region: ${{ steps.env.outputs.prefix == 'TESTNET' && vars.TESTNET_AWS_REGION || steps.env.outputs.prefix == 'STAGING' && vars.STAGING_AWS_REGION || vars.MAINNET_AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
-
-      # Resolve remaining env-specific variables into a single output for reuse
-      - name: Resolve environment variables
-        id: cfg
-        run: |
-          PREFIX="${{ steps.env.outputs.prefix }}"
-          if [[ "$PREFIX" == "TESTNET" ]]; then
-            echo "ecr_repo=${{ vars.TESTNET_ECR_REPOSITORY }}" >> $GITHUB_OUTPUT
-            echo "ecs_cluster=${{ vars.TESTNET_ECS_CLUSTER }}" >> $GITHUB_OUTPUT
-            echo "ecs_service=${{ vars.TESTNET_ECS_SERVICE }}" >> $GITHUB_OUTPUT
-            echo "ecs_task_def=${{ vars.TESTNET_ECS_TASK_DEFINITION }}" >> $GITHUB_OUTPUT
-          elif [[ "$PREFIX" == "STAGING" ]]; then
-            echo "ecr_repo=${{ vars.STAGING_ECR_REPOSITORY }}" >> $GITHUB_OUTPUT
-            echo "ecs_cluster=${{ vars.STAGING_ECS_CLUSTER }}" >> $GITHUB_OUTPUT
-            echo "ecs_service=${{ vars.STAGING_ECS_SERVICE }}" >> $GITHUB_OUTPUT
-            echo "ecs_task_def=${{ vars.STAGING_ECS_TASK_DEFINITION }}" >> $GITHUB_OUTPUT
-          else
-            echo "ecr_repo=${{ vars.PRODUCTION_ECR_REPOSITORY }}" >> $GITHUB_OUTPUT
-            echo "ecs_cluster=${{ vars.PRODUCTION_ECS_CLUSTER }}" >> $GITHUB_OUTPUT
-            echo "ecs_service=${{ vars.PRODUCTION_ECS_SERVICE }}" >> $GITHUB_OUTPUT
-            echo "ecs_task_def=${{ vars.PRODUCTION_ECS_TASK_DEFINITION }}" >> $GITHUB_OUTPUT
-          fi
 
       # Parse the env-file secret into a cleaned KEY=VALUE list for injection into the ECS task definition.
       # Secrets are passed via env vars (masked) rather than inline expressions for safe handling.
@@ -85,16 +69,14 @@ jobs:
         env:
           TESTNET_ENV: ${{ secrets.TESTNET_ENV_FILE }}
           STAGING_ENV: ${{ secrets.STAGING_ENV_FILE }}
-          PRODUCTION_ENV: ${{ secrets.PRODUCTION_ENV_FILE }}
+          MAINNET_ENV: ${{ secrets.MAINNET_ENV_FILE }}
         run: |
           PREFIX="${{ steps.env.outputs.prefix }}"
-          if [[ "$PREFIX" == "TESTNET" ]]; then
-            printf '%s' "$TESTNET_ENV" > .env
-          elif [[ "$PREFIX" == "STAGING" ]]; then
-            printf '%s' "$STAGING_ENV" > .env
-          else
-            printf '%s' "$PRODUCTION_ENV" > .env
-          fi
+          case "$PREFIX" in
+            TESTNET)    printf '%s' "$TESTNET_ENV" > .env ;;
+            STAGING)    printf '%s' "$STAGING_ENV" > .env ;;
+            MAINNET) printf '%s' "$MAINNET_ENV" > .env ;;
+          esac
           # Normalize line endings, strip comment/blank lines, strip surrounding quotes from values
           CLEAN=$(tr -d '\r' < .env | grep -v '^\s*#' | grep -v '^\s*$' | grep '=' | \
             sed "s/='\(.*\)'\s*$/=\1/" | sed 's/="\(.*\)"\s*$/=\1/' | sed 's/\s*$//')
@@ -115,7 +97,7 @@ jobs:
           push: true
           # ECS Fargate (x86) only — single platform keeps build fast
           platforms: linux/amd64
-          tags: ${{ steps.ecr-login.outputs.registry }}/${{ steps.cfg.outputs.ecr_repo }}:latest
+          tags: ${{ steps.ecr-login.outputs.registry }}/${{ steps.env.outputs.ecr_repo }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -123,7 +105,7 @@ jobs:
       - name: Download current task definition
         run: |
           aws ecs describe-task-definition \
-            --task-definition ${{ steps.cfg.outputs.ecs_task_def }} \
+            --task-definition ${{ steps.env.outputs.ecs_task_def }} \
             --query taskDefinition \
             > task-definition.json
 
@@ -133,13 +115,13 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: app
-          image: ${{ steps.ecr-login.outputs.registry }}/${{ steps.cfg.outputs.ecr_repo }}:latest
+          image: ${{ steps.ecr-login.outputs.registry }}/${{ steps.env.outputs.ecr_repo }}:latest
           environment-variables: ${{ steps.envfile.outputs.env_vars }}
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.render-task-def.outputs.task-definition }}
-          service: ${{ steps.cfg.outputs.ecs_service }}
-          cluster: ${{ steps.cfg.outputs.ecs_cluster }}
+          service: ${{ steps.env.outputs.ecs_service }}
+          cluster: ${{ steps.env.outputs.ecs_cluster }}
           wait-for-service-stability: true
