@@ -62,6 +62,17 @@ jobs:
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Ensure ECR repository exists
+        run: |
+          aws ecr describe-repositories \
+            --repository-names "${{ steps.env.outputs.ecr_repo }}" \
+            --region "${{ steps.env.outputs.prefix == 'TESTNET' && vars.TESTNET_AWS_REGION || steps.env.outputs.prefix == 'STAGING' && vars.STAGING_AWS_REGION || vars.MAINNET_AWS_REGION }}" \
+            > /dev/null 2>&1 || \
+          aws ecr create-repository \
+            --repository-name "${{ steps.env.outputs.ecr_repo }}" \
+            --image-scanning-configuration scanOnPush=true \
+            --region "${{ steps.env.outputs.prefix == 'TESTNET' && vars.TESTNET_AWS_REGION || steps.env.outputs.prefix == 'STAGING' && vars.STAGING_AWS_REGION || vars.MAINNET_AWS_REGION }}"
+
       # Parse the env-file secret into a cleaned KEY=VALUE list for injection into the ECS task definition.
       # Secrets are passed via env vars (masked) rather than inline expressions for safe handling.
       - name: Fetch env file and parse for ECS
