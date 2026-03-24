@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment target for manual deployment'
+        description: Environment to deploy to
         required: true
         type: choice
         options:
@@ -18,76 +18,75 @@ on:
           - mainnet
 
 jobs:
-  build-and-deploy:
+  # Resolves the target environment from the branch name or manual input.
+  # A separate job is required because `environment:` is evaluated before any
+  # steps run, so it cannot be set dynamically within a single job.
+  resolve:
     runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.resolve.outputs.environment }}
+    steps:
+      - name: Resolve environment
+        id: resolve
+        run: |
+          case "${{ github.ref }}" in
+            refs/heads/main)    echo "environment=mainnet"  >> $GITHUB_OUTPUT ;;
+            refs/heads/testnet) echo "environment=testnet"  >> $GITHUB_OUTPUT ;;
+            refs/heads/staging) echo "environment=staging"  >> $GITHUB_OUTPUT ;;
+            *)                  echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT ;;
+          esac
+
+  build-and-deploy:
+    needs: resolve
+    runs-on: ubuntu-latest
+    environment: ${{ needs.resolve.outputs.environment }}
     permissions:
       contents: read
       id-token: write  # required for OIDC auth to AWS
+    env:
+      ENV: ${{ needs.resolve.outputs.environment }}
+      REPO: ${{ github.event.repository.name }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Resolve environment name and secret prefix from branch
-      - name: Resolve environment
-        id: env
-        run: |
-          case "${{ github.ref }}" in
-            refs/heads/main)     ENV=mainnet;  PREFIX=MAINNET ;;
-            refs/heads/testnet)  ENV=testnet;  PREFIX=TESTNET ;;
-            refs/heads/staging)  ENV=staging;  PREFIX=STAGING ;;
-            *)
-              # manual workflow_dispatch
-              INPUT="${{ github.event.inputs.environment }}"
-              PREFIX="${INPUT^^}"
-              if [[ "$PREFIX" == "MAINNET" ]]; then ENV=mainnet; else ENV="${INPUT}"; fi
-              ;;
-          esac
-          REPO="${{ github.event.repository.name }}"
-          echo "env=$ENV"                      >> $GITHUB_OUTPUT
-          echo "prefix=$PREFIX"                >> $GITHUB_OUTPUT
-          echo "ecr_repo=${REPO}-${ENV}"       >> $GITHUB_OUTPUT
-          echo "ecs_cluster=kima-${ENV}"       >> $GITHUB_OUTPUT
-          echo "ecs_service=${REPO}-${ENV}"    >> $GITHUB_OUTPUT
-          echo "ecs_task_def=${REPO}-${ENV}"   >> $GITHUB_OUTPUT
-
-      # Exchange the GitHub OIDC token for temporary AWS credentials — no stored keys needed
+      # Exchange the GitHub OIDC token for temporary AWS credentials — no stored keys needed.
+      # AWS_ROLE_ARN and AWS_REGION are resolved from the GitHub Environment declared above.
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: ${{ steps.env.outputs.prefix == 'TESTNET' && secrets.TESTNET_AWS_ROLE_ARN || steps.env.outputs.prefix == 'STAGING' && secrets.STAGING_AWS_ROLE_ARN || secrets.MAINNET_AWS_ROLE_ARN }}
-          aws-region: ${{ steps.env.outputs.prefix == 'TESTNET' && vars.TESTNET_AWS_REGION || steps.env.outputs.prefix == 'STAGING' && vars.STAGING_AWS_REGION || vars.MAINNET_AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
+      # Idempotent — succeeds whether the repository already exists or is newly created.
       - name: Ensure ECR repository exists
         run: |
-          if ! aws ecr describe-repositories --repository-names "${{ steps.env.outputs.ecr_repo }}" > /dev/null 2>&1; then
-            aws ecr create-repository \
-              --repository-name "${{ steps.env.outputs.ecr_repo }}" \
-              --image-scanning-configuration scanOnPush=true
-          fi
+          aws ecr create-repository \
+            --repository-name "$REPO-$ENV" \
+            --image-scanning-configuration scanOnPush=true \
+            2>&1 || true
 
-      # Parse the env-file secret into a cleaned KEY=VALUE list for injection into the ECS task definition.
-      # Secrets are passed via env vars (masked) rather than inline expressions for safe handling.
-      - name: Fetch env file and parse for ECS
+      # ENV_FILE is passed via env var (masked by GitHub) rather than inline
+      # to prevent the secret value appearing in the workflow expression log.
+      - name: Parse env file for ECS
         id: envfile
         env:
-          TESTNET_ENV: ${{ secrets.TESTNET_ENV_FILE }}
-          STAGING_ENV: ${{ secrets.STAGING_ENV_FILE }}
-          MAINNET_ENV: ${{ secrets.MAINNET_ENV_FILE }}
+          ENV_FILE: ${{ secrets.ENV_FILE }}
         run: |
-          PREFIX="${{ steps.env.outputs.prefix }}"
-          case "$PREFIX" in
-            TESTNET)    printf '%s' "$TESTNET_ENV" > .env ;;
-            STAGING)    printf '%s' "$STAGING_ENV" > .env ;;
-            MAINNET) printf '%s' "$MAINNET_ENV" > .env ;;
-          esac
-          # Normalize line endings, strip comment/blank lines, strip surrounding quotes from values
-          CLEAN=$(tr -d '\r' < .env | grep -v '^\s*#' | grep -v '^\s*$' | grep '=' | \
-            sed "s/='\(.*\)'\s*$/=\1/" | sed 's/="\(.*\)"\s*$/=\1/' | sed 's/\s*$//')
+          printf '%s' "$ENV_FILE" > .env
+          # Normalize line endings, strip comments/blanks, strip surrounding quotes
+          CLEAN=$(tr -d '\r' < .env \
+            | grep -v '^\s*#' \
+            | grep -v '^\s*$' \
+            | grep '=' \
+            | sed "s/='\(.*\)'\s*$/=\1/" \
+            | sed 's/="\(.*\)"\s*$/=\1/' \
+            | sed 's/\s*$//')
           {
             echo "env_vars<<EOF"
             echo "$CLEAN"
@@ -98,22 +97,21 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Build and push image to ECR
-        id: push
         uses: docker/build-push-action@v7
         with:
           context: .
           push: true
-          # ECS Fargate (x86) only — single platform keeps build fast
-          platforms: linux/amd64
-          tags: ${{ steps.ecr-login.outputs.registry }}/${{ steps.env.outputs.ecr_repo }}:latest
+          platforms: linux/amd64  # ECS Fargate (x86) only — single platform keeps build fast
+          tags: ${{ steps.ecr-login.outputs.registry }}/${{ env.REPO }}-${{ env.ENV }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Pull the current task definition JSON and update only the app container image
+      # Fetch the live task definition so we only update the image — all other
+      # settings (secrets, sidecar config) are preserved as-is from ECS.
       - name: Download current task definition
         run: |
           aws ecs describe-task-definition \
-            --task-definition ${{ steps.env.outputs.ecs_task_def }} \
+            --task-definition "$REPO-$ENV" \
             --query taskDefinition \
             > task-definition.json
 
@@ -123,13 +121,13 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: app
-          image: ${{ steps.ecr-login.outputs.registry }}/${{ steps.env.outputs.ecr_repo }}:latest
+          image: ${{ steps.ecr-login.outputs.registry }}/${{ env.REPO }}-${{ env.ENV }}:latest
           environment-variables: ${{ steps.envfile.outputs.env_vars }}
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.render-task-def.outputs.task-definition }}
-          service: ${{ steps.env.outputs.ecs_service }}
-          cluster: ${{ steps.env.outputs.ecs_cluster }}
+          service: ${{ env.REPO }}-${{ env.ENV }}
+          cluster: kima-${{ env.ENV }}
           wait-for-service-stability: true
