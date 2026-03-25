@@ -1,7 +1,5 @@
-#
-name: Create and publish a Docker image then deploy to environment
+name: Build, push to ECR and deploy to ECS
 
-# Configures this workflow to run every time a change is pushed to the branch called `release`.
 on:
   push:
     branches:
@@ -11,93 +9,125 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment target for manual deployment'
+        description: Environment to deploy to
         required: true
+        type: choice
+        options:
+          - staging
+          - testnet
+          - mainnet
 
-# Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
-# There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
-  build-and-push-image:
+  # Resolves the target environment from the branch name or manual input.
+  # A separate job is required because `environment:` is evaluated before any
+  # steps run, so it cannot be set dynamically within a single job.
+  resolve:
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.ref == 'refs/heads/main' && 'production' || github.ref == 'refs/heads/testnet' && 'testnet' || github.ref == 'refs/heads/staging' && 'staging' || github.event.inputs.environment }}
-    # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
+    outputs:
+      environment: ${{ steps.resolve.outputs.environment }}
+    steps:
+      - name: Resolve environment
+        id: resolve
+        run: |
+          case "${{ github.ref }}" in
+            refs/heads/main)    echo "environment=mainnet"  >> $GITHUB_OUTPUT ;;
+            refs/heads/testnet) echo "environment=testnet"  >> $GITHUB_OUTPUT ;;
+            refs/heads/staging) echo "environment=staging"  >> $GITHUB_OUTPUT ;;
+            *)                  echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT ;;
+          esac
+
+  build-and-deploy:
+    needs: resolve
+    runs-on: ubuntu-latest
+    environment: ${{ needs.resolve.outputs.environment }}
     permissions:
       contents: read
-      packages: write
-      attestations: write
-      id-token: write
-      #
+      id-token: write  # required for OIDC auth to AWS
+    env:
+      ENV: ${{ needs.resolve.outputs.environment }}
+      REPO: ${{ github.event.repository.name }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      # Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
+
+      # Exchange the GitHub OIDC token for temporary AWS credentials — no stored keys needed.
+      # AWS_ROLE_ARN and AWS_REGION are resolved from the GitHub Environment declared above.
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      # This step uses [docker/metadata-action](https://github.com/docker/metadata-action#about) to extract tags and labels that will be applied to the specified image. The `id` "meta" allows the output of this step to be referenced in a subsequent step. The `images` value provides the base name for the tags and labels.
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-      # set up qemu for multiplatform build
-      - name: set up qemu
-        uses: docker/setup-qemu-action@v3
-      # set up buildx for multiplatform build
-      - name: set up buildx
-        uses: docker/setup-buildx-action@v3
-      - name: fetch env
-        run: echo "${{ secrets.ENV_FILE }}" > .env
-      # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
-      # It uses the `context` parameter to define the build's context as the set of files located in the specified path. For more information, see [Usage](https://github.com/docker/build-push-action#usage) in the README of the `docker/build-push-action` repository.
-      # It uses the `tags` and `labels` parameters to tag and label the image with the output from the "meta" step.
-      - name: Build and push Docker image
-        id: push
-        uses: docker/build-push-action@v6
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Idempotent — succeeds whether the repository already exists or is newly created.
+      - name: Ensure ECR repository exists
+        run: |
+          aws ecr create-repository \
+            --repository-name "$REPO-$ENV" \
+            --image-scanning-configuration scanOnPush=true \
+            2>&1 || true
+
+      # ENV_FILE is passed via env var (masked by GitHub) rather than inline
+      # to prevent the secret value appearing in the workflow expression log.
+      - name: Parse env file for ECS
+        id: envfile
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+        run: |
+          printf '%s' "$ENV_FILE" > .env
+          # Normalize line endings, strip comments/blanks, strip surrounding quotes
+          CLEAN=$(tr -d '\r' < .env \
+            | grep -v '^\s*#' \
+            | grep -v '^\s*$' \
+            | grep '=' \
+            | sed "s/='\(.*\)'\s*$/=\1/" \
+            | sed 's/="\(.*\)"\s*$/=\1/' \
+            | sed 's/\s*$//')
+          {
+            echo "env_vars<<EOF"
+            echo "$CLEAN"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push image to ECR
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-${{ env.ENVIRONMENT_NAME }}
-          labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
-        env:
-          PORT: ${{ vars.PORT }}
-          SERVICE_NAME: ${{ vars.SERVICE_NAME }}
-          ENVIRONMENT_NAME: ${{ vars.ENVIRONMENT_NAME }}
+          platforms: linux/amd64  # ECS Fargate (x86) only — single platform keeps build fast
+          tags: ${{ steps.ecr-login.outputs.registry }}/${{ env.REPO }}-${{ env.ENV }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      # This step generates an artifact attestation for the image, which is an unforgeable statement about where and how it was built. It increases supply chain security for people who consume the image. For more information, see [AUTOTITLE](/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds).
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@v2
+      # Fetch the live task definition so we only update the image — all other
+      # settings (secrets, sidecar config) are preserved as-is from ECS.
+      - name: Download current task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition "$REPO-$ENV" \
+            --query taskDefinition \
+            > task-definition.json
+
+      - name: Render new task definition with updated image
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
+          task-definition: task-definition.json
+          container-name: app
+          image: ${{ steps.ecr-login.outputs.registry }}/${{ env.REPO }}-${{ env.ENV }}:latest
+          environment-variables: ${{ steps.envfile.outputs.env_vars }}
 
-      - name: configure docker context with certificate
-        run: |
-          echo "${{ secrets.SWARM_API_CERT }}" > swarm-api.crt
-          echo "${{ secrets.SWARM_API_KEY }}" > swarm-api.key
-          docker context create swarm --description "swarm" --docker "host=tcp://${{ secrets.SWARM_API_ENDPOINT }},cert=swarm-api.crt,key=swarm-api.key"
-          docker context use swarm
-          docker version
-
-      - name: deploy docker stack
-        run: |
-          cat swarm-docker-compose-template.yml | envsubst > swarm-docker-compose.yml
-          docker stack deploy -c swarm-docker-compose.yml --with-registry-auth --prune -d ${{ env.STACK_NAME }}
-        env:
-          PORT: ${{ vars.PORT }}
-          SERVICE_NAME: ${{ vars.SERVICE_NAME }}
-          ENVIRONMENT_NAME: ${{ vars.ENVIRONMENT_NAME }}
-          STACK_NAME: ${{ vars.STACK_NAME }}
-
-      - name: restore docker context
-        run: docker context use default 
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          service: ${{ env.REPO }}-${{ env.ENV }}
+          cluster: kima-${{ env.ENV }}
+          wait-for-service-stability: true
