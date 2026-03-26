@@ -17,6 +17,7 @@ import { ChainName } from '../types/chain-name'
 import { AvailableChainsResponseDto } from '../types/available-chains-response.dto'
 import ChainsService from '../services/chains.service'
 import { ChainDto } from '../types/chain.dto'
+import backendPackageJson from '../../../../package.json'
 
 const chainsRouter = Router()
 const baseUrl = `${ENV.KIMA_BACKEND_NODE_PROVIDER_QUERY}/kima-finance/kima-blockchain`
@@ -73,6 +74,8 @@ chainsRouter.get('/chain', async (_req, res: Response) => {
  *                 paymentPartnerId:
  *                   type: string
  *                   nullable: true
+ *                 backendVersion:
+ *                   type: string
  *       500:
  *         description: Failed to get environment info
  */
@@ -99,7 +102,8 @@ chainsRouter.get('/env', async (_req, res: Response) => {
     env: ENV.KIMA_ENVIRONMENT as ChainEnv,
     kimaExplorer: ENV.KIMA_EXPLORER as string,
     transferLimitMaxUSDT: maxAmount,
-    paymentPartnerId: ENV.PAYMENT_PARTNER_ID as string
+    paymentPartnerId: ENV.PAYMENT_PARTNER_ID as string,
+    backendVersion: backendPackageJson.version
   })
 })
 
